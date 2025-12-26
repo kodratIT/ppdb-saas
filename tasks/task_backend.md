@@ -1,0 +1,129 @@
+## Relevant Files
+
+- `src/lib/db/schema.ts` - Database schema definitions
+- `src/lib/db/client.ts` - PostgreSQL client (Neon)
+- `src/lib/api/tenants.ts` - Tenant management API
+- `src/lib/api/schools.ts` - School management API
+- `src/lib/api/users.ts` - User management API
+- `src/lib/api/registrations.ts` - Registration logic
+- `src/lib/api/selection.ts` - Selection algorithm
+- `src/lib/api/payments.ts` - Payment integration
+- `src/lib/api/documents.ts` - Document handling
+- `src/lib/api/daily-quotas.ts` - Quota management
+- `src/lib/services/selection-algorithm.service.ts` - Selection logic
+- `src/lib/services/verification.service.ts` - Document verification
+- `src/lib/services/quota.service.ts` - Quota calculation
+- `src/lib/middleware/tenant-resolver.ts` - Tenant middleware
+- `src/lib/middleware/auth.ts` - Authentication middleware
+- `tests/integration/registration.test.ts` - Integration tests
+- `tests/unit/selection.test.ts` - Unit tests
+
+### Notes
+
+- Use Hono framework for Cloudflare Workers
+- Use Drizzle ORM for PostgreSQL
+- Use R2 for file storage
+- Unit tests should be placed alongside the code files they test
+- Use `npm run test` to run tests
+- API should follow RESTful conventions
+
+## Instructions for Completing Tasks
+
+**IMPORTANT:** As you complete each task, check it off by changing `- [ ]` to `- [x]`. Update after completing each sub-task.
+
+## Tasks
+
+- [ ] 0.0 Create feature branch
+  - [ ] 0.1 Create and checkout new branch (`git checkout -b feature/ppdb-saas-backend`)
+- [ ] 1.0 Setup Cloudflare Workers and Hono
+  - [ ] 1.1 Initialize Hono project
+  - [ ] 1.2 Configure Cloudflare Workers binding
+  - [ ] 1.3 Setup PostgreSQL connection (Neon)
+  - [ ] 1.4 Configure R2 storage binding
+  - [ ] 1.5 Setup environment variables management
+- [ ] 2.0 Implement database schema and migrations
+  - [ ] 2.1 Create Drizzle schema definitions
+  - [ ] 2.2 Write migration scripts
+  - [ ] 2.3 Implement tenant isolation logic
+  - [ ] 2.4 Add indexes for performance
+  - [ ] 2.5 Create seed data scripts
+- [ ] 3.0 Build authentication and authorization
+  - [ ] 3.1 Implement Clerk webhooks
+  - [ ] 3.2 Create user synchronization service
+  - [ ] 3.3 Implement SSO across tenants
+  - [ ] 3.4 Build role-based access control
+  - [ ] 3.5 Implement session management
+- [ ] 4.0 Develop tenant management API
+  - [ ] 4.1 Create tenant CRUD endpoints
+  - [ ] 4.2 Implement tenant resolution from subdomain
+  - [ ] 4.3 Build subscription management
+  - [ ] 4.4 Implement tenant limits enforcement
+  - [ ] 4.5 Add tenant health check endpoint
+- [ ] 5.0 Implement school management API
+  - [ ] 5.1 Create school CRUD endpoints
+  - [ ] 5.2 Implement school types and levels (SD/SMP/SMA/SMK)
+  - [ ] 5.3 Build school capacity management
+  - [ ] 5.4 Implement school configuration (paths, quotas)
+  - [ ] 5.5 Add school validation rules
+- [ ] 6.0 Develop registration periods API
+  - [ ] 6.1 Create period CRUD endpoints
+  - [ ] 6.2 Implement period status (open/closed)
+  - [ ] 6.3 Build path configuration (zonasi, prestasi, afirmasi, mutasi, anak-guru, internal)
+  - [ ] 6.4 Implement path-specific rules and quotas
+  - [ ] 6.5 Add period conflict detection
+- [ ] 7.0 Build registration API
+  - [ ] 7.1 Create registration submission endpoint
+  - [ ] 7.2 Implement student data validation
+  - [ ] 7.3 Build parent/guardian data storage
+  - [ ] 7.4 Implement multi-school registration (max 3)
+  - [ ] 7.5 Add duplicate registration prevention
+  - [ ] 7.6 Implement registration status tracking
+- [ ] 8.0 Implement document management
+  - [ ] 8.1 Create document upload endpoints (R2)
+  - [ ] 8.2 Implement file type validation
+  - [ ] 8.3 Build document metadata storage
+  - [ ] 8.4 Implement document versioning
+  - [ ] 8.5 Add document encryption at rest
+- [ ] 9.0 Develop document verification system
+  - [ ] 9.1 Implement manual verification workflow
+  - [ ] 9.2 Build verification status tracking
+  - [ ] 9.3 Implement Dukcapil integration (mock/real)
+  - [ ] 9.4 Add verification history
+  - [ ] 9.5 Create verification notification system
+- [ ] 10.0 Implement selection algorithm
+  - [ ] 10.1 Build zonasi distance calculation
+  - [ ] 10.2 Implement prestige score calculation
+  - [ ] 10.3 Build ranking system per path
+  - [ ] 10.4 Implement quota allocation
+  - [ ] 10.5 Create selection results storage
+  - [ ] 10.6 Add selection audit log
+- [ ] 11.0 Build daily quota management
+  - [ ] 11.1 Implement daily quota allocation
+  - [ ] 11.2 Build quota tracking system
+  - [ ] 11.3 Create quota reset mechanism
+  - [ ] 11.4 Add quota notification triggers
+  - [ ] 11.5 Implement quota fallback handling
+- [ ] 12.0 Integrate payment gateways
+  - [ ] 12.1 Implement Midtrans integration
+  - [ ] 12.2 Implement Xendit integration
+  - [ ] 12.3 Build payment status webhooks
+  - [ ] 12.4 Create payment reconciliation
+  - [ ] 12.5 Implement payment refund logic
+- [ ] 13.0 Create reporting and analytics API
+  - [ ] 13.1 Build registration statistics endpoints
+  - [ ] 13.2 Implement selection results reporting
+  - [ ] 13.3 Create demographic data aggregation
+  - [ ] 13.4 Build custom report builder
+  - [ ] 13.5 Add export functionality (CSV, PDF)
+- [ ] 14.0 Implement notification system
+  - [ ] 14.1 Create email notification templates
+  - [ ] 14.2 Build SMS notification system
+  - [ ] 14.3 Implement in-app notifications
+  - [ ] 14.4 Add notification preferences
+  - [ ] 14.5 Create notification history
+- [ ] 15.0 Add API security and rate limiting
+  - [ ] 15.1 Implement CORS configuration
+  - [ ] 15.2 Add request rate limiting
+  - [ ] 15.3 Build input sanitization
+  - [ ] 15.4 Implement SQL injection prevention
+  - [ ] 15.5 Add request logging and monitoring
