@@ -7,9 +7,26 @@
   import CardFooter from "$lib/components/ui/card-footer.svelte";
   import Button from "$lib/components/ui/button.svelte";
   import Input from "$lib/components/ui/input.svelte";
+  import { onMount } from "svelte";
+  import { isAuthenticated, clerkStore } from "$lib/auth";
+  import { get } from "svelte/store";
 
   let email = "";
   let password = "";
+  let authStatus = "Checking...";
+
+  onMount(async () => {
+    try {
+      const clerkInstance = get(clerkStore);
+      console.log("Clerk Client:", clerkInstance);
+      const authState = isAuthenticated();
+      authStatus = authState ? "Authenticated" : "Not authenticated";
+      console.log("Auth Status:", authStatus);
+    } catch (error) {
+      console.error("Clerk connection error:", error);
+      authStatus = "Connection failed";
+    }
+  });
 </script>
 
 <div
