@@ -47,6 +47,5 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "clerk-sveltekit": "^0.4.2"
   }
 }
