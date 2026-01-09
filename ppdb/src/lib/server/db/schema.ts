@@ -12,15 +12,21 @@ export const tenants = pgTable('tenants', {
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-export const users = pgTable('users', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	email: text('email').notNull(),
-	tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
-}, (t) => ({
-	unq: unique().on(t.email, t.tenantId)
-}));
+export const users = pgTable(
+	'users',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		email: text('email').notNull(),
+		tenantId: uuid('tenant_id')
+			.references(() => tenants.id)
+			.notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(t) => ({
+		unq: unique().on(t.email, t.tenantId)
+	})
+);
 
 export const usersRelations = relations(users, ({ one }) => ({
 	tenant: one(tenants, {
@@ -32,3 +38,12 @@ export const usersRelations = relations(users, ({ one }) => ({
 export const tenantsRelations = relations(tenants, ({ many }) => ({
 	users: many(users)
 }));
+
+export const auditLogs = pgTable('audit_logs', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	actorId: uuid('actor_id').notNull(), // User ID who performed the action
+	action: text('action').notNull(), // e.g., 'create_tenant'
+	target: text('target').notNull(), // e.g., 'tenant:new-school'
+	details: text('details'), // JSON string
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});

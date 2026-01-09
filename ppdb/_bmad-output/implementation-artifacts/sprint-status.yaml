@@ -45,7 +45,7 @@ development_status:
   1-1-project-setup-starter-architecture: done
   1-2-tenant-database-isolation-rls: done
   1-3-subdomain-resolution-routing: done
-  1-4-global-rbac-super-admin-dashboard: backlog
+  1-4-global-rbac-super-admin-dashboard: in-progress
   epic-1-retrospective: optional
 
   # Epic 2: School Admission Configuration
