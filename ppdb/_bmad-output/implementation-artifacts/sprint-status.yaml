@@ -49,11 +49,11 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: School Admission Configuration
-  epic-2: in-progress
+  epic-2: done
   2-1-school-profile-branding-configuration: done
   2-2-admission-path-quota-management: done
-  2-3-fee-structure-payment-timing: backlog
-  2-4-school-admin-rbac-assignment: backlog
+  2-3-fee-structure-payment-timing: done
+  2-4-school-admin-rbac-assignment: done
   epic-2-retrospective: optional
 
   # Epic 3: Frictionless Registration & Data Collection

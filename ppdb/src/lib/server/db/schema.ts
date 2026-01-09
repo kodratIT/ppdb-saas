@@ -8,6 +8,23 @@ export const admissionPathStatusEnum = pgEnum('admission_path_status', [
 	'closed',
 	'archived'
 ]);
+export const paymentTimingEnum = pgEnum('payment_timing', [
+	'registration',
+	'acceptance',
+	'enrollment',
+	'custom'
+]);
+export const feeStatusEnum = pgEnum('fee_status', ['active', 'inactive']);
+
+// Story 2.4: School Admin RBAC Assignment
+export const userRoleEnum = pgEnum('user_role', [
+	'super_admin',
+	'school_admin',
+	'verifier',
+	'treasurer',
+	'parent'
+]);
+export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);
 
 export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -26,6 +43,10 @@ export const users = pgTable(
 		tenantId: uuid('tenant_id')
 			.references(() => tenants.id)
 			.notNull(),
+		// Story 2.4: School Admin RBAC Assignment
+		name: text('name'),
+		role: userRoleEnum('role').default('parent').notNull(),
+		status: userStatusEnum('status').default('active').notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at').defaultNow().notNull()
 	},
@@ -102,5 +123,38 @@ export const admissionPathsRelations = relations(admissionPaths, ({ one }) => ({
 	tenant: one(tenants, {
 		fields: [admissionPaths.tenantId],
 		references: [tenants.id]
+	})
+}));
+
+// Story 2.3: Fee Structure & Payment Timing
+export const feeStructures = pgTable('fee_structures', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	admissionPathId: uuid('admission_path_id')
+		.references(() => admissionPaths.id)
+		.notNull(),
+	name: text('name').notNull(),
+	description: text('description'),
+	amount: integer('amount').notNull(),
+	currency: text('currency').notNull().default('IDR'),
+	paymentTiming: paymentTimingEnum('payment_timing').notNull().default('registration'),
+	dueDateOffsetDays: integer('due_date_offset_days').notNull().default(0),
+	penaltyAmount: integer('penalty_amount'),
+	penaltyGraceDays: integer('penalty_grace_days'),
+	status: feeStatusEnum('status').notNull().default('active'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const feeStructuresRelations = relations(feeStructures, ({ one }) => ({
+	tenant: one(tenants, {
+		fields: [feeStructures.tenantId],
+		references: [tenants.id]
+	}),
+	admissionPath: one(admissionPaths, {
+		fields: [feeStructures.admissionPathId],
+		references: [admissionPaths.id]
 	})
 }));
