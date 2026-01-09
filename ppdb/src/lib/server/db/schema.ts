@@ -1,7 +1,13 @@
-import { pgTable, uuid, text, timestamp, pgEnum, unique } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, pgEnum, unique, integer } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const statusEnum = pgEnum('status', ['active', 'inactive']);
+export const admissionPathStatusEnum = pgEnum('admission_path_status', [
+	'draft',
+	'open',
+	'closed',
+	'archived'
+]);
 
 export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -73,6 +79,28 @@ export const schoolProfiles = pgTable('school_profiles', {
 export const schoolProfilesRelations = relations(schoolProfiles, ({ one }) => ({
 	tenant: one(tenants, {
 		fields: [schoolProfiles.tenantId],
+		references: [tenants.id]
+	})
+}));
+
+// Story 2.2: Admission Path & Quota Management
+export const admissionPaths = pgTable('admission_paths', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	name: text('name').notNull(),
+	description: text('description'),
+	quota: integer('quota').notNull(),
+	filledSlots: integer('filled_slots').notNull().default(0),
+	status: admissionPathStatusEnum('status').notNull().default('draft'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const admissionPathsRelations = relations(admissionPaths, ({ one }) => ({
+	tenant: one(tenants, {
+		fields: [admissionPaths.tenantId],
 		references: [tenants.id]
 	})
 }));
