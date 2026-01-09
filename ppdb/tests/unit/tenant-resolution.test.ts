@@ -75,7 +75,7 @@ describe('Tenant Resolution', () => {
 		};
 		const platform = { env: { TENANTS_KV: mockKV } } as any;
 
-		vi.mocked(db.query.tenants.findFirst).mockResolvedValue(null);
+		vi.mocked(db.query.tenants.findFirst).mockResolvedValue(undefined);
 
 		const result = await resolveTenant('unknown', platform);
 		expect(result).toBeNull();

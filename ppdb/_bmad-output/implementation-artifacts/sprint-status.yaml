@@ -41,16 +41,16 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Platform Foundation & Tenant Onboarding
-  epic-1: in-progress
+  epic-1: done
   1-1-project-setup-starter-architecture: done
   1-2-tenant-database-isolation-rls: done
   1-3-subdomain-resolution-routing: done
-  1-4-global-rbac-super-admin-dashboard: in-progress
+  1-4-global-rbac-super-admin-dashboard: done
   epic-1-retrospective: optional
 
   # Epic 2: School Admission Configuration
-  epic-2: backlog
-  2-1-school-profile-branding-configuration: backlog
+  epic-2: in-progress
+  2-1-school-profile-branding-configuration: done
   2-2-admission-path-quota-management: backlog
   2-3-fee-structure-payment-timing: backlog
   2-4-school-admin-rbac-assignment: backlog

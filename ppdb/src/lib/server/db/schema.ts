@@ -47,3 +47,32 @@ export const auditLogs = pgTable('audit_logs', {
 	details: text('details'), // JSON string
 	createdAt: timestamp('created_at').defaultNow().notNull()
 });
+
+// Story 2.1: School Profile & Branding Configuration
+export const schoolProfiles = pgTable('school_profiles', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull()
+		.unique(), // One profile per tenant
+	// Core fields (MVP)
+	name: text('name').notNull(),
+	description: text('description'),
+	contactEmail: text('contact_email'),
+	contactPhone: text('contact_phone'),
+	logoUrl: text('logo_url'),
+	// Progressive enhancement fields (future)
+	bannerUrl: text('banner_url'),
+	primaryColor: text('primary_color'),
+	secondaryColor: text('secondary_color'),
+	address: text('address'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const schoolProfilesRelations = relations(schoolProfiles, ({ one }) => ({
+	tenant: one(tenants, {
+		fields: [schoolProfiles.tenantId],
+		references: [tenants.id]
+	})
+}));
