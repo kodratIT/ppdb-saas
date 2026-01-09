@@ -1,6 +1,6 @@
 ## Relevant Files
 
-- `src/lib/auth.ts` - Clerk authentication integration
+- `src/lib/auth.ts` - Firebase Authentication integration
 - `src/lib/components/dashboard/DashboardShell.svelte` - Main dashboard layout
 - `src/routes/dashboard/+page.svelte` - Dashboard entry point
 - `src/lib/components/dashboard/StudentList.svelte` - Student listing component
@@ -26,13 +26,13 @@
 
 - [ ] 0.0 Create feature branch
   - [ ] 0.1 Create and checkout new branch (`git checkout -b feature/ppdb-saas-frontend`)
-- [x] 1.0 Setup SvelteKit frontend project structure
-  - [x] 1.1 Initialize SvelteKit project with TypeScript
-  - [x] 1.2 Configure Tailwind CSS and shadcn-svelte
-  - [x] 1.3 Setup ESLint, Prettier, and Svelte Check
-  - [x] 1.4 Create folder structure (routes, lib, components, stores, types)
-- [ ] 2.0 Implement authentication with Clerk
-  - [ ] 2.1 Install and configure Clerk SDK for SvelteKit
+- [ ] 1.0 Setup SvelteKit frontend project structure
+  - [ ] 1.1 Initialize SvelteKit project with TypeScript
+  - [ ] 1.2 Configure Tailwind CSS and shadcn-svelte
+  - [ ] 1.3 Setup ESLint, Prettier, and Svelte Check
+  - [ ] 1.4 Create folder structure (routes, lib, components, stores, types)
+- [ ] 2.0 Implement authentication with Firebase
+  - [ ] 2.1 Install and configure Firebase SDK for SvelteKit
   - [ ] 2.2 Create auth wrapper component
   - [ ] 2.3 Implement protected route middleware
   - [ ] 2.4 Create login/signup pages

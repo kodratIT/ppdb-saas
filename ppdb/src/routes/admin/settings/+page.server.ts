@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const tenantId = locals.tenantId;
 
 	if (!tenantId) {
-		return fail(401, { error: 'Unauthorized' });
+		throw new Error('Unauthorized: No tenant context');
 	}
 
 	// Get existing profile or return defaults

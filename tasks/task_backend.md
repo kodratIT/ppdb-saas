@@ -48,7 +48,7 @@
   - [ ] 2.4 Add indexes for performance
   - [ ] 2.5 Create seed data scripts
 - [ ] 3.0 Build authentication and authorization
-  - [ ] 3.1 Implement Clerk webhooks
+  - [ ] 3.1 Implement Firebase auth sync
   - [ ] 3.2 Create user synchronization service
   - [ ] 3.3 Implement SSO across tenants
   - [ ] 3.4 Build role-based access control

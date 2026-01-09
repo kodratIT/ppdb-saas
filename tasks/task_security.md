@@ -28,7 +28,7 @@
 - [ ] 0.0 Create feature branch
   - [ ] 0.1 Create and checkout new branch (`git checkout -b feature/ppdb-saas-security`)
 - [ ] 1.0 Implement authentication security
-  - [ ] 1.1 Secure Clerk integration (validate signatures)
+  - [ ] 1.1 Secure Firebase integration (validate tokens)
   - [ ] 1.2 Implement session timeout
   - [ ] 1.3 Add secure password policies (if applicable)
   - [ ] 1.4 Implement MFA support
@@ -99,9 +99,9 @@
   - [ ] 11.4 Run SCA (software composition analysis)
   - [ ] 11.5 Review and patch vulnerabilities promptly
 - [ ] 12.0 Third-party integrations security
-  - [ ] 12.1 Secure Dukcapil API integration
-  - [ ] 12.2 Secure Clerk integration
-  - [ ] 12.3 Secure email/SMS provider integrations
+   - [ ] 12.1 Secure Dukcapil API integration
+   - [ ] 12.2 Secure Firebase integration
+   - [ ] 12.3 Secure email/SMS provider integrations
   - [ ] 12.4 Validate all external API responses
   - [ ] 12.5 Implement fallback for external service failures
 - [ ] 13.0 Conduct penetration testing

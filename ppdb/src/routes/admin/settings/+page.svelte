@@ -2,13 +2,14 @@
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
 
-	export let data: PageData;
-	export let form: ActionData;
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	let saving = false;
+	let saving = $state(false);
 
 	// Type guard for form errors
-	$: hasErrors: Record<string, string[]> | null = (form && 'errors' in form && form.errors) ? form.errors : null;
+	let hasErrors = $derived(
+		form && 'errors' in form && form.errors ? (form.errors as Record<string, string[]>) : null
+	);
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
@@ -57,75 +58,6 @@
 				/>
 				{#if hasErrors && hasErrors.name}
 					<p class="text-red-500 text-sm mt-1">{hasErrors.name[0]}</p>
-				{/if}
-			</div>
-
-			<div>
-				<label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-					Description
-				</label>
-				<textarea
-					id="description"
-					name="description"
-					value={data.profile.description || ''}
-					rows="4"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					class:border-red-500={hasErrors && hasErrors.description}
-				></textarea>
-				{#if hasErrors && hasErrors.description}
-					<p class="text-red-500 text-sm mt-1">{hasErrors.description[0]}</p>
-				{/if}
-			</div>
-
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div>
-					<label for="contactEmail" class="block text-sm font-medium text-gray-700 mb-1">
-						Contact Email
-					</label>
-					<input
-						type="email"
-						id="contactEmail"
-						name="contactEmail"
-						value={data.profile.contactEmail || ''}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						class:border-red-500={hasErrors && hasErrors.contactEmail}
-					/>
-					{#if hasErrors && hasErrors.contactEmail}
-						<p class="text-red-500 text-sm mt-1">{hasErrors.contactEmail[0]}</p>
-					{/if}
-				</div>
-
-				<div>
-					<label for="contactPhone" class="block text-sm font-medium text-gray-700 mb-1">
-						Contact Phone
-					</label>
-					<input
-						type="tel"
-						id="contactPhone"
-						name="contactPhone"
-						value={data.profile.contactPhone || ''}
-						placeholder="08123456789"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						class:border-red-500={hasErrors && hasErrors.contactPhone}
-					/>
-					{#if hasErrors && hasErrors.contactPhone}
-						<p class="text-red-500 text-sm mt-1">{hasErrors.contactPhone[0]}</p>
-					{/if}
-				</div>
-			</div>
-
-			<div>
-				<label for="address" class="block text-sm font-medium text-gray-700 mb-1"> Address </label>
-				<textarea
-					id="address"
-					name="address"
-					value={data.profile.address || ''}
-					rows="3"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					class:border-red-500={hasErrors && hasErrors.address}
-				></textarea>
-				{#if hasErrors && hasErrors.address}
-					<p class="text-red-500 text-sm mt-1">{hasErrors.address[0]}</p>
 				{/if}
 			</div>
 

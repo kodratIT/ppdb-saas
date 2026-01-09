@@ -51,7 +51,7 @@ development_status:
   # Epic 2: School Admission Configuration
   epic-2: in-progress
   2-1-school-profile-branding-configuration: done
-  2-2-admission-path-quota-management: backlog
+  2-2-admission-path-quota-management: in-progress
   2-3-fee-structure-payment-timing: backlog
   2-4-school-admin-rbac-assignment: backlog
   epic-2-retrospective: optional

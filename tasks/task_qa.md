@@ -46,7 +46,7 @@
   - [ ] 2.5 Test payment status transitions
   - [ ] 2.6 Test document verification logic
 - [ ] 3.0 Write integration tests
-  - [ ] 3.1 Test authentication flow with Clerk
+   - [ ] 3.1 Test authentication flow with Firebase
   - [ ] 3.2 Test multi-tenancy isolation
   - [ ] 3.3 Test tenant resolution from subdomain
   - [ ] 3.4 Test SSO across tenants
@@ -81,11 +81,11 @@
   - [ ] 7.6 Test file upload security
   - [ ] 7.7 Test rate limiting
 - [ ] 8.0 Compatibility and integration tests
-  - [ ] 8.1 Test Dukcapil API integration (mock)
-  - [ ] 8.2 Test Midtrans payment integration (sandbox)
-  - [ ] 8.3 Test Xendit payment integration (sandbox)
-  - [ ] 8.4 Test Clerk auth integration
-  - [ ] 8.5 Test email/SMS notification services
+   - [ ] 8.1 Test Dukcapil API integration (mock)
+   - [ ] 8.2 Test Midtrans payment integration (sandbox)
+   - [ ] 8.3 Test Xendit payment integration (sandbox)
+   - [ ] 8.4 Test Firebase auth integration
+   - [ ] 8.5 Test email/SMS notification services
 - [ ] 9.0 Mobile and cross-browser testing
   - [ ] 9.1 Test responsive design on mobile devices
   - [ ] 9.2 Test on iOS Safari
