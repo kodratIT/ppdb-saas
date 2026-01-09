@@ -1,0 +1,171 @@
+# Sprint Status Dashboard
+# Generated: 2026-01-09
+
+epics:
+  - id: 'epic-1'
+    name: 'Platform Foundation & Tenant Onboarding'
+    status: 'completed'
+    completed_at: '2025-12-30'
+    stories:
+      - id: '1-1'
+        name: 'Project Setup & Starter Architecture'
+        status: 'done'
+      - id: '1-2'
+        name: 'Tenant Database Isolation (RLS)'
+        status: 'done'
+      - id: '1-3'
+        name: 'Subdomain Resolution & Routing'
+        status: 'done'
+      - id: '1-4'
+        name: 'Global RBAC & Super Admin Dashboard'
+        status: 'done'
+
+  - id: 'epic-2'
+    name: 'School Admission Configuration'
+    status: 'completed'
+    completed_at: '2026-01-09'
+    retrospective: 'done'
+    retrospective_doc: '/_bmad-output/retrospectives/epic-2-retrospective-2026-01-09.md'
+    stories:
+      - id: '2-1'
+        name: 'School Profile & Branding Configuration'
+        status: 'done'
+        completed_at: '2026-01-09'
+      - id: '2-2'
+        name: 'Admission Path & Quota Management'
+        status: 'done'
+        completed_at: '2026-01-09'
+      - id: '2-3'
+        name: 'Fee Structure & Payment Timing'
+        status: 'done'
+        completed_at: '2026-01-09'
+      - id: '2-4'
+        name: 'School Admin RBAC Assignment'
+        status: 'done'
+        completed_at: '2026-01-09'
+
+  - id: 'epic-3'
+    name: 'Frictionless Registration & Data Collection'
+    status: 'in_progress'
+    planned_start: '2026-01-10'
+    stories:
+      - id: '3-1'
+        name: 'Public Landing & Draft Initiation'
+        status: 'pending'
+      - id: '3-2'
+        name: 'Multi-Step Form Wizard with Auto-Save'
+        status: 'pending'
+      - id: '3-3'
+        name: 'Document Upload with Camera Guide'
+        status: 'pending'
+      - id: '3-4'
+        name: 'Finalization via WhatsApp OTP'
+        status: 'pending'
+      - id: '3-5'
+        name: 'Multi-Child Registration Support'
+        status: 'pending'
+
+  - id: 'epic-4'
+    name: 'Verification, Selection & Ranking Engine'
+    status: 'planned'
+    stories:
+      - id: '4-1'
+        name: 'Side-by-Side Verification Interface'
+        status: 'pending'
+      - id: '4-2'
+        name: 'Scoring & Interview Input'
+        status: 'pending'
+      - id: '4-3'
+        name: 'Automated Ranking Engine'
+        status: 'pending'
+      - id: '4-4'
+        name: 'Home Visit Report Upload'
+        status: 'pending'
+
+  - id: 'epic-5'
+    name: 'Integrated Payment & Settlement'
+    status: 'planned'
+    stories:
+      - id: '5-1'
+        name: 'Digital Payment Integration (VA/QRIS)'
+        status: 'pending'
+      - id: '5-2'
+        name: 'Manual Payment Verification'
+        status: 'pending'
+      - id: '5-3'
+        name: 'Invoice Generation & Proof of Payment'
+        status: 'pending'
+
+  - id: 'epic-6'
+    name: 'Proactive Communication & Engagement'
+    status: 'planned'
+    stories:
+      - id: '6-1'
+        name: 'Automated Status Notifications'
+        status: 'pending'
+      - id: '6-2'
+        name: 'Broadcast Messaging'
+        status: 'pending'
+      - id: '6-3'
+        name: 'Automated Waitlist Promotion'
+        status: 'pending'
+
+  - id: 'epic-7'
+    name: 'Governance, Compliance & Reporting'
+    status: 'planned'
+    stories:
+      - id: '7-1'
+        name: 'Data Encryption & Privacy (UU PDP)'
+        status: 'pending'
+      - id: '7-2'
+        name: 'Immutable Audit Log'
+        status: 'pending'
+      - id: '7-3'
+        name: 'Dapodik-Compatible Data Export'
+        status: 'pending'
+      - id: '7-4'
+        name: 'User Right to Erasure'
+        status: 'pending'
+
+# Test Coverage Summary
+test_summary:
+  total_tests: 69
+  passing: 69
+  failing: 0
+  skipped: 3
+  coverage_by_epic:
+    epic-1: 16 tests
+    epic-2: 53 tests
+
+# Known Issues
+known_issues:
+  - id: 'E2E-BUILD-001'
+    description: 'E2E tests fail due to missing $components/ui/card import'
+    severity: 'high'
+    status: 'open'
+    epic: 'epic-2'
+    fix_prerequisites: 'Fix import path or create shared Card component'
+
+  - id: 'RLS-TEST-001'
+    description: '3 RLS tests skipped - need test database with RLS policies'
+    severity: 'medium'
+    status: 'open'
+    epic: 'epic-1'
+    fix_prerequisites: 'Neon test database setup, CI integration'
+
+# Epic 2 Retrospective Status
+retrospectives:
+  - epic_id: 'epic-2'
+    status: 'done'
+    completed_at: '2026-01-09'
+    document: '/_bmad-output/retrospectives/epic-2-retrospective-2026-01-09.md'
+    key_findings:
+      - 'TDD discipline maintained with 69 tests passing'
+      - 'Svelte 5 syntax issues encountered and resolved'
+      - 'E2E tests blocked by component import issues'
+      - 'RLS tests skipped - need integration test database'
+    action_items:
+      - 'Fix $components/ui/card import in school-admins page'
+      - 'Add E2E tests to CI pipeline'
+      - 'Create shared form component library'
+      - 'Implement RLS integration tests'
