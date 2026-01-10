@@ -83,7 +83,7 @@ epics:
 
   - id: 'epic-2.6'
     name: 'Component Library - Shared UI Components'
-    status: 'planned'
+    status: 'in_progress'
     priority: 'high'
     is_blocker_for: []
     depends_on: ['epic-2.5']
@@ -92,7 +92,8 @@ epics:
     stories:
       - id: '2.6.1'
         name: 'Extract Shared Form Input Components'
-        status: 'pending'
+        status: 'done'
+        completed_at: '2026-01-10'
         owner: 'Elena'
         estimated_time: '2 days'
       - id: '2.6.2'
