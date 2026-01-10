@@ -27,17 +27,15 @@
       "idx": 3,
       "version": "7",
       "when": 1767965600000,
-      "tag": "0003_add_fee_structures.sql",
+      "tag": "0003_add_fee_structures",
       "breakpoints": true
     },
     {
       "idx": 4,
       "version": "7",
       "when": 1767966608038,
-      "tag": "0004_aromatic_domino.sql",
+      "tag": "0004_aromatic_domino",
       "breakpoints": true
     }
-  ]
-}
   ]
 }
