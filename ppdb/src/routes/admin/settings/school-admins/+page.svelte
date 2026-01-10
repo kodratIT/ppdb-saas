@@ -3,9 +3,10 @@
 	import type { ActionData } from './$types';
 	import type { PageData } from './$types';
 	import { formatRoleForDisplay } from '$lib/schema/school-admin';
+	import Input from '$lib/components/ui/input.svelte';
+	import Label from '$lib/components/ui/label.svelte';
 
-	export let data: PageData;
-	export let form: ActionData;
+	let { data, form } = $props();
 
 	let showCreateForm = false;
 	let createEmail = '';
@@ -63,37 +64,33 @@
 			<form method="POST" action="?/createAdmin" use:enhance class="space-y-4">
 				<!-- Email -->
 				<div>
-					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-						Email Address
-					</label>
-					<input
+					<Label for="email" class="block text-gray-700 mb-1">Email Address</Label>
+					<Input
 						type="email"
 						id="email"
 						name="email"
 						placeholder="admin@school.com"
 						bind:value={createEmail}
 						required
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 				</div>
 
 				<!-- Name -->
 				<div>
-					<label for="name" class="block text-sm font-medium text-gray-700 mb-1"> Full Name </label>
-					<input
+					<Label for="name" class="block text-gray-700 mb-1">Full Name</Label>
+					<Input
 						type="text"
 						id="name"
 						name="name"
 						placeholder="Admin Name"
 						bind:value={createName}
 						required
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 				</div>
 
 				<!-- Role -->
 				<div>
-					<label for="role" class="block text-sm font-medium text-gray-700 mb-1"> Role </label>
+					<Label for="role" class="block text-gray-700 mb-1">Role</Label>
 					<select
 						id="role"
 						name="role"
