@@ -1,0 +1,429 @@
+<!doctype html>
+
+<html class="light" lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+		<title>SMP Al-Azhar Enrollment Portal</title>
+		<!-- Google Fonts -->
+		<link href="https://fonts.googleapis.com" rel="preconnect" />
+		<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<!-- Material Symbols -->
+		<link
+			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<!-- Tailwind CSS -->
+		<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+		<script id="tailwind-config">
+			tailwind.config = {
+				darkMode: 'class',
+				theme: {
+					extend: {
+						colors: {
+							primary: '#0459ae', // Kemdikbud Blue-ish
+							'primary-light': '#00AEEF', // Cerulean
+							'background-light': '#f5f7f8',
+							'background-dark': '#0f1923'
+						},
+						fontFamily: {
+							display: ['Inter', 'sans-serif'],
+							body: ['Inter', 'sans-serif']
+						},
+						borderRadius: {
+							DEFAULT: '0.5rem',
+							lg: '1rem',
+							xl: '1.5rem',
+							'2xl': '2rem',
+							full: '9999px'
+						},
+						boxShadow: {
+							soft: '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+							card: '0 10px 40px -10px rgba(0, 0, 0, 0.08)'
+						}
+					}
+				}
+			};
+		</script>
+	</head>
+
+	<body
+		class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased overflow-x-hidden"
+	>
+		<div class="relative flex h-auto min-h-screen w-full flex-col">
+			<!-- Header -->
+			<header
+				class="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/90 backdrop-blur-md dark:border-slate-800 dark:bg-background-dark/90"
+			>
+				<div
+					class="mx-auto flex h-16 max-w-[960px] items-center justify-between px-4 sm:px-6 lg:px-8"
+				>
+					<div class="flex items-center gap-3">
+						<div class="flex size-8 items-center justify-center rounded-lg bg-primary text-white">
+							<span class="material-symbols-outlined text-xl">school</span>
+						</div>
+						<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+							SMP Al-Azhar
+						</h1>
+					</div>
+					<button
+						class="flex items-center justify-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-bold text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700 transition-colors"
+					>
+						<span>Pusat Bantuan</span>
+					</button>
+				</div>
+			</header>
+			<main class="flex-1">
+				<!-- Hero Section -->
+				<section class="px-4 py-10 sm:px-6 lg:px-8">
+					<div class="mx-auto max-w-[960px]">
+						<div
+							class="group relative overflow-hidden rounded-2xl bg-white shadow-card dark:bg-slate-800"
+						>
+							<div class="flex flex-col-reverse lg:flex-row">
+								<!-- Content -->
+								<div class="flex flex-1 flex-col justify-center gap-6 p-8 sm:p-10 lg:p-12">
+									<div class="flex flex-col gap-3">
+										<span
+											class="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary dark:bg-blue-900/30 dark:text-blue-300"
+										>
+											Penerimaan Siswa Baru
+										</span>
+										<h2
+											class="text-3xl font-black leading-[1.1] tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl"
+										>
+											Wujudkan Masa Depanmu di <span class="text-primary">SMP Al-Azhar 2025</span>
+										</h2>
+										<p
+											class="text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg"
+										>
+											Bergabunglah dengan komunitas pembelajar terbaik dengan kurikulum terintegrasi
+											dan fasilitas modern.
+										</p>
+									</div>
+									<div class="flex flex-col gap-3 sm:flex-row">
+										<button
+											class="flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-base font-bold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/30 dark:shadow-blue-900/20"
+										>
+											Daftar Sekarang
+										</button>
+										<button
+											class="flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-base font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-transparent dark:text-slate-300 dark:hover:bg-slate-800"
+										>
+											Unduh Brosur
+										</button>
+									</div>
+								</div>
+								<!-- Image -->
+								<div class="relative h-64 w-full bg-slate-200 lg:h-auto lg:w-1/2">
+									<div
+										class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+										data-alt="Students studying together in a modern library environment"
+										style="
+											background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCmFvkOpeI9AR8URgixzNQakL7MPn5eoIL7bXIwH8a2JkG8lsJoGGmjnFgJ2O5ZdVWUTOs3PRY5YqRT3QqkSX6fdRtLL--0F2EV33B855Agyjs0QZATSzXkVVjUJDLMmFyYrQgOaK3XIUjngPJX6Xky1ruyAJSSwXcJewF_HVLz-f8yW4gN3FJiWgXcDxXZBSf0NTQY0vS_xU9kiKlgzOBe3pDkXZvUMjEbJTJKNHj9iKz6eh62PXgSogjNMU_5bU1-8dmQHEq-cAA');
+										"
+									></div>
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent lg:bg-gradient-to-l lg:from-transparent lg:to-black/10"
+									></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+				<!-- Trust Indicator -->
+				<section class="px-4 pb-12 sm:px-6 lg:px-8">
+					<div class="mx-auto max-w-[960px]">
+						<div
+							class="flex items-center justify-center gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center dark:border-blue-900/30 dark:bg-blue-900/10"
+						>
+							<span class="material-symbols-outlined text-primary">verified_user</span>
+							<p class="text-sm font-semibold text-slate-700 dark:text-slate-300 sm:text-base">
+								Sistem Pendaftaran Resmi Terintegrasi
+								<span class="text-primary font-bold">Kemdikbud</span>
+							</p>
+						</div>
+					</div>
+				</section>
+				<!-- Registration Journey (Features) -->
+				<section class="px-4 py-12 sm:px-6 lg:px-8">
+					<div class="mx-auto max-w-[960px]">
+						<div class="mb-10 text-center sm:text-left">
+							<h2
+								class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl"
+							>
+								Alur Pendaftaran
+							</h2>
+							<p class="mt-2 text-slate-600 dark:text-slate-400">
+								Ikuti 3 langkah mudah berikut untuk resmi menjadi siswa.
+							</p>
+						</div>
+						<div class="grid gap-6 sm:grid-cols-3">
+							<!-- Step 1 -->
+							<div
+								class="group flex flex-col gap-4 rounded-xl bg-white p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-card dark:bg-slate-800 dark:shadow-none dark:hover:bg-slate-750"
+							>
+								<div
+									class="flex size-12 items-center justify-center rounded-full bg-blue-50 text-primary dark:bg-blue-900/30 dark:text-blue-300"
+								>
+									<span class="material-symbols-outlined">person_add</span>
+								</div>
+								<div class="flex flex-col gap-1">
+									<h3 class="text-lg font-bold text-slate-900 dark:text-white">Data Calon Siswa</h3>
+									<p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+										Isi biodata lengkap calon siswa sesuai dengan dokumen resmi.
+									</p>
+								</div>
+							</div>
+							<!-- Step 2 -->
+							<div
+								class="group flex flex-col gap-4 rounded-xl bg-white p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-card dark:bg-slate-800 dark:shadow-none dark:hover:bg-slate-750"
+							>
+								<div
+									class="flex size-12 items-center justify-center rounded-full bg-blue-50 text-primary dark:bg-blue-900/30 dark:text-blue-300"
+								>
+									<span class="material-symbols-outlined">upload_file</span>
+								</div>
+								<div class="flex flex-col gap-1">
+									<h3 class="text-lg font-bold text-slate-900 dark:text-white">Unggah Berkas</h3>
+									<p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+										Scan dan unggah Kartu Keluarga &amp; Akta Kelahiran dalam format PDF/JPG.
+									</p>
+								</div>
+							</div>
+							<!-- Step 3 -->
+							<div
+								class="group flex flex-col gap-4 rounded-xl bg-white p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-card dark:bg-slate-800 dark:shadow-none dark:hover:bg-slate-750"
+							>
+								<div
+									class="flex size-12 items-center justify-center rounded-full bg-blue-50 text-primary dark:bg-blue-900/30 dark:text-blue-300"
+								>
+									<span class="material-symbols-outlined">verified</span>
+								</div>
+								<div class="flex flex-col gap-1">
+									<h3 class="text-lg font-bold text-slate-900 dark:text-white">
+										Verifikasi OTP WA
+									</h3>
+									<p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+										Lakukan konfirmasi pendaftaran melalui kode OTP yang dikirim via WhatsApp.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+				<!-- Schedule Section -->
+				<section class="px-4 py-12 sm:px-6 lg:px-8 bg-white dark:bg-slate-900/50">
+					<div class="mx-auto max-w-[960px]">
+						<div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+							<div class="md:w-1/3">
+								<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+									Jadwal Penting
+								</h2>
+								<p class="mt-2 text-slate-600 dark:text-slate-400">
+									Catat tanggal-tanggal penting berikut agar tidak terlewat.
+								</p>
+								<div class="mt-6 hidden md:block">
+									<div class="rounded-xl bg-blue-50 p-4 dark:bg-blue-900/20">
+										<div class="flex items-start gap-3">
+											<span class="material-symbols-outlined text-primary mt-1">info</span>
+											<p class="text-sm text-primary-dark dark:text-blue-200">
+												Jadwal dapat berubah sewaktu-waktu mengikuti kebijakan dinas pendidikan.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="flex-1 md:max-w-xl">
+								<div
+									class="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-800 dark:bg-slate-800"
+								>
+									<!-- Item 1 -->
+									<div class="flex items-center gap-4 p-5">
+										<div
+											class="flex flex-col items-center rounded-lg bg-slate-50 p-2 min-w-[60px] border border-slate-100 dark:bg-slate-700 dark:border-slate-600"
+										>
+											<span class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400"
+												>JAN</span
+											>
+											<span class="text-xl font-black text-slate-900 dark:text-white">01</span>
+										</div>
+										<div class="flex flex-col">
+											<span class="text-xs font-bold uppercase tracking-wider text-primary"
+												>Gelombang 1</span
+											>
+											<h3 class="text-base font-bold text-slate-900 dark:text-white">
+												Pembukaan Pendaftaran Online
+											</h3>
+										</div>
+									</div>
+									<!-- Item 2 -->
+									<div class="flex items-center gap-4 p-5">
+										<div
+											class="flex flex-col items-center rounded-lg bg-slate-50 p-2 min-w-[60px] border border-slate-100 dark:bg-slate-700 dark:border-slate-600"
+										>
+											<span class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400"
+												>FEB</span
+											>
+											<span class="text-xl font-black text-slate-900 dark:text-white">28</span>
+										</div>
+										<div class="flex flex-col">
+											<span class="text-xs font-bold uppercase tracking-wider text-orange-500"
+												>Deadline</span
+											>
+											<h3 class="text-base font-bold text-slate-900 dark:text-white">
+												Batas Akhir Gelombang 1
+											</h3>
+										</div>
+									</div>
+									<!-- Item 3 -->
+									<div class="flex items-center gap-4 p-5">
+										<div
+											class="flex flex-col items-center rounded-lg bg-slate-50 p-2 min-w-[60px] border border-slate-100 dark:bg-slate-700 dark:border-slate-600"
+										>
+											<span class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400"
+												>MAR</span
+											>
+											<span class="text-xl font-black text-slate-900 dark:text-white">15</span>
+										</div>
+										<div class="flex flex-col">
+											<span class="text-xs font-bold uppercase tracking-wider text-emerald-600"
+												>Tes Seleksi</span
+											>
+											<h3 class="text-base font-bold text-slate-900 dark:text-white">
+												Ujian Masuk &amp; Wawancara
+											</h3>
+										</div>
+									</div>
+								</div>
+								<div class="mt-6 md:hidden">
+									<div class="rounded-xl bg-blue-50 p-4 dark:bg-blue-900/20">
+										<div class="flex items-start gap-3">
+											<span class="material-symbols-outlined text-primary mt-1">info</span>
+											<p class="text-sm text-primary-dark dark:text-blue-200">
+												Jadwal dapat berubah sewaktu-waktu mengikuti kebijakan dinas pendidikan.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+				<!-- Footer -->
+				<footer
+					class="bg-white border-t border-slate-200 py-12 dark:bg-background-dark dark:border-slate-800"
+				>
+					<div class="mx-auto max-w-[960px] px-4 sm:px-6 lg:px-8">
+						<div class="flex flex-col gap-10 md:flex-row md:justify-between">
+							<!-- Brand -->
+							<div class="flex flex-col gap-4 max-w-xs">
+								<div class="flex items-center gap-3">
+									<div
+										class="flex size-8 items-center justify-center rounded-lg bg-primary text-white"
+									>
+										<span class="material-symbols-outlined text-lg">school</span>
+									</div>
+									<h2 class="text-lg font-bold text-slate-900 dark:text-white">SMP Al-Azhar</h2>
+								</div>
+								<p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+									Membangun generasi cerdas, berkarakter, dan berakhlak mulia untuk masa depan
+									Indonesia yang gemilang.
+								</p>
+							</div>
+							<!-- Contact -->
+							<div class="flex flex-col gap-4">
+								<h3
+									class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white"
+								>
+									Hubungi Kami
+								</h3>
+								<ul class="flex flex-col gap-3">
+									<li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+										<span class="material-symbols-outlined text-[20px] shrink-0 text-primary"
+											>location_on</span
+										>
+										<span>Jl. Sisingamangaraja No. 12, Kebayoran Baru, Jakarta Selatan</span>
+									</li>
+									<li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+										<span class="material-symbols-outlined text-[20px] shrink-0 text-primary"
+											>call</span
+										>
+										<span>(021) 720-0000</span>
+									</li>
+									<li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+										<span class="material-symbols-outlined text-[20px] shrink-0 text-primary"
+											>mail</span
+										>
+										<span>admissions@al-azhar.sch.id</span>
+									</li>
+								</ul>
+							</div>
+							<!-- Social -->
+							<div class="flex flex-col gap-4">
+								<h3
+									class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white"
+								>
+									Ikuti Kami
+								</h3>
+								<div class="flex gap-4">
+									<a
+										class="flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-primary hover:text-white transition-colors dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-primary dark:hover:text-white"
+										href="#"
+									>
+										<svg aria-hidden="true" class="size-5" fill="currentColor" viewbox="0 0 24 24">
+											<path
+												clip-rule="evenodd"
+												d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+												fill-rule="evenodd"
+											></path>
+										</svg>
+									</a>
+									<a
+										class="flex size-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-primary hover:text-white transition-colors dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-primary dark:hover:text-white"
+										href="#"
+									>
+										<svg aria-hidden="true" class="size-5" fill="currentColor" viewbox="0 0 24 24">
+											<path
+												clip-rule="evenodd"
+												d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.468 2.373c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"
+												fill-rule="evenodd"
+											></path>
+										</svg>
+									</a>
+								</div>
+							</div>
+						</div>
+						<div
+							class="mt-12 flex flex-col items-center justify-between border-t border-slate-200 pt-8 dark:border-slate-800 sm:flex-row"
+						>
+							<p class="text-sm text-slate-500 dark:text-slate-500">
+								© 2025 SMP Al-Azhar. All rights reserved.
+							</p>
+							<div class="mt-4 flex gap-6 sm:mt-0">
+								<a
+									class="text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white"
+									href="#"
+									>Kebijakan Privasi</a
+								>
+								<a
+									class="text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white"
+									href="#"
+									>Syarat &amp; Ketentuan</a
+								>
+							</div>
+						</div>
+					</div>
+				</footer>
+			</main>
+		</div>
+	</body>
+</html>

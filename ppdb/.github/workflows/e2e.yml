@@ -1,0 +1,22 @@
+name: E2E
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  e2e:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+      - run: yarn install --immutable
+      - run: yarn build
+        env:
+          DATABASE_URL: ${{ secrets.NEON_TEST_DATABASE_URL }}
+      - run: yarn test:e2e
+        env:
+          DATABASE_URL: ${{ secrets.NEON_TEST_DATABASE_URL }}

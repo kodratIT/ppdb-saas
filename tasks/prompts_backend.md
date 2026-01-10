@@ -135,9 +135,9 @@ Requirements:
 - Create `.env.example` with all required variables:
   - Database connection
   - R2 bucket
-  - Clerk keys
-  - Payment gateway keys
-  - JWT secrets
+- Firebase config
+- Payment gateway keys
+- JWT secrets
 - Create environment validation using Zod
 - Load environment variables in `src/index.ts`
 
@@ -294,30 +294,31 @@ Output:
 
 ## Task Group 3.0: Build Authentication and Authorization
 
-### Prompt untuk 3.1 - Implement Clerk webhooks
+### Prompt untuk 3.1 - Implement Firebase auth sync
 
 ```
 Task: BE-3.1
-Description: Implement Clerk webhooks
+Description: Implement Firebase auth sync
 
 Requirements:
-Create `src/routes/webhooks/clerk.ts`:
-- Verify Clerk webhook signature
-- Handle user.created event
-- Handle user.updated event
-- Handle user.deleted event
-- Sync user to database
+Create `src/routes/auth/sync.ts`:
+- POST /api/auth/sync - Sync Firebase user to database
+- Verify Firebase ID token
+- Create or update user in database
+- Handle user creation on signup
+- Store firebase_uid in users table
 - Create user_tenant_roles record
 
-Create `src/lib/services/clerk-sync.ts`:
-- Sync user data from Clerk
+Create `src/lib/services/firebase-sync.ts`:
+- Sync user data from Firebase
 - Handle missing data
 - Error handling
+- Link Firebase user to database user
 
 Output:
-- Clerk webhook endpoint created
+- Firebase auth sync endpoint created
 - User sync working
-- Webhook verification implemented
+- Firebase ID token verification implemented
 ```
 
 ### Prompt untuk 3.2 - Create user synchronization service
@@ -328,7 +329,7 @@ Description: Create user synchronization service
 
 Requirements:
 Create `src/lib/services/user-sync.ts`:
-- Sync user from Clerk to database
+- Sync user from Firebase to database
 - Update existing users
 - Handle multiple tenants
 - Sync user roles and permissions

@@ -1,0 +1,14 @@
+import { defineConfig } from 'vitest/config';
+import { sveltekit } from '@sveltejs/kit/vite';
+
+export default defineConfig({
+	plugins: [sveltekit()],
+	resolve: {
+		conditions: ['browser']
+	},
+	test: {
+		environment: 'jsdom',
+		include: ['src/**/*.{test,spec}.{js,ts}', 'tests/**/*.{test,spec}.{js,ts}'],
+		setupFiles: ['src/setupTests.ts']
+	}
+});
