@@ -1,13 +1,17 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
+	import Input from '$lib/components/ui/input.svelte';
+	import Label from '$lib/components/ui/label.svelte';
+	import Textarea from '$lib/components/ui/textarea.svelte';
+	import FormError from '$lib/components/forms/form-error.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let saving = $state(false);
 
 	// Type guard for form errors
-	let hasErrors = $derived(
+	let errors = $derived(
 		form && 'errors' in form && form.errors ? (form.errors as Record<string, string[]>) : null
 	);
 </script>
@@ -44,90 +48,68 @@
 			<h2 class="text-xl font-semibold mb-4">Basic Information</h2>
 
 			<div>
-				<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+				<Label for="name" class="block text-gray-700 mb-1">
 					School Name <span class="text-red-500">*</span>
-				</label>
-				<input
-					type="text"
+				</Label>
+				<Input
 					id="name"
 					name="name"
 					value={data.profile.name}
 					required
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					class:border-red-500={hasErrors && hasErrors.name}
+					class={errors?.name ? 'border-red-500' : ''}
 				/>
-				{#if hasErrors && hasErrors.name}
-					<p class="text-red-500 text-sm mt-1">{hasErrors.name[0]}</p>
-				{/if}
+				<FormError {errors} field="name" />
 			</div>
 
 			<div>
-				<label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-					Description
-				</label>
-				<textarea
+				<Label for="description" class="block text-gray-700 mb-1">Description</Label>
+				<Textarea
 					id="description"
 					name="description"
 					value={data.profile.description || ''}
-					rows="4"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					class:border-red-500={hasErrors && hasErrors.description}
-				></textarea>
-				{#if hasErrors && hasErrors.description}
-					<p class="text-red-500 text-sm mt-1">{hasErrors.description[0]}</p>
-				{/if}
+					rows={4}
+					class={errors?.description ? 'border-red-500' : ''}
+				/>
+				<FormError {errors} field="description" />
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label for="contactEmail" class="block text-sm font-medium text-gray-700 mb-1">
-						Contact Email
-					</label>
-					<input
+					<Label for="contactEmail" class="block text-gray-700 mb-1">Contact Email</Label>
+					<Input
 						type="email"
 						id="contactEmail"
 						name="contactEmail"
 						value={data.profile.contactEmail || ''}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						class:border-red-500={hasErrors && hasErrors.contactEmail}
+						class={errors?.contactEmail ? 'border-red-500' : ''}
 					/>
-					{#if hasErrors && hasErrors.contactEmail}
-						<p class="text-red-500 text-sm mt-1">{hasErrors.contactEmail[0]}</p>
-					{/if}
+					<FormError {errors} field="contactEmail" />
 				</div>
 
 				<div>
-					<label for="contactPhone" class="block text-sm font-medium text-gray-700 mb-1">
-						Contact Phone
-					</label>
-					<input
+					<Label for="contactPhone" class="block text-gray-700 mb-1">Contact Phone</Label>
+					<Input
 						type="tel"
 						id="contactPhone"
 						name="contactPhone"
 						value={data.profile.contactPhone || ''}
 						placeholder="08123456789"
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						class:border-red-500={hasErrors && hasErrors.contactPhone}
+						class={errors?.contactPhone ? 'border-red-500' : ''}
 					/>
-					{#if hasErrors && hasErrors.contactPhone}
-						<p class="text-red-500 text-sm mt-1">{hasErrors.contactPhone[0]}</p>
-					{/if}
+					<FormError {errors} field="contactPhone" />
 				</div>
 			</div>
 
 			<div>
-				<label for="address" class="block text-sm font-medium text-gray-700 mb-1"> Address </label>
-				<textarea
+				<Label for="address" class="block text-gray-700 mb-1">Address</Label>
+				<Textarea
 					id="address"
 					name="address"
 					value={data.profile.address || ''}
-					rows="3"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					class:border-red-500={hasErrors && hasErrors.address}
-				></textarea>
-				{#if hasErrors && hasErrors.address}
-					<p class="text-red-500 text-sm mt-1">{hasErrors.address[0]}</p>
-				{/if}
+					rows={3}
+					class={errors?.address ? 'border-red-500' : ''}
+				/>
+				<FormError {errors} field="address" />
 			</div>
 		</div>
 
@@ -136,70 +118,54 @@
 			<h2 class="text-xl font-semibold mb-4">Branding (Optional)</h2>
 
 			<div>
-				<label for="logoUrl" class="block text-sm font-medium text-gray-700 mb-1"> Logo URL </label>
-				<input
+				<Label for="logoUrl" class="block text-gray-700 mb-1">Logo URL</Label>
+				<Input
 					type="url"
 					id="logoUrl"
 					name="logoUrl"
 					value={data.profile.logoUrl || ''}
 					placeholder="https://example.com/logo.png"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					class:border-red-500={hasErrors && hasErrors.logoUrl}
+					class={errors?.logoUrl ? 'border-red-500' : ''}
 				/>
-				{#if hasErrors && hasErrors.logoUrl}
-					<p class="text-red-500 text-sm mt-1">{hasErrors.logoUrl[0]}</p>
-				{/if}
+				<FormError {errors} field="logoUrl" />
 			</div>
 
 			<div>
-				<label for="bannerUrl" class="block text-sm font-medium text-gray-700 mb-1">
-					Banner URL
-				</label>
-				<input
+				<Label for="bannerUrl" class="block text-gray-700 mb-1">Banner URL</Label>
+				<Input
 					type="url"
 					id="bannerUrl"
 					name="bannerUrl"
 					value={data.profile.bannerUrl || ''}
 					placeholder="https://example.com/banner.jpg"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					class:border-red-500={hasErrors && hasErrors.bannerUrl}
+					class={errors?.bannerUrl ? 'border-red-500' : ''}
 				/>
-				{#if hasErrors && hasErrors.bannerUrl}
-					<p class="text-red-500 text-sm mt-1">{hasErrors.bannerUrl[0]}</p>
-				{/if}
+				<FormError {errors} field="bannerUrl" />
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label for="primaryColor" class="block text-sm font-medium text-gray-700 mb-1">
-						Primary Color
-					</label>
-					<input
+					<Label for="primaryColor" class="block text-gray-700 mb-1">Primary Color</Label>
+					<Input
 						type="color"
 						id="primaryColor"
 						name="primaryColor"
 						value={data.profile.primaryColor || '#002C5F'}
-						class="w-full h-10 px-1 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class={errors?.primaryColor ? 'border-red-500 h-10 px-1 py-1' : 'h-10 px-1 py-1'}
 					/>
-					{#if hasErrors && hasErrors.primaryColor}
-						<p class="text-red-500 text-sm mt-1">{hasErrors.primaryColor[0]}</p>
-					{/if}
+					<FormError {errors} field="primaryColor" />
 				</div>
 
 				<div>
-					<label for="secondaryColor" class="block text-sm font-medium text-gray-700 mb-1">
-						Secondary Color
-					</label>
-					<input
+					<Label for="secondaryColor" class="block text-gray-700 mb-1">Secondary Color</Label>
+					<Input
 						type="color"
 						id="secondaryColor"
 						name="secondaryColor"
 						value={data.profile.secondaryColor || '#FFFFFF'}
-						class="w-full h-10 px-1 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class={errors?.secondaryColor ? 'border-red-500 h-10 px-1 py-1' : 'h-10 px-1 py-1'}
 					/>
-					{#if hasErrors && hasErrors.secondaryColor}
-						<p class="text-red-500 text-sm mt-1">{hasErrors.secondaryColor[0]}</p>
-					{/if}
+					<FormError {errors} field="secondaryColor" />
 				</div>
 			</div>
 		</div>
