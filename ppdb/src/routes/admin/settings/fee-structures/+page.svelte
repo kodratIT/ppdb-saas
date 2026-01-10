@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
+	import Input from '$lib/components/ui/input.svelte';
+	import Label from '$lib/components/ui/label.svelte';
+	import Textarea from '$lib/components/ui/textarea.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -262,26 +265,22 @@
 
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
-										<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+										<Label for="name" class="block text-gray-700 mb-1">
 											Fee Name <span class="text-red-500">*</span>
-										</label>
-										<input
+										</Label>
+										<Input
 											type="text"
 											id="name"
 											name="name"
 											value={editingFee?.name || ''}
 											required
-											class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 										/>
 									</div>
 
 									<div>
-										<label
-											for="admissionPathId"
-											class="block text-sm font-medium text-gray-700 mb-1"
-										>
+										<Label for="admissionPathId" class="block text-gray-700 mb-1">
 											Admission Path <span class="text-red-500">*</span>
-										</label>
+										</Label>
 										<select
 											id="admissionPathId"
 											name="admissionPathId"
@@ -299,24 +298,21 @@
 								</div>
 
 								<div>
-									<label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-										Description
-									</label>
-									<textarea
+									<Label for="description" class="block text-gray-700 mb-1">Description</Label>
+									<Textarea
 										id="description"
 										name="description"
-										rows="2"
+										rows={2}
 										value={editingFee?.description || ''}
-										class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-									></textarea>
+									/>
 								</div>
 
 								<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 									<div>
-										<label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
+										<Label for="amount" class="block text-gray-700 mb-1">
 											Amount (IDR) <span class="text-red-500">*</span>
-										</label>
-										<input
+										</Label>
+										<Input
 											type="number"
 											id="amount"
 											name="amount"
@@ -324,14 +320,11 @@
 											step="1000"
 											required
 											value={editingFee?.amount || ''}
-											class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 										/>
 									</div>
 
 									<div>
-										<label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
-											Currency
-										</label>
+										<Label for="currency" class="block text-gray-700 mb-1">Currency</Label>
 										<select
 											id="currency"
 											name="currency"
@@ -346,9 +339,7 @@
 									</div>
 
 									<div>
-										<label for="status" class="block text-sm font-medium text-gray-700 mb-1">
-											Status
-										</label>
+										<Label for="status" class="block text-gray-700 mb-1">Status</Label>
 										<select
 											id="status"
 											name="status"
@@ -367,9 +358,9 @@
 
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
-										<label for="paymentTiming" class="block text-sm font-medium text-gray-700 mb-1">
+										<Label for="paymentTiming" class="block text-gray-700 mb-1">
 											Payment Timing <span class="text-red-500">*</span>
-										</label>
+										</Label>
 										<select
 											id="paymentTiming"
 											name="paymentTiming"
@@ -398,29 +389,25 @@
 									</div>
 
 									<div>
-										<label
-											for="dueDateOffsetDays"
-											class="block text-sm font-medium text-gray-700 mb-1"
-										>
+										<Label for="dueDateOffsetDays" class="block text-gray-700 mb-1">
 											Days After Registration (for custom)
-										</label>
-										<input
+										</Label>
+										<Input
 											type="number"
 											id="dueDateOffsetDays"
 											name="dueDateOffsetDays"
 											min="0"
 											value={editingFee?.dueDateOffsetDays || 0}
-											class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 										/>
 									</div>
 								</div>
 
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
-										<label for="penaltyAmount" class="block text-sm font-medium text-gray-700 mb-1">
+										<Label for="penaltyAmount" class="block text-gray-700 mb-1">
 											Late Fee Amount (IDR)
-										</label>
-										<input
+										</Label>
+										<Input
 											type="number"
 											id="penaltyAmount"
 											name="penaltyAmount"
@@ -428,24 +415,19 @@
 											step="1000"
 											value={editingFee?.penaltyAmount || ''}
 											placeholder="Optional"
-											class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 										/>
 									</div>
 
 									<div>
-										<label
-											for="penaltyGraceDays"
-											class="block text-sm font-medium text-gray-700 mb-1"
-										>
+										<Label for="penaltyGraceDays" class="block text-gray-700 mb-1">
 											Grace Period (days)
-										</label>
-										<input
+										</Label>
+										<Input
 											type="number"
 											id="penaltyGraceDays"
 											name="penaltyGraceDays"
 											min="0"
 											value={editingFee?.penaltyGraceDays || 0}
-											class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 										/>
 									</div>
 								</div>
