@@ -6,13 +6,14 @@ import { feeStructureCreateSchema, feeStructureUpdateSchema } from '$lib/schema/
 import { ZodError } from 'zod';
 import * as schema from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { requireAuth, requirePermission } from '$lib/server/auth/authorization';
+import { PERMISSIONS } from '$lib/server/auth/permissions';
+import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 
-// Mock tenant ID for development (will be replaced with actual tenant resolution)
-const MOCK_TENANT_ID = '550e8400-e29b-41d4-a716-446655440000';
+export const load: PageServerLoad = async ({ locals }) => {
+	const { userId, tenantId } = requireAuth(locals);
 
-export const load: PageServerLoad = async () => {
 	try {
-		// Get all admission paths for the dropdown
 		const admissionPaths = await db
 			.select({
 				id: schema.admissionPaths.id,
@@ -21,10 +22,9 @@ export const load: PageServerLoad = async () => {
 				status: schema.admissionPaths.status
 			})
 			.from(schema.admissionPaths)
-			.where(eq(schema.admissionPaths.tenantId, MOCK_TENANT_ID));
+			.where(eq(schema.admissionPaths.tenantId, tenantId));
 
-		// Get all fee structures for this tenant
-		const feeStructures = await feeStructuresDomain.listFeeStructures(db, MOCK_TENANT_ID);
+		const feeStructures = await feeStructuresDomain.listFeeStructures(db, tenantId);
 
 		return {
 			admissionPaths,
@@ -43,7 +43,11 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	createFee: async ({ request }) => {
+	createFee: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+
+		requirePermission(auth, PERMISSIONS.FEES_CREATE);
+
 		try {
 			const formData = await request.formData();
 			const data = {
@@ -63,15 +67,18 @@ export const actions: Actions = {
 				status: formData.get('status') || 'active'
 			};
 
-			// Validate with Zod
 			const validatedData = feeStructureCreateSchema.parse(data);
 
-			// Create fee structure
 			const created = await feeStructuresDomain.createFeeStructure(
 				db,
-				MOCK_TENANT_ID,
+				auth.tenantId,
 				validatedData
 			);
+
+			await logSensitiveAction(auth.userId, 'create_fee_structure', created.id, {
+				feeName: created.name,
+				admissionPathId: validatedData.admissionPathId
+			});
 
 			return {
 				success: true,
@@ -95,7 +102,11 @@ export const actions: Actions = {
 		}
 	},
 
-	updateFee: async ({ request }) => {
+	updateFee: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+
+		requirePermission(auth, PERMISSIONS.FEES_UPDATE);
+
 		try {
 			const formData = await request.formData();
 			const feeId = formData.get('feeId') as string;
@@ -116,16 +127,19 @@ export const actions: Actions = {
 				status: formData.get('status') || undefined
 			};
 
-			// Validate with Zod
 			const validatedData = feeStructureUpdateSchema.parse(data);
 
-			// Update fee structure
 			const updated = await feeStructuresDomain.updateFeeStructure(
 				db,
-				MOCK_TENANT_ID,
+				auth.tenantId,
 				feeId,
 				validatedData
 			);
+
+			await logSensitiveAction(auth.userId, 'update_fee_structure', feeId, {
+				feeName: updated.name,
+				changes: data
+			});
 
 			return {
 				success: true,
@@ -156,12 +170,20 @@ export const actions: Actions = {
 		}
 	},
 
-	deleteFee: async ({ request }) => {
+	deleteFee: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+
+		requirePermission(auth, PERMISSIONS.FEES_DELETE);
+
 		try {
 			const formData = await request.formData();
 			const feeId = formData.get('feeId') as string;
 
-			await feeStructuresDomain.deleteFeeStructure(db, MOCK_TENANT_ID, feeId);
+			await feeStructuresDomain.deleteFeeStructure(db, auth.tenantId, feeId);
+
+			await logSensitiveAction(auth.userId, 'delete_fee_structure', feeId, {
+				tenantId: auth.tenantId
+			});
 
 			return {
 				success: true,

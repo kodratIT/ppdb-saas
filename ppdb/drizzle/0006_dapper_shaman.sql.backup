@@ -1,0 +1,21 @@
+CREATE TABLE otp_codes (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	session_id text NOT NULL,
+	phone_number text NOT NULL,
+	code text NOT NULL,
+	expires_at timestamp NOT NULL,
+	created_at timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT otp_codes_session_id_unique UNIQUE("session_id")
+);
+--> statement-breakpoint
+ALTER TABLE sessions ADD CONSTRAINT sessions_user_id_users_id_fk FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON "sessions" ("user_id");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS sessions_tenant_id_idx ON "sessions" ("tenant_id");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS sessions_expires_at_idx ON "sessions" ("expires_at");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS otp_codes_phone_number_idx ON "otp_codes" ("phone_number");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS otp_codes_expires_at_idx ON "otp_codes" ("expires_at");

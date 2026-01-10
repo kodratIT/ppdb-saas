@@ -1,5 +1,5 @@
 # Sprint Status Dashboard
-# Generated: 2026-01-09
+# Generated: 2026-01-10
 
 epics:
   - id: 'epic-1'
@@ -26,6 +26,8 @@ epics:
     completed_at: '2026-01-09'
     retrospective: 'done'
     retrospective_doc: '/_bmad-output/retrospectives/epic-2-retrospective-2026-01-09.md'
+    production_ready: 'false'
+    production_readiness_notes: 'Requires Epic 2.5 (Auth Foundation) + Epic 2.6 (Component Library) + Epic 2.7 (Testing Infrastructure)'
     stories:
       - id: '2-1'
         name: 'School Profile & Branding Configuration'
@@ -44,10 +46,108 @@ epics:
         status: 'done'
         completed_at: '2026-01-09'
 
+  - id: 'epic-2.5'
+    name: 'Auth Foundation - Hybrid Auth (Firebase + WAHA)'
+    status: 'in_progress'
+    priority: 'critical'
+    is_blocker_for: ['epic-3']
+    planned_start: '2026-01-10'
+    estimated_duration: '3 days'
+    stories:
+      - id: '2.5.1'
+        name: 'Integrate Firebase + WAHA Hybrid Authentication'
+        status: 'review'
+        owner: 'Elena'
+        estimated_time: '1 day'
+      - id: '2.5.2'
+        name: 'Replace Session Placeholder with Hybrid Auth Session (Firebase + WAHA)'
+        status: 'done'
+        completed_at: '2026-01-10'
+        owner: 'Charlie'
+        estimated_time: '1-2 days'
+      - id: '2.5.3'
+        name: 'Update All Permission Checking Helpers'
+        status: 'ready-for-dev'
+        owner: 'Elena'
+        estimated_time: '1 day'
+      - id: '2.5.4'
+        name: 'Test Auth Flow End-to-End'
+        status: 'review'
+        owner: 'Dana'
+        estimated_time: '2-3 days'
+      - id: '2.5.5'
+        name: 'Document Auth Integration for Epic 3'
+        status: 'ready-for-dev'
+        owner: 'Alice'
+        estimated_time: '1 day'
+
+  - id: 'epic-2.6'
+    name: 'Component Library - Shared UI Components'
+    status: 'planned'
+    priority: 'high'
+    is_blocker_for: []
+    depends_on: ['epic-2.5']
+    planned_start: '2026-01-13'
+    estimated_duration: '3 days'
+    stories:
+      - id: '2.6.1'
+        name: 'Extract Shared Form Input Components'
+        status: 'pending'
+        owner: 'Elena'
+        estimated_time: '2 days'
+      - id: '2.6.2'
+        name: 'Build Reusable Modal/Dialog Components'
+        status: 'pending'
+        owner: 'Elena'
+        estimated_time: '2 days'
+      - id: '2.6.3'
+        name: 'Create Status Badge Component Library'
+        status: 'pending'
+        owner: 'Elena'
+        estimated_time: '1 day'
+      - id: '2.6.4'
+        name: 'Document Component Usage Patterns'
+        status: 'pending'
+        owner: 'Charlie'
+        estimated_time: '1 day'
+
+  - id: 'epic-2.7'
+    name: 'Testing Infrastructure - Integration & E2E'
+    status: 'planned'
+    priority: 'critical'
+    is_blocker_for: ['production-deployment']
+    depends_on: ['epic-2.5', 'epic-2.6']
+    planned_start: '2026-01-16'
+    estimated_duration: '4 days'
+    stories:
+      - id: '2.7.1'
+        name: 'Setup Neon Test Database with Auth'
+        status: 'pending'
+        owner: 'Dana'
+        estimated_time: '2 days'
+      - id: '2.7.2'
+        name: 'Implement RLS Integration Tests'
+        status: 'pending'
+        owner: 'Dana'
+        estimated_time: '2 days'
+      - id: '2.7.3'
+        name: 'Add E2E Tests to CI Pipeline (PR Trigger)'
+        status: 'pending'
+        owner: 'Charlie'
+        estimated_time: '2 days'
+      - id: '2.7.4'
+        name: 'Setup Test Data Fixtures for Auth'
+        status: 'pending'
+        owner: 'Elena'
+        estimated_time: '1 day'
+
   - id: 'epic-3'
     name: 'Frictionless Registration & Data Collection'
-    status: 'in_progress'
-    planned_start: '2026-01-10'
+    status: 'planned'
+    priority: 'high'
+    is_blocker_for: []
+    depends_on: ['epic-2.5']
+    planned_start: '2026-01-13'
     stories:
       - id: '3-1'
         name: 'Public Landing & Draft Initiation'
@@ -129,13 +229,13 @@ epics:
 
 # Test Coverage Summary
 test_summary:
-  total_tests: 69
-  passing: 69
-  failing: 0
+  total_tests: 173
+  passing: 136
+  failing: 34
   skipped: 3
   coverage_by_epic:
     epic-1: 16 tests
-    epic-2: 53 tests
+    epic-2: 157 tests
 
 # Known Issues
 known_issues:
@@ -159,13 +259,42 @@ retrospectives:
     status: 'done'
     completed_at: '2026-01-09'
     document: '/_bmad-output/retrospectives/epic-2-retrospective-2026-01-09.md'
+    facilitator: 'Bob (Scrum Master)'
     key_findings:
       - 'TDD discipline maintained with 69 tests passing'
       - 'Svelte 5 syntax issues encountered and resolved'
       - 'E2E tests blocked by component import issues'
       - 'RLS tests skipped - need integration test database'
+      - 'Auth placeholder must be replaced before user-facing features'
+    user_decisions:
+      - 'Auth: 1A - Block Epic 3 sampai auth selesai'
+      - 'RLS Tests: 2B - Tunggu auth ready dulu baru bikin test'
+      - 'Component Library: 3A - Extract shared form components sebagai task terpisah'
+      - 'E2E in CI: 4A - Run E2E pada setiap PR (approval, not every push)'
+    strategic_shift:
+      from: 'Epic 2 → Epic 3 (Registration) → Epic 4 (Verification)'
+      to: 'Epic 2 → Epic 2.5 (Auth) → Epic 2.6 (Components) → Epic 2.7 (Tests) → Epic 3 (Registration)'
+      rationale: 'Auth foundation is prerequisite for all user-facing epics'
+    production_readiness:
+      mvp_ready: true
+      production_ready: false
+      blockers:
+        - 'Auth placeholder (requires Epic 2.5)'
+        - 'Component duplication (requires Epic 2.6)'
+        - 'Missing integration/E2E tests (requires Epic 2.7)'
+      production_ready_after: 'Epic 2.7 completion (~10 days)'
     action_items:
-      - 'Fix $components/ui/card import in school-admins page'
-      - 'Add E2E tests to CI pipeline'
-      - 'Create shared form component library'
-      - 'Implement RLS integration tests'
+      - 'Fix $components/ui/card import in school-admins page (Epic 2.5)'
+      - 'Integrate Firebase + WAHA hybrid authentication (Epic 2.5.1)'
+      - 'Replace session placeholder with hybrid auth session (Epic 2.5.2)'
+      - 'Update all permission checking helpers (Epic 2.5.3)'
+      - 'Extract shared form component library (Epic 2.6)'
+      - 'Setup Neon test database with auth (Epic 2.7)'
+      - 'Implement RLS integration tests (Epic 2.7.2)'
+      - 'Add E2E tests to CI pipeline on PR approval (Epic 2.7.3)'
+    team_commitments:
+      - 'Alice (PO): Finalize Firebase + WAHA auth requirements by today EOD'
+      - 'Charlie (Architect): Design auth layer architecture by tomorrow noon'
+      - 'Dana (QA): Setup Neon test database after auth integration'
+      - 'Elena (Dev): Integrate Firebase + WAHA and replace session placeholders in 2 days'
+      - 'Bob (SM): Facilitate Epic 2.5 planning session tomorrow'

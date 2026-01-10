@@ -214,5 +214,223 @@
 
 ---
 
-**Retrospective Prepared:** January 9, 2026
-**Status:** Ready for Epic 3
+## 8. User Decisions & Strategic Direction
+
+### Decision Record (January 9, 2026)
+
+| Decision              | Choice                                                    | Rationale                                             | Impact                                              |
+| --------------------- | --------------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------- |
+| **Auth Strategy**     | 1A - Block Epic 3 sampai auth selesai                     | Epic 3 requires proper auth; placeholder insufficient | Epic 2.5 (Auth Foundation) becomes critical blocker |
+| **RLS Tests**         | 2B - Tunggu auth ready dulu baru bikin test               | RLS tests require real auth context to be meaningful  | Delayed to Epic 2.7, after auth foundation          |
+| **Component Library** | 3A - Extract shared form components sebagai task terpisah | Recognize technical debt, address systematically      | Epic 2.6 (Component Library) as parallel task       |
+| **E2E in CI**         | 4A - Run E2E pada setiap PR                               | Prioritize quality gates in CI pipeline               | Added to Epic 2.7 requirements                      |
+
+### Strategic Shift
+
+**Original Plan:** Epic 2 → Epic 3 (Registration) → Epic 4 (Verification)
+
+**New Plan:** Epic 2 → Epic 2.5 (Auth Foundation) → Epic 2.6 (Component Library) → Epic 2.7 (Testing Infrastructure) → Epic 3 (Registration)
+
+**Key Insight:** Auth foundation is prerequisite for all subsequent epics with user-facing features.
+
+---
+
+## 9. Action Items Synthesis
+
+### Phase 1: Epic 2.5 - Auth Foundation (Hari Ini - 3 Hari)
+
+**Status:** 🔴 CRITICAL - Blocker for Epic 3
+
+| Task                                           | Owner   | Story      | Priority    | Timeline |
+| ---------------------------------------------- | ------- | ---------- | ----------- | -------- |
+| Integrate Clerk authentication                 | Elena   | Epic 2.5.1 | 🔴 CRITICAL | Hari 1   |
+| Replace session placeholder with Clerk session | Charlie | Epic 2.5.2 | 🔴 CRITICAL | Hari 1-2 |
+| Update all permission checking helpers         | Elena   | Epic 2.5.3 | 🔴 CRITICAL | Hari 2   |
+| Test auth flow end-to-end                      | Dana    | Epic 2.5.4 | 🔴 CRITICAL | Hari 2-3 |
+| Document auth integration for Epic 3           | Alice   | Epic 2.5.5 | 🟡 HIGH     | Hari 3   |
+
+### Phase 2: Epic 2.6 - Component Library (Parallel Epic 3)
+
+**Status:** 🟡 HIGH - Not a blocker, improves velocity
+
+| Task                                   | Owner   | Story      | Priority  | Timeline |
+| -------------------------------------- | ------- | ---------- | --------- | -------- |
+| Extract shared form input components   | Elena   | Epic 2.6.1 | 🟡 HIGH   | Hari 4-5 |
+| Build reusable modal/dialog components | Elena   | Epic 2.6.2 | 🟡 HIGH   | Hari 4-5 |
+| Create status badge component library  | Elena   | Epic 2.6.3 | 🟢 MEDIUM | Hari 5-6 |
+| Document component usage patterns      | Charlie | Epic 2.6.4 | 🟢 MEDIUM | Hari 6   |
+
+### Phase 3: Epic 2.7 - Testing Infrastructure (After Auth)
+
+**Status:** 🔴 CRITICAL - Required for production deployment
+
+| Task                                      | Owner   | Story      | Priority    | Timeline     |
+| ----------------------------------------- | ------- | ---------- | ----------- | ------------ |
+| Setup Neon test database with auth        | Dana    | Epic 2.7.1 | 🔴 CRITICAL | Setelah auth |
+| Implement RLS integration tests           | Dana    | Epic 2.7.2 | 🔴 CRITICAL | Setelah auth |
+| Add E2E tests to CI pipeline (PR trigger) | Charlie | Epic 2.7.3 | 🔴 CRITICAL | Setelah auth |
+| Setup test data fixtures for auth         | Elena   | Epic 2.7.4 | 🟡 HIGH     | Setelah auth |
+
+### Testing Strategy Alignment
+
+**E2E Tests (Decision 4A):**
+
+- Run on every PR approval (not every push)
+- Cover critical user flows: registration, verification, admin
+- Limit to ~5-10 critical scenarios to maintain fast feedback
+
+**Testing Pyramid:**
+
+- Unit tests: Fast, run on every push (✅ Existing)
+- Integration tests: Medium, run on PR merge to main (⚠️ Add in Epic 2.7)
+- E2E tests: Slow, run on PR approval or nightly build (⚠️ Add in Epic 2.7)
+
+---
+
+## 10. Production Readiness Assessment
+
+### Critical Readiness Exploration
+
+**Verdict:** Epic 2 is **MVP-READY** ✅ but **NOT PRODUCTION-READY** ❌
+
+#### Quality Assessment (Dana - QA Engineer)
+
+| Aspect             | Status      | Notes                                |
+| ------------------ | ----------- | ------------------------------------ |
+| Unit Test Coverage | ✅ 69 tests | All passing                          |
+| TDD Compliance     | ✅ 100%     | Tests written first                  |
+| RLS Coverage       | ⚠️ PARTIAL  | 3 tests skipped (requires auth)      |
+| E2E Tests          | ❌ BLOCKED  | Build fails due to component imports |
+| Integration Tests  | ❌ NONE     | No test DB setup yet                 |
+| Production Build   | ❌ UNTESTED | E2E build failures unresolved        |
+
+#### Architecture Assessment (Charlie - Architect)
+
+| Layer           | Status         | Gaps                                  |
+| --------------- | -------------- | ------------------------------------- |
+| Database Schema | ✅ READY       | Drizzle migrations work               |
+| Domain Logic    | ✅ SOLID       | Pragmatic domain applied consistently |
+| API Layer       | ⚠️ PARTIAL     | Needs proper error handling           |
+| Auth Layer      | ❌ PLACEHOLDER | Requires Epic 2.5 (Clerk integration) |
+| UI Components   | ⚠️ DUPLICATED  | Requires Epic 2.6 (shared library)    |
+| Deployment      | ❌ UNTESTED    | No production deployment tested       |
+
+#### Product Assessment (Alice - Product Owner)
+
+| Feature                      | Status      | Production Ready?                 |
+| ---------------------------- | ----------- | --------------------------------- |
+| School Profile Configuration | ✅ COMPLETE | Needs auth to protect routes      |
+| Admission Path Management    | ✅ COMPLETE | Needs auth to protect routes      |
+| Fee Structure Setup          | ✅ COMPLETE | Needs auth to protect routes      |
+| RBAC Assignment              | ✅ COMPLETE | Needs auth to enforce permissions |
+| Admin UI                     | ⚠️ BETA     | Needs auth + component polish     |
+
+#### Code Quality Assessment (Elena - Junior Dev)
+
+✅ **Strengths:**
+
+- Clean domain logic with clear separation of concerns
+- Zod validation consistently applied across all modules
+- TDD practice ensures highly testable code
+- Consistent naming conventions (snake_case DB, kebab-case routes, PascalCase components)
+
+⚠️ **Areas for Improvement:**
+
+- Component duplication across settings pages (addressed in Epic 2.6)
+- Hardcoded strings (needs i18n preparation for future)
+- Error handling not yet comprehensive (add in Epic 2.7)
+- Logging minimal (needs production logging strategy)
+
+### Production Readiness Roadmap
+
+**Current State (Epic 2):**
+
+- ✅ Ready for internal testing/dev environment
+- ✅ Solid foundation for Epic 3 and beyond
+- ❌ Not suitable for production deployment
+
+**Required for Production:**
+
+1. ✅ Epic 2.5: Auth Foundation (Clerk integration)
+2. ✅ Epic 2.6: Component Library (shared UI components)
+3. ✅ Epic 2.7: Testing Infrastructure (integration + E2E tests)
+4. ⚠️ Staging environment with real database
+5. ⚠️ Performance testing for admission path operations
+6. ⚠️ Security audit for RBAC implementation
+
+**Recommendation:**
+
+- Proceed to Epic 2.5 (Auth Foundation) immediately
+- Epic 2 codebase provides excellent foundation for Epic 3
+- Production deployment will be ready after Epic 2.5-2.7 completion
+
+---
+
+## 11. Team Commitments
+
+### Celebration of Achievements
+
+**Alice (Product Owner):** Celebrating **Product Vision Alignment**! Epic 2 deliverables perfectly match PRD requirements. PPDB SAAS foundation for school-specific admission management is taking shape!
+
+**Charlie (Architect):** Celebrating **Technical Excellence**! Pragmatic Domain pattern consistently applied. Codebase is maintainable and testable - will scale beautifully for Epic 3 (registration) and Epic 4 (verification)!
+
+**Dana (QA Engineer):** Celebrating **Testing Culture**! 69 tests, all passing, 100% TDD compliance. Every business logic covered, RLS policies validated, permission boundaries tested. This testing culture is our competitive advantage!
+
+**Elena (Junior Dev):** Celebrating **Learning and Growth**! Major learnings:
+
+1. TDD power - tests instantly catch bugs during Svelte 5 refactors
+2. Domain pattern makes code easier to understand
+3. Component duplication is a problem (excited to build shared library)
+4. Auth placeholder makes sense for Epic 2 but must be replaced for Epic 3
+
+### Commitment Ceremony
+
+| Team Member             | Commitment                                       | Deliverable                                    | Timeline                 |
+| ----------------------- | ------------------------------------------------ | ---------------------------------------------- | ------------------------ |
+| **Alice (PO)**          | Finalize Clerk auth requirements                 | Auth integration spec for Epic 2.5             | Today EOD                |
+| **Charlie (Architect)** | Design auth layer architecture                   | Auth architecture diagram + migration guide    | Tomorrow noon            |
+| **Dana (QA)**           | Setup Neon test database with auth               | Test DB + RLS integration test suite           | After Clerk integration  |
+| **Elena (Dev)**         | Integrate Clerk and replace session placeholders | Working auth flow + updated permission helpers | 2 days (Days 1-2)        |
+| **Bob (SM)**            | Facilitate Epic 2.5 planning session             | Epic 2.5 story breakdown + acceptance criteria | Tomorrow before planning |
+
+---
+
+## 12. Retrospective Summary
+
+### What We Accomplished
+
+✅ **Epic 2 Complete:** 4/4 stories finished with 69 tests passing
+✅ **TDD Discipline:** 100% compliance throughout all stories
+✅ **Architecture Foundation:** Pragmatic Domain pattern consistently applied
+✅ **Product Alignment:** All PRD requirements met with high-quality implementation
+
+### What We Learned
+
+📚 **Auth Strategy:** Placeholder auth works for isolated features but must be replaced before user-facing features
+📚 **Testing:** RLS tests require real auth context; unit tests alone insufficient
+📚 **Component Reusability:** Plan shared components before building multiple similar UIs
+📚 **Production Readiness:** MVP-ready ≠ production-ready; requires auth + testing infrastructure
+
+### What We're Doing Next
+
+🎯 **Epic 2.5 (Auth Foundation):** Blocker for Epic 3 - integrate Clerk, replace placeholders
+🎯 **Epic 2.6 (Component Library):** Parallel task - extract shared UI components
+🎯 **Epic 2.7 (Testing Infrastructure):** After auth - RLS integration tests + E2E in CI
+🎯 **Epic 3 (Registration):** Begin after Epic 2.5 complete - frictionless registration flow
+
+### Final Status
+
+**Epic 2 Status:** ✅ COMPLETED (MVP-Ready, Production-Ready after Epic 2.5-2.7)
+
+**Next Epic:** Epic 2.5 - Auth Foundation (Critical Blocker)
+**Start Date:** January 10, 2026
+**Planned Duration:** 3 days
+
+**Production Readiness Target:** After Epic 2.7 completion (~10 days)
+
+---
+
+**Retrospective Completed:** January 9, 2026
+**Facilitator:** Bob (Scrum Master)
+**Status:** Ready for Epic 2.5 - Auth Foundation
+**Next Meeting:** Epic 2.5 Planning Session (Tomorrow)

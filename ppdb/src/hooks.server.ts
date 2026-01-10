@@ -1,40 +1,73 @@
 import type { Handle } from '@sveltejs/kit';
 import { resolveTenant } from '$lib/server/tenant';
+import { validateSession, refreshSession } from '$lib/server/auth/session';
+import { verifyFirebaseToken } from '$lib/server/auth/firebase';
+import { SESSION_EXPIRY_SECONDS } from '$lib/server/auth/types';
+import { AuthError } from '$lib/server/auth/types';
+
+const REFRESH_THRESHOLD = 2 * 24 * 60 * 60;
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const host = event.request.headers.get('host') || '';
 	let subdomain = '';
 
-	// Localhost handling: school.localhost:5173
 	if (host.includes('localhost') || host.includes('127.0.0.1')) {
 		const parts = host.split('.');
 		if (parts.length > 1 && parts[0] !== 'localhost') {
 			subdomain = parts[0];
 		}
 	} else {
-		// Production handling: school.ppdb.id
 		const parts = host.split('.');
-		// Assuming 3 parts for subdomain: school.ppdb.id
-		// If 2 parts: ppdb.id (root)
 		if (parts.length > 2) {
 			subdomain = parts[0];
 		}
 	}
 
-	// Reserved subdomains
 	const reserved = ['www', 'app', 'api', 'admin', 'super-admin'];
 	if (reserved.includes(subdomain)) {
 		subdomain = '';
 	}
 
+	let tenantId: string | undefined;
 	if (subdomain) {
 		const tenant = await resolveTenant(subdomain, event.platform);
 		if (tenant) {
+			tenantId = tenant.id;
 			event.locals.tenantId = tenant.id;
 			event.locals.tenant = tenant;
 		} else {
-			// Subdomain exists but tenant not found
 			return new Response('School not found', { status: 404 });
+		}
+	}
+
+	const sessionId = event.cookies.get('session_id');
+	if (sessionId) {
+		try {
+			const session = await validateSession(sessionId);
+
+			event.locals.session = session;
+			event.locals.userId = session.userId;
+
+			const timeUntilExpiry = (session.expiresAt.getTime() - Date.now()) / 1000;
+
+			if (timeUntilExpiry < REFRESH_THRESHOLD) {
+				const refreshed = await refreshSession(sessionId, SESSION_EXPIRY_SECONDS);
+				event.locals.session = refreshed;
+			}
+		} catch (error) {
+			if (error instanceof AuthError) {
+				event.cookies.delete('session_id', { path: '/' });
+			}
+		}
+	}
+
+	const idToken = event.cookies.get('firebase_id_token');
+	if (idToken) {
+		try {
+			const firebaseUser = await verifyFirebaseToken(idToken);
+			event.locals.firebaseUser = firebaseUser;
+		} catch (error) {
+			console.error('Firebase token verification failed:', error);
 		}
 	}
 

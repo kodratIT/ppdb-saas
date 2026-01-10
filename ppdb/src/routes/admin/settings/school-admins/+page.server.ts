@@ -1,16 +1,16 @@
 import { fail, redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/server/db';
 import * as schoolAdminsDomain from '$lib/server/domain/school-admins';
 import { eq } from 'drizzle-orm';
 import * as schema from '$lib/server/db/schema';
+import { requireAuth, requirePermission } from '$lib/server/auth/authorization';
+import { PERMISSIONS } from '$lib/server/auth/permissions';
+import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 
-export const load: PageServerLoad = async () => {
-	// In a real implementation, you would get tenantId from session/auth
-	// For now, we'll use a placeholder
-	const tenantId = 'placeholder-tenant-id';
+export const load: PageServerLoad = async ({ locals }) => {
+	const { userId, tenantId } = requireAuth(locals);
 
-	// List all school admins
 	const admins = await schoolAdminsDomain.listSchoolAdmins(db, tenantId);
 
 	return {
@@ -19,24 +19,55 @@ export const load: PageServerLoad = async () => {
 	};
 };
 
-export const actions = {
+export const actions: Actions = {
 	/**
 	 * Create new school admin
 	 */
-	createAdmin: async ({ request }: { request: Request }) => {
-		const formData = await request.formData();
-		const email = formData.get('email') as string;
-		const name = formData.get('name') as string;
-		const role = formData.get('role') as 'school_admin' | 'verifier' | 'treasurer';
+	createAdmin: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
 
-		// In a real implementation, you would get tenantId from session/auth
-		const tenantId = 'placeholder-tenant-id';
+		requirePermission(auth, PERMISSIONS.ADMIN_USERS_CREATE);
+
+		const formData = await request.formData();
+		const email = formData.get('email');
+		const name = formData.get('name');
+		const role = formData.get('role');
+
+		if (!email || typeof email !== 'string') {
+			return fail(400, { message: 'Email is required' });
+		}
+
+		if (!email.includes('@') || !email.includes('.')) {
+			return fail(400, { message: 'Invalid email format' });
+		}
+
+		if (!name || typeof name !== 'string' || name.trim() === '') {
+			return fail(400, { message: 'Name is required' });
+		}
+
+		if (name.trim().length < 2) {
+			return fail(400, { message: 'Name must be at least 2 characters' });
+		}
+
+		if (name.trim().length > 100) {
+			return fail(400, { message: 'Name must be less than 100 characters' });
+		}
+
+		const validRoles = ['school_admin', 'verifier', 'treasurer'] as const;
+		if (!role || typeof role !== 'string' || !validRoles.includes(role as any)) {
+			return fail(400, { message: 'Invalid role' });
+		}
 
 		try {
-			await schoolAdminsDomain.createSchoolAdmin(db, tenantId, {
-				email,
-				name,
-				role
+			await schoolAdminsDomain.createSchoolAdmin(db, auth.tenantId, {
+				email: email.trim(),
+				name: name.trim(),
+				role: role as 'school_admin' | 'verifier' | 'treasurer'
+			});
+
+			await logSensitiveAction(auth.userId, 'create_admin', email.trim(), {
+				name: name.trim(),
+				role: role
 			});
 		} catch (error) {
 			if (error instanceof Error) {
@@ -51,16 +82,31 @@ export const actions = {
 	/**
 	 * Assign new role to user
 	 */
-	assignRole: async ({ request }: { request: Request }) => {
-		const formData = await request.formData();
-		const userId = formData.get('userId') as string;
-		const role = formData.get('role') as any;
+	assignRole: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
 
-		// In a real implementation, you would get tenantId from session/auth
-		const tenantId = 'placeholder-tenant-id';
+		requirePermission(auth, PERMISSIONS.ADMIN_USERS_ASSIGN_ROLE);
+
+		const formData = await request.formData();
+		const userIdParam = formData.get('userId');
+		const role = formData.get('role');
+
+		if (!userIdParam || typeof userIdParam !== 'string') {
+			return fail(400, { message: 'User ID is required' });
+		}
+
+		const validRoles = ['school_admin', 'verifier', 'treasurer'] as const;
+		if (!role || typeof role !== 'string' || !validRoles.includes(role as any)) {
+			return fail(400, { message: 'Invalid role' });
+		}
 
 		try {
-			await schoolAdminsDomain.assignRoleToUser(db, tenantId, userId, role);
+			await schoolAdminsDomain.assignRoleToUser(db, auth.tenantId, userIdParam, role as any);
+
+			await logSensitiveAction(auth.userId, 'assign_role', userIdParam, {
+				newRole: role,
+				tenantId: auth.tenantId
+			});
 		} catch (error) {
 			if (error instanceof Error) {
 				return fail(400, { message: error.message });
@@ -74,15 +120,24 @@ export const actions = {
 	/**
 	 * Revoke user access
 	 */
-	revokeAccess: async ({ request }: { request: Request }) => {
-		const formData = await request.formData();
-		const userId = formData.get('userId') as string;
+	revokeAccess: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
 
-		// In a real implementation, you would get tenantId from session/auth
-		const tenantId = 'placeholder-tenant-id';
+		requirePermission(auth, PERMISSIONS.ADMIN_USERS_REVOKE_ACCESS);
+
+		const formData = await request.formData();
+		const userIdParam = formData.get('userId');
+
+		if (!userIdParam || typeof userIdParam !== 'string') {
+			return fail(400, { message: 'User ID is required' });
+		}
 
 		try {
-			await schoolAdminsDomain.revokeAccess(db, tenantId, userId);
+			await schoolAdminsDomain.revokeAccess(db, auth.tenantId, userIdParam);
+
+			await logSensitiveAction(auth.userId, 'revoke_access', userIdParam, {
+				tenantId: auth.tenantId
+			});
 		} catch (error) {
 			if (error instanceof Error) {
 				return fail(400, { message: error.message });

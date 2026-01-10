@@ -3,15 +3,11 @@ import type { Actions, PageServerLoad } from './$types';
 import { getSchoolProfileByTenantId, updateSchoolProfile } from '$lib/server/domain/school-profile';
 import { schoolProfileUpdateSchema } from '$lib/schema/school-profile';
 import { db } from '$lib/server/db';
+import { requireAuth } from '$lib/server/auth/authorization';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const tenantId = locals.tenantId;
+	const { userId, tenantId } = requireAuth(locals);
 
-	if (!tenantId) {
-		throw new Error('Unauthorized: No tenant context');
-	}
-
-	// Get existing profile or return defaults
 	const profile = await getSchoolProfileByTenantId(db, tenantId);
 
 	return {
@@ -31,11 +27,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	updateProfile: async ({ request, locals }) => {
-		const tenantId = locals.tenantId;
-
-		if (!tenantId) {
-			return fail(401, { error: 'Unauthorized' });
-		}
+		const { userId, tenantId } = requireAuth(locals);
 
 		const formData = await request.formData();
 		const data = {
@@ -50,7 +42,6 @@ export const actions: Actions = {
 			address: formData.get('address') || null
 		};
 
-		// Validate with Zod
 		const validation = schoolProfileUpdateSchema.safeParse(data);
 
 		if (!validation.success) {

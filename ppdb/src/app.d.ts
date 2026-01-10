@@ -11,6 +11,31 @@ declare global {
 				slug: string;
 				status: 'active' | 'inactive';
 			};
+			session?: {
+				id: string;
+				userId: string;
+				tenantId: string;
+				authType: 'firebase' | 'waha';
+				authIdentifier: string;
+				expiresAt: Date;
+				createdAt: Date;
+				role?: string;
+			};
+			session?: {
+				id: string;
+				userId: string;
+				tenantId: string;
+				authType: 'firebase' | 'waha';
+				authIdentifier: string;
+				role: string;
+				expiresAt: Date;
+				createdAt: Date;
+			};
+			userId?: string;
+			firebaseUser?: {
+				uid: string;
+				email?: string;
+			};
 		}
 		// interface PageData {}
 		// interface PageState {}

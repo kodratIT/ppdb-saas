@@ -4,13 +4,15 @@ import { db } from '$lib/server/db';
 import * as admissionPathsDomain from '$lib/server/domain/admission-paths';
 import { admissionPathCreateSchema, admissionPathUpdateSchema } from '$lib/schema/admission-path';
 import { ZodError } from 'zod';
+import { requireAuth, requireRole, requirePermission } from '$lib/server/auth/authorization';
+import { PERMISSIONS } from '$lib/server/auth/permissions';
+import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 
-// Mock tenant ID for development (will be replaced with actual tenant resolution)
-const MOCK_TENANT_ID = 'tenant-123';
+export const load: PageServerLoad = async ({ locals }) => {
+	const { userId, tenantId } = requireAuth(locals);
 
-export const load: PageServerLoad = async () => {
 	try {
-		const paths = await admissionPathsDomain.listAdmissionPaths(db, MOCK_TENANT_ID);
+		const paths = await admissionPathsDomain.listAdmissionPaths(db, tenantId);
 
 		return {
 			paths,
@@ -27,7 +29,9 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
+	create: async ({ request, locals }) => {
+		const { userId, tenantId } = requireAuth(locals);
+
 		try {
 			const formData = await request.formData();
 			const data = {
@@ -36,15 +40,9 @@ export const actions: Actions = {
 				quota: Number(formData.get('quota'))
 			};
 
-			// Validate with Zod
 			const validatedData = admissionPathCreateSchema.parse(data);
 
-			// Create admission path
-			const created = await admissionPathsDomain.createAdmissionPath(
-				db,
-				MOCK_TENANT_ID,
-				validatedData
-			);
+			const created = await admissionPathsDomain.createAdmissionPath(db, tenantId, validatedData);
 
 			return {
 				success: true,
@@ -68,7 +66,9 @@ export const actions: Actions = {
 		}
 	},
 
-	update: async ({ request }) => {
+	update: async ({ request, locals }) => {
+		const { userId, tenantId } = requireAuth(locals);
+
 		try {
 			const formData = await request.formData();
 			const pathId = formData.get('pathId') as string;
@@ -78,13 +78,11 @@ export const actions: Actions = {
 				quota: formData.get('quota') ? Number(formData.get('quota')) : undefined
 			};
 
-			// Validate with Zod
 			const validatedData = admissionPathUpdateSchema.parse(data);
 
-			// Update admission path
 			const updated = await admissionPathsDomain.updateAdmissionPath(
 				db,
-				MOCK_TENANT_ID,
+				tenantId,
 				pathId,
 				validatedData
 			);
@@ -118,12 +116,14 @@ export const actions: Actions = {
 		}
 	},
 
-	delete: async ({ request }) => {
+	delete: async ({ request, locals }) => {
+		const { userId, tenantId } = requireAuth(locals);
+
 		try {
 			const formData = await request.formData();
 			const pathId = formData.get('pathId') as string;
 
-			await admissionPathsDomain.deleteAdmissionPath(db, MOCK_TENANT_ID, pathId);
+			await admissionPathsDomain.deleteAdmissionPath(db, tenantId, pathId);
 
 			return {
 				success: true,
@@ -145,12 +145,19 @@ export const actions: Actions = {
 		}
 	},
 
-	publish: async ({ request }) => {
+	publish: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+		requirePermission(auth, PERMISSIONS.ADMISSION_PATHS_PUBLISH);
+
 		try {
 			const formData = await request.formData();
 			const pathId = formData.get('pathId') as string;
 
-			const updated = await admissionPathsDomain.publishPath(db, MOCK_TENANT_ID, pathId);
+			const updated = await admissionPathsDomain.publishPath(db, auth.tenantId, pathId);
+
+			await logSensitiveAction(auth.userId, 'publish_admission_path', pathId, {
+				pathName: updated.name
+			});
 
 			return {
 				success: true,
@@ -173,12 +180,19 @@ export const actions: Actions = {
 		}
 	},
 
-	close: async ({ request }) => {
+	close: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+		requirePermission(auth, PERMISSIONS.ADMISSION_PATHS_CLOSE);
+
 		try {
 			const formData = await request.formData();
 			const pathId = formData.get('pathId') as string;
 
-			const updated = await admissionPathsDomain.closePath(db, MOCK_TENANT_ID, pathId);
+			const updated = await admissionPathsDomain.closePath(db, auth.tenantId, pathId);
+
+			await logSensitiveAction(auth.userId, 'close_admission_path', pathId, {
+				pathName: updated.name
+			});
 
 			return {
 				success: true,
@@ -201,12 +215,19 @@ export const actions: Actions = {
 		}
 	},
 
-	reopen: async ({ request }) => {
+	reopen: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+		requirePermission(auth, PERMISSIONS.ADMISSION_PATHS_CLOSE);
+
 		try {
 			const formData = await request.formData();
 			const pathId = formData.get('pathId') as string;
 
-			const updated = await admissionPathsDomain.reopenPath(db, MOCK_TENANT_ID, pathId);
+			const updated = await admissionPathsDomain.reopenPath(db, auth.tenantId, pathId);
+
+			await logSensitiveAction(auth.userId, 'reopen_admission_path', pathId, {
+				pathName: updated.name
+			});
 
 			return {
 				success: true,
@@ -229,12 +250,19 @@ export const actions: Actions = {
 		}
 	},
 
-	archive: async ({ request }) => {
+	archive: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+		requirePermission(auth, PERMISSIONS.ADMISSION_PATHS_ARCHIVE);
+
 		try {
 			const formData = await request.formData();
 			const pathId = formData.get('pathId') as string;
 
-			const updated = await admissionPathsDomain.archivePath(db, MOCK_TENANT_ID, pathId);
+			const updated = await admissionPathsDomain.archivePath(db, auth.tenantId, pathId);
+
+			await logSensitiveAction(auth.userId, 'archive_admission_path', pathId, {
+				pathName: updated.name
+			});
 
 			return {
 				success: true,

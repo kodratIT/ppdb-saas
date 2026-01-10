@@ -25,6 +25,7 @@ export const userRoleEnum = pgEnum('user_role', [
 	'parent'
 ]);
 export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);
+export const authTypeEnum = pgEnum('auth_type', ['firebase', 'waha']);
 
 export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -156,5 +157,40 @@ export const feeStructuresRelations = relations(feeStructures, ({ one }) => ({
 	admissionPath: one(admissionPaths, {
 		fields: [feeStructures.admissionPathId],
 		references: [admissionPaths.id]
+	})
+}));
+
+// Story 2.5.1: Firebase + WAHA Hybrid Authentication
+export const otpCodes = pgTable('otp_codes', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	sessionId: text('session_id').notNull().unique(),
+	phoneNumber: text('phone_number').notNull(),
+	code: text('code').notNull(),
+	expiresAt: timestamp('expires_at').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const sessions = pgTable('sessions', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	userId: uuid('user_id')
+		.references(() => users.id, { onDelete: 'cascade' })
+		.notNull(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	authType: authTypeEnum('auth_type').notNull(),
+	authIdentifier: text('auth_identifier').notNull(),
+	expiresAt: timestamp('expires_at').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	tenant: one(tenants, {
+		fields: [sessions.tenantId],
+		references: [tenants.id]
+	}),
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id]
 	})
 }));

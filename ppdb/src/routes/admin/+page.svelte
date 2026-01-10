@@ -5,7 +5,17 @@
 </script>
 
 <div class="container mx-auto p-8">
-	<h1 class="text-3xl font-bold mb-8 text-[#002C5F]">Super Admin Dashboard</h1>
+	<div class="flex justify-between items-center mb-8">
+		<h1 class="text-3xl font-bold text-[#002C5F]">Super Admin Dashboard</h1>
+		<form method="POST" action="?/signout">
+			<button
+				type="submit"
+				class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+			>
+				Sign Out
+			</button>
+		</form>
+	</div>
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 		<!-- Create Tenant Form -->

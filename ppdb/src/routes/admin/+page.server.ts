@@ -1,14 +1,23 @@
 import type { Actions, PageServerLoad } from './$types';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect, error as svelteError } from '@sveltejs/kit';
 import { createTenant, listTenants } from '$lib/server/domain/admin';
+import { invalidateSession } from '$lib/server/auth/session';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.session) {
+		throw redirect(302, '/sign-in');
+	}
+
 	const tenants = await listTenants();
 	return { tenants };
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
+	create: async ({ request, locals }) => {
+		if (!locals.session || !locals.userId) {
+			return fail(401, { error: true, message: 'Unauthorized' });
+		}
+
 		const data = await request.formData();
 		const name = data.get('name');
 		const slug = data.get('slug');
@@ -21,13 +30,20 @@ export const actions: Actions = {
 		}
 
 		try {
-			// TODO: Get real actor ID from session/auth
-			const actorId = 'super-admin-placeholder';
+			const actorId = locals.userId;
 			await createTenant({ name, slug }, actorId);
 			return { success: true };
 		} catch (error) {
 			console.error('Failed to create tenant:', error);
 			return fail(500, { error: true, message: 'Failed to create tenant' });
 		}
+	},
+	signout: async ({ cookies, locals }) => {
+		if (locals.session) {
+			await invalidateSession(locals.session.id);
+			cookies.delete('session_id', { path: '/' });
+			cookies.delete('firebase_id_token', { path: '/' });
+		}
+		throw redirect(302, '/sign-in');
 	}
 };
