@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
+	import Input from '$lib/components/ui/input.svelte';
+	import Label from '$lib/components/ui/label.svelte';
+	import Textarea from '$lib/components/ui/textarea.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -184,44 +187,35 @@
 			<form method="POST" action="?/create" use:enhance>
 				<div class="space-y-4">
 					<div>
-						<label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-							Path Name *
-						</label>
-						<input
+						<Label for="name" class="block text-gray-700 mb-1">Path Name *</Label>
+						<Input
 							type="text"
 							id="name"
 							name="name"
 							required
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 							placeholder="e.g., Jalur Prestasi"
 						/>
 					</div>
 
 					<div>
-						<label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-							Description
-						</label>
-						<textarea
+						<Label for="description" class="block text-gray-700 mb-1">Description</Label>
+						<Textarea
 							id="description"
 							name="description"
-							rows="3"
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							rows={3}
 							placeholder="Optional description..."
-						></textarea>
+						/>
 					</div>
 
 					<div>
-						<label for="quota" class="block text-sm font-medium text-gray-700 mb-1">
-							Quota *
-						</label>
-						<input
+						<Label for="quota" class="block text-gray-700 mb-1">Quota *</Label>
+						<Input
 							type="number"
 							id="quota"
 							name="quota"
 							required
 							min="1"
 							max="10000"
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 							placeholder="e.g., 50"
 						/>
 					</div>
@@ -256,37 +250,29 @@
 				<input type="hidden" name="pathId" value={editingPath.id} />
 				<div class="space-y-4">
 					<div>
-						<label for="edit-name" class="block text-sm font-medium text-gray-700 mb-1">
-							Path Name *
-						</label>
-						<input
+						<Label for="edit-name" class="block text-gray-700 mb-1">Path Name *</Label>
+						<Input
 							type="text"
 							id="edit-name"
 							name="name"
 							required
 							value={editingPath.name}
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 						/>
 					</div>
 
 					<div>
-						<label for="edit-description" class="block text-sm font-medium text-gray-700 mb-1">
-							Description
-						</label>
-						<textarea
+						<Label for="edit-description" class="block text-gray-700 mb-1">Description</Label>
+						<Textarea
 							id="edit-description"
 							name="description"
-							rows="3"
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-							>{editingPath.description || ''}</textarea
-						>
+							rows={3}
+							value={editingPath.description || ''}
+						/>
 					</div>
 
 					<div>
-						<label for="edit-quota" class="block text-sm font-medium text-gray-700 mb-1">
-							Quota *
-						</label>
-						<input
+						<Label for="edit-quota" class="block text-gray-700 mb-1">Quota *</Label>
+						<Input
 							type="number"
 							id="edit-quota"
 							name="quota"
@@ -294,7 +280,6 @@
 							min={editingPath.filledSlots}
 							max="10000"
 							value={editingPath.quota}
-							class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 						/>
 						<p class="text-xs text-gray-500 mt-1">
 							Current filled slots: {editingPath.filledSlots}
