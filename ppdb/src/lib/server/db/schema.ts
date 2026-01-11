@@ -1,4 +1,14 @@
-import { pgTable, uuid, text, timestamp, pgEnum, unique, integer } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	uuid,
+	text,
+	timestamp,
+	pgEnum,
+	unique,
+	integer,
+	uniqueIndex,
+	boolean
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const statusEnum = pgEnum('status', ['active', 'inactive']);
@@ -35,6 +45,19 @@ export const userRoleEnum = pgEnum('user_role', [
 ]);
 export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);
 export const authTypeEnum = pgEnum('auth_type', ['firebase', 'waha']);
+
+export const fieldTypeEnum = pgEnum('field_type', [
+	'text',
+	'textarea',
+	'number',
+	'email',
+	'tel',
+	'date',
+	'select',
+	'checkbox',
+	'radio',
+	'file'
+]);
 
 export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -169,6 +192,56 @@ export const feeStructuresRelations = relations(feeStructures, ({ one }) => ({
 	})
 }));
 
+export const customFields = pgTable('custom_fields', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	admissionPathId: uuid('admission_path_id').references(() => admissionPaths.id),
+	label: text('label').notNull(),
+	key: text('key').notNull(),
+	fieldType: fieldTypeEnum('field_type').notNull(),
+	step: integer('step').notNull().default(1),
+	required: boolean('required').default(false).notNull(),
+	isEncrypted: boolean('is_encrypted').default(false).notNull(),
+	isBaseField: boolean('is_base_field').default(false).notNull(),
+	validationRules: text('validation_rules'), // JSON: {min, max, pattern}
+	placeholder: text('placeholder'),
+	helpText: text('help_text'),
+	order: integer('order').notNull().default(0),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const fieldOptions = pgTable('field_options', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	customFieldId: uuid('custom_field_id')
+		.references(() => customFields.id, { onDelete: 'cascade' })
+		.notNull(),
+	label: text('label').notNull(),
+	value: text('value').notNull(),
+	order: integer('order').notNull().default(0)
+});
+
+export const customFieldsRelations = relations(customFields, ({ one, many }) => ({
+	tenant: one(tenants, {
+		fields: [customFields.tenantId],
+		references: [tenants.id]
+	}),
+	admissionPath: one(admissionPaths, {
+		fields: [customFields.admissionPathId],
+		references: [admissionPaths.id]
+	}),
+	options: many(fieldOptions)
+}));
+
+export const fieldOptionsRelations = relations(fieldOptions, ({ one }) => ({
+	customField: one(customFields, {
+		fields: [fieldOptions.customFieldId],
+		references: [customFields.id]
+	})
+}));
+
 // Epic 3: Registration & Data Collection
 export const applications = pgTable('applications', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -182,6 +255,11 @@ export const applications = pgTable('applications', {
 		.references(() => admissionPaths.id)
 		.notNull(),
 	status: applicationStatusEnum('status').default('draft').notNull(),
+
+	// Dynamic custom field values
+	customFieldValues: text('custom_field_values'), // JSONB: {"father_name": "Budi", "income": "5000000"}
+	answeredCustomFields: text('answered_custom_fields'), // JSON array
+	version: integer('version').default(1).notNull(),
 
 	// Child information (filled in multi-step form)
 	childFullName: text('child_full_name'),

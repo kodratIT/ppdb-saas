@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import type { SelectHTMLAttributes } from 'svelte';
+	import type { HTMLSelectAttributes } from 'svelte/elements';
 
-	interface Props extends SelectHTMLAttributes<HTMLSelectElement> {}
+	interface Props extends HTMLSelectAttributes {
+		children?: import('svelte').Snippet;
+	}
 
 	let { class: className, children, ...restProps }: Props = $props();
 </script>

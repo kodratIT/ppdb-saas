@@ -1,37 +1,69 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { applications, admissionPaths } from '$lib/server/db/schema';
+import { applications, admissionPaths, customFields, fieldOptions } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
+import { decrypt } from '$lib/server/utils/crypto';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-	const session = await requireAuth(locals);
-	await requireRole(locals, 'parent');
+	const auth = await requireAuth(locals);
+	await requireRole(auth, 'parent');
 
 	const paths = await db.query.admissionPaths.findMany({
-		where: and(eq(admissionPaths.tenantId, session.tenantId), eq(admissionPaths.status, 'open'))
+		where: and(eq(admissionPaths.tenantId, auth.tenantId), eq(admissionPaths.status, 'open'))
 	});
 
 	const existingDraft = await db.query.applications.findFirst({
 		where: and(
-			eq(applications.userId, session.userId),
-			eq(applications.tenantId, session.tenantId),
+			eq(applications.userId, auth.userId),
+			eq(applications.tenantId, auth.tenantId),
 			eq(applications.status, 'draft')
 		)
 	});
 
+	// Fetch custom fields for step 1
+	const stepFields = await db.query.customFields.findMany({
+		where: and(
+			eq(customFields.tenantId, auth.tenantId),
+			existingDraft ? eq(customFields.admissionPathId, existingDraft.admissionPathId) : undefined,
+			eq(customFields.step, 1)
+		),
+		with: {
+			options: {
+				orderBy: [asc(fieldOptions.order)]
+			}
+		},
+		orderBy: [asc(customFields.order)]
+	});
+
+	// Decrypt sensitive draft data
+	if (existingDraft?.customFieldValues) {
+		const values = JSON.parse(existingDraft.customFieldValues);
+		for (const field of stepFields) {
+			if (field.isEncrypted && values[field.key]) {
+				try {
+					values[field.key] = decrypt(values[field.key]);
+				} catch (e) {
+					console.error(`Failed to decrypt field ${field.key}:`, e);
+				}
+			}
+		}
+		existingDraft.customFieldValues = JSON.stringify(values);
+	}
+
 	return {
 		admissionPaths: paths,
 		draft: existingDraft || null,
+		customFields: stepFields,
 		tenantSlug: params.tenant
 	};
 };
 
 export const actions = {
 	saveDraft: async ({ request, locals, params }) => {
-		const session = await requireAuth(locals);
-		await requireRole(locals, 'parent');
+		const auth = await requireAuth(locals);
+		await requireRole(auth, 'parent');
 
 		const data = await request.formData();
 		const admissionPathId = data.get('admissionPathId')?.toString();
@@ -51,7 +83,7 @@ export const actions = {
 		const path = await db.query.admissionPaths.findFirst({
 			where: and(
 				eq(admissionPaths.id, admissionPathId),
-				eq(admissionPaths.tenantId, session.tenantId),
+				eq(admissionPaths.tenantId, auth.tenantId),
 				eq(admissionPaths.status, 'open')
 			)
 		});
@@ -63,8 +95,8 @@ export const actions = {
 		try {
 			const existingDraft = await db.query.applications.findFirst({
 				where: and(
-					eq(applications.userId, session.userId),
-					eq(applications.tenantId, session.tenantId),
+					eq(applications.userId, auth.userId),
+					eq(applications.tenantId, auth.tenantId),
 					eq(applications.status, 'draft')
 				)
 			});
@@ -85,8 +117,8 @@ export const actions = {
 					.where(eq(applications.id, existingDraft.id));
 			} else {
 				await db.insert(applications).values({
-					tenantId: session.tenantId,
-					userId: session.userId,
+					tenantId: auth.tenantId,
+					userId: auth.userId,
 					admissionPathId,
 					childFullName,
 					childNickname: childNickname || null,

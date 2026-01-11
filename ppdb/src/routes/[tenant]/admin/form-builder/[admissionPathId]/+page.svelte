@@ -46,26 +46,20 @@
 	async function saveChanges() {
 		isSaving = true;
 		try {
-			// We'll perform a batch update for the current step
-			// For simplicity in this Task 2.2, we'll iterate and save each field
-			// In a real scenario, we might want a batch API endpoint
-			for (const field of fields) {
-				const method = field.id.length > 15 ? 'POST' : 'PATCH'; // Crude check for new vs existing
-				const url =
-					method === 'POST'
-						? `/api/admin/form-builder/${admissionPathId}`
-						: `/api/admin/form-builder/${admissionPathId}/${field.id}`;
+			const res = await fetch(`/api/admin/form-builder/${admissionPathId}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ fields, step: currentStep })
+			});
 
-				await fetch(url, {
-					method,
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ ...field, step: currentStep })
-				});
+			if (res.ok) {
+				showSuccess = true;
+				setTimeout(() => (showSuccess = false), 3000);
+				await loadFields(); // Reload to get proper IDs from DB
+			} else {
+				const err = await res.json();
+				console.error('Failed to save changes:', err);
 			}
-
-			showSuccess = true;
-			setTimeout(() => (showSuccess = false), 3000);
-			await loadFields(); // Reload to get proper IDs from DB
 		} catch (e) {
 			console.error('Error saving changes:', e);
 		} finally {
