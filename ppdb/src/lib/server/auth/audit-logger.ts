@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { auditLogs } from '$lib/server/db/schema';
 
 export interface AuditLogDetails {
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 export async function logAuthorizationSuccess(

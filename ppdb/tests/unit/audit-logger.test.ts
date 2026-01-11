@@ -14,7 +14,7 @@ describe('audit-logger', () => {
 
 	describe('logAuthorizationSuccess', () => {
 		it('creates audit log record for successful authorization', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'login';
 			const details = { ip: '192.168.1.1' };
 
@@ -24,12 +24,12 @@ describe('audit-logger', () => {
 			expect(logs).toHaveLength(1);
 			expect(logs[0].actorId).toBe(actorId);
 			expect(logs[0].action).toBe(`auth_success:${action}`);
-			expect(logs[0].target).toBeNull();
+			expect(logs[0].target).toBe(action);
 			expect(logs[0].details).toBeDefined();
 		});
 
 		it('stores details as JSON string', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'login';
 			const details = { ip: '192.168.1.1', userAgent: 'test-browser' };
 
@@ -43,7 +43,7 @@ describe('audit-logger', () => {
 		});
 
 		it('handles missing details parameter', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'login';
 
 			await logAuthorizationSuccess(actorId, action);
@@ -55,9 +55,9 @@ describe('audit-logger', () => {
 		});
 
 		it('sets timestamp automatically', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'login';
-			const beforeDate = new Date();
+			const beforeDate = new Date(Date.now() - 1000);
 
 			await logAuthorizationSuccess(actorId, action);
 
@@ -72,7 +72,7 @@ describe('audit-logger', () => {
 
 	describe('logAuthorizationFailure', () => {
 		it('creates audit log record for failed authorization', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'requirePermission';
 			const reason = 'User lacks required permissions';
 
@@ -82,11 +82,11 @@ describe('audit-logger', () => {
 			expect(logs).toHaveLength(1);
 			expect(logs[0].actorId).toBe(actorId);
 			expect(logs[0].action).toBe(`auth_failure:${action}`);
-			expect(logs[0].target).toBeNull();
+			expect(logs[0].target).toBe(action);
 		});
 
 		it('stores reason in details JSON', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'requirePermission';
 			const reason = 'User role parent lacks permission admission_paths:create';
 
@@ -99,7 +99,7 @@ describe('audit-logger', () => {
 		});
 
 		it('handles empty reason', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'requirePermission';
 
 			await logAuthorizationFailure(actorId, action, '');
@@ -113,7 +113,7 @@ describe('audit-logger', () => {
 
 	describe('logSensitiveAction', () => {
 		it('creates audit log record for sensitive action', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'assign_role';
 			const target = 'user-456';
 			const details = { oldRole: 'parent', newRole: 'school_admin' };
@@ -128,7 +128,7 @@ describe('audit-logger', () => {
 		});
 
 		it('stores action details as JSON string', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'assign_role';
 			const target = 'user-456';
 			const details = {
@@ -148,7 +148,7 @@ describe('audit-logger', () => {
 		});
 
 		it('handles empty details object', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'archive_admission_path';
 			const target = 'path-789';
 
@@ -162,7 +162,7 @@ describe('audit-logger', () => {
 		});
 
 		it('prefixes action with sensitive:', async () => {
-			const actorId = 'user-123';
+			const actorId = '00000000-0000-0000-0000-000000000123';
 			const action = 'delete_fee_structure';
 			const target = 'fee-001';
 
@@ -176,21 +176,29 @@ describe('audit-logger', () => {
 
 	describe('multiple log entries', () => {
 		it('creates separate audit log records for different events', async () => {
-			await logAuthorizationSuccess('user-1', 'login', { ip: '1.1.1.1' });
-			await logAuthorizationFailure('user-2', 'requirePermission', 'No permission');
-			await logSensitiveAction('user-3', 'assign_role', 'user-4', { newRole: 'admin' });
+			await logAuthorizationSuccess('00000000-0000-0000-0000-000000000001', 'login', {
+				ip: '1.1.1.1'
+			});
+			await logAuthorizationFailure(
+				'00000000-0000-0000-0000-000000000002',
+				'requirePermission',
+				'No permission'
+			);
+			await logSensitiveAction('00000000-0000-0000-0000-000000000003', 'assign_role', 'user-4', {
+				newRole: 'admin'
+			});
 
 			const logs = await db.select().from(auditLogs);
 			expect(logs).toHaveLength(3);
 
 			expect(logs[0].action).toBe('auth_success:login');
-			expect(logs[0].actorId).toBe('user-1');
+			expect(logs[0].actorId).toBe('00000000-0000-0000-0000-000000000001');
 
 			expect(logs[1].action).toBe('auth_failure:requirePermission');
-			expect(logs[1].actorId).toBe('user-2');
+			expect(logs[1].actorId).toBe('00000000-0000-0000-0000-000000000002');
 
 			expect(logs[2].action).toBe('sensitive:assign_role');
-			expect(logs[2].actorId).toBe('user-3');
+			expect(logs[2].actorId).toBe('00000000-0000-0000-0000-000000000003');
 		});
 	});
 });
