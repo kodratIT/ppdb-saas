@@ -158,7 +158,7 @@ epics:
 
   - id: 'epic-3'
     name: 'Frictionless Registration & Data Collection'
-    status: 'ready'
+    status: 'in_progress'
     priority: 'high'
     is_blocker_for: []
     depends_on: ['epic-2.5']
@@ -166,7 +166,9 @@ epics:
     stories:
       - id: '3-1'
         name: 'Public Landing & Draft Initiation'
-        status: 'pending'
+        status: 'done'
+        completed_at: '2026-01-11'
+        owner: 'Elena'
       - id: '3-2'
         name: 'Multi-Step Form Wizard with Auto-Save'
         status: 'pending'
@@ -244,8 +246,8 @@ epics:
 
 # Test Coverage Summary
 test_summary:
-  total_tests: 257
-  passing: 257
+  total_tests: 266
+  passing: 266
   failing: 0
   skipped: 0
   coverage_by_epic:
@@ -254,6 +256,7 @@ test_summary:
     epic-2.5: '67 tests (RBAC + auth)'
     epic-2.6: '26 tests (Modal + Dialog + Badge)'
     epic-2.7: '13 tests (integration)'
+    epic-3.1: '9 tests (registration flow unit)'
 
 # Known Issues
 known_issues:
