@@ -4,7 +4,7 @@
 
 	interface Props extends TextareaHTMLAttributes {}
 
-	let { class: className, value, ...restProps }: Props = $props();
+	let { class: className, value = $bindable(), ...restProps }: Props = $props();
 </script>
 
 <textarea

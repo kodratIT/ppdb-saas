@@ -14,7 +14,7 @@
 
 	let {
 		class: className,
-		value,
+		value = $bindable(),
 		placeholder,
 		type = 'text',
 		disabled,
