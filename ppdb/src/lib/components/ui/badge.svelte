@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import type { HTMLAttributes } from 'svelte';
+	import type { Snippet } from 'svelte';
 
 	interface Props extends HTMLAttributes<HTMLSpanElement> {
 		variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+		children?: Snippet;
 	}
 
-	let { class: className, variant = 'default', ...restProps }: Props = $props();
+	let { class: className, variant = 'default', children, ...restProps }: Props = $props();
 
 	const variantClasses = {
 		default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
@@ -24,4 +26,8 @@
 		className
 	)}
 	{...restProps}
-/>
+>
+	{#if children}
+		{@render children()}
+	{/if}
+</span>
