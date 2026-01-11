@@ -5,11 +5,25 @@
 		open?: boolean;
 		title?: string;
 		onClose?: () => void;
+		variant?: 'default' | 'destructive' | 'success';
 		class?: string;
 		children?: any;
 	}
 
-	let { open = false, title, onClose, class: className, children }: Props = $props();
+	let {
+		open = false,
+		title,
+		onClose,
+		variant = 'default',
+		class: className,
+		children
+	}: Props = $props();
+
+	const variantStyles = {
+		default: 'border-border',
+		destructive: 'border-destructive bg-destructive/5',
+		success: 'border-green-500 bg-green-50/50'
+	};
 </script>
 
 {#if open}
@@ -24,16 +38,26 @@
 		<div
 			class={cn(
 				'relative bg-background border shadow-lg rounded-lg max-w-md w-full mx-4 p-6',
+				variantStyles[variant],
 				className
 			)}
 		>
 			{#if title}
 				<div class="flex items-center justify-between mb-4">
-					<h2 class="text-lg font-semibold">{title}</h2>
+					<h2
+						class={cn(
+							'text-lg font-semibold',
+							variant === 'destructive' && 'text-destructive',
+							variant === 'success' && 'text-green-700'
+						)}
+					>
+						{title}
+					</h2>
 					{#if onClose}
 						<button
 							onclick={onClose}
 							class="text-muted-foreground hover:text-foreground transition-colors"
+							aria-label="Close modal"
 						>
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
