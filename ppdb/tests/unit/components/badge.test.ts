@@ -20,3 +20,50 @@ describe('Badge Component', () => {
 		expect(badge?.className).toContain('bg-destructive');
 	});
 });
+
+describe('Status Badge Variants', () => {
+	it('should render active status badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'status', status: 'active', text: 'Active' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-green-100');
+		expect(badge?.className).toContain('text-green-800');
+	});
+
+	it('should render inactive status badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'status', status: 'inactive', text: 'Inactive' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-red-100');
+		expect(badge?.className).toContain('text-red-800');
+	});
+
+	it('should render pending status badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'status', status: 'pending', text: 'Pending' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-yellow-100');
+		expect(badge?.className).toContain('text-yellow-800');
+	});
+
+	it('should render approved status badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'status', status: 'approved', text: 'Approved' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-blue-100');
+		expect(badge?.className).toContain('text-blue-800');
+	});
+
+	it('should render rejected status badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'status', status: 'rejected', text: 'Rejected' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-gray-100');
+		expect(badge?.className).toContain('text-gray-800');
+	});
+});
