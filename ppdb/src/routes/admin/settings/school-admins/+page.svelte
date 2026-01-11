@@ -5,6 +5,7 @@
 	import { formatRoleForDisplay } from '$lib/schema/school-admin';
 	import Input from '$lib/components/ui/input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
+	import Badge from '$lib/components/ui/badge.svelte';
 
 	let { data, form } = $props();
 
@@ -12,34 +13,6 @@
 	let createEmail = '';
 	let createName = '';
 	let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
-
-	function getRoleBadgeColor(role: string): string {
-		switch (role) {
-			case 'super_admin':
-				return 'bg-purple-500 text-white';
-			case 'school_admin':
-				return 'bg-blue-500 text-white';
-			case 'verifier':
-				return 'bg-green-500 text-white';
-			case 'treasurer':
-				return 'bg-orange-500 text-white';
-			default:
-				return 'bg-gray-500 text-white';
-		}
-	}
-
-	function getStatusBadgeColor(status: string): string {
-		switch (status) {
-			case 'active':
-				return 'bg-green-100 text-green-800';
-			case 'inactive':
-				return 'bg-red-100 text-red-800';
-			case 'pending':
-				return 'bg-yellow-100 text-yellow-800';
-			default:
-				return 'bg-gray-100 text-gray-800';
-		}
-	}
 </script>
 
 <div class="container mx-auto py-6 space-y-6">
@@ -181,18 +154,12 @@
 								</div>
 								<div class="text-sm text-gray-600">{admin.email}</div>
 								<div class="mt-1 flex gap-2">
-									<span
-										class={getRoleBadgeColor(admin.role) +
-											' px-2 py-0.5 rounded-full text-xs font-medium'}
-									>
+									<Badge variant="role" role={admin.role}>
 										{formatRoleForDisplay(admin.role)}
-									</span>
-									<span
-										class={getStatusBadgeColor(admin.status) +
-											' px-2 py-0.5 rounded-full text-xs font-medium'}
-									>
+									</Badge>
+									<Badge variant="status" status={admin.status}>
 										{admin.status}
-									</span>
+									</Badge>
 								</div>
 							</div>
 						</div>
