@@ -13,44 +13,26 @@
 	// Initialize store
 	const draftStore = createFormDraft(data.draft || {});
 
-	let admissionPathId = $state(data.draft?.admissionPathId || '');
-	let childFullName = $state(data.draft?.childFullName || '');
-	let childNickname = $state(data.draft?.childNickname || '');
-	let childDob = $state(
-		data.draft?.childDob
-			? (typeof data.draft.childDob === 'string'
-					? data.draft.childDob
-					: data.draft.childDob.toISOString()
-				).split('T')[0]
-			: ''
-	);
-
-	let childGender = $state(data.draft?.childGender || '');
+	let parentFullName = $state(data.draft?.parentFullName || '');
+	let parentPhone = $state(data.draft?.parentPhone || '');
+	let parentEmail = $state(data.draft?.parentEmail || '');
 	let isSubmitting = $state(false);
 
-	const currentStep = 1;
+	const currentStep = 2;
 	const totalSteps = 4;
-
-	function handleInput(e: Event, ref: string) {
-		const target = e.currentTarget as HTMLInputElement;
-		if (ref === 'fullName') childFullName = target.value;
-		if (ref === 'nickname') childNickname = target.value;
-		if (ref === 'dob') childDob = target.value;
-	}
 
 	// Update store when base fields change
 	$effect(() => {
 		draftStore.update({
-			childFullName,
-			childNickname,
-			childDob,
-			childGender
+			parentFullName,
+			parentPhone,
+			parentEmail
 		});
 	});
 </script>
 
 <svelte:head>
-	<title>Formulir Pendaftaran - Langkah 1</title>
+	<title>Formulir Pendaftaran - Langkah 2</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
@@ -69,8 +51,8 @@
 
 		<Card class="p-8">
 			<div class="mb-6">
-				<h1 class="text-2xl font-bold text-gray-900 mb-2">Data Anak</h1>
-				<p class="text-gray-600">Silakan isi informasi dasar tentang anak Anda</p>
+				<h1 class="text-2xl font-bold text-gray-900 mb-2">Data Orang Tua</h1>
+				<p class="text-gray-600">Silakan isi informasi kontak orang tua / wali</p>
 			</div>
 
 			{#if form?.error}
@@ -92,77 +74,42 @@
 			>
 				<div class="space-y-6">
 					<div>
-						<Label for="admissionPathId">Jalur Pendaftaran *</Label>
-						<select
-							id="admissionPathId"
-							name="admissionPathId"
-							bind:value={admissionPathId}
-							required
-							class="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-						>
-							<option value="">Pilih Jalur Pendaftaran</option>
-							{#each data.admissionPaths as path}
-								<option value={path.id}>
-									{path.name} (Kuota: {path.quota})
-								</option>
-							{/each}
-						</select>
-					</div>
-
-					<div>
-						<Label for="childFullName">Nama Lengkap Anak *</Label>
+						<Label for="parentFullName">Nama Lengkap Orang Tua *</Label>
 						<input
-							id="childFullName"
-							name="childFullName"
+							id="parentFullName"
+							name="parentFullName"
 							type="text"
-							placeholder="Sesuai akta kelahiran"
-							value={childFullName}
-							oninput={(e) => handleInput(e, 'fullName')}
+							placeholder="Nama lengkap wali murid"
+							bind:value={parentFullName}
 							required
-							class="mt-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-						/>
-					</div>
-
-					<div>
-						<Label for="childNickname">Nama Panggilan</Label>
-						<input
-							id="childNickname"
-							name="childNickname"
-							type="text"
-							placeholder="Nama yang biasa digunakan"
-							value={childNickname}
-							oninput={(e) => handleInput(e, 'nickname')}
-							class="mt-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							class="mt-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 						/>
 					</div>
 
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div>
-							<Label for="childDob">Tanggal Lahir *</Label>
+							<Label for="parentPhone">Nomor WhatsApp *</Label>
 							<input
-								id="childDob"
-								name="childDob"
-								type="date"
-								value={childDob}
-								oninput={(e) => handleInput(e, 'dob')}
+								id="parentPhone"
+								name="parentPhone"
+								type="tel"
+								placeholder="0812..."
+								bind:value={parentPhone}
 								required
 								class="mt-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 							/>
 						</div>
 
 						<div>
-							<Label for="childGender">Jenis Kelamin *</Label>
-							<select
-								id="childGender"
-								name="childGender"
-								bind:value={childGender}
-								required
-								class="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-							>
-								<option value="">Pilih</option>
-								<option value="male">Laki-laki</option>
-								<option value="female">Perempuan</option>
-							</select>
+							<Label for="parentEmail">Email</Label>
+							<input
+								id="parentEmail"
+								name="parentEmail"
+								type="email"
+								placeholder="nama@email.com"
+								bind:value={parentEmail}
+								class="mt-2 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+							/>
 						</div>
 					</div>
 
@@ -174,8 +121,11 @@
 							</h3>
 							<div class="space-y-6">
 								{#each data.customFields as field}
-									<DynamicField {field} bind:value={draftStore.data.customFieldValues[field.key]} />
-									<!-- Hidden input to submit with form -->
+									<DynamicField
+										{field}
+										value={draftStore.data.customFieldValues[field.key]}
+										onchange={(val) => draftStore.updateCustomField(field.key, val)}
+									/>
 									<input
 										type="hidden"
 										name={field.key}
@@ -201,7 +151,7 @@
 						disabled={isSubmitting}
 						class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
 					>
-						{isSubmitting ? 'Menyimpan...' : 'Lanjut ke Langkah 2'}
+						{isSubmitting ? 'Menyimpan...' : 'Lanjut ke Langkah 3'}
 					</button>
 				</div>
 			</form>

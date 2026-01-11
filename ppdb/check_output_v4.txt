@@ -1,0 +1,569 @@
+
+> ppdb@0.0.1 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb
+Getting Svelte diagnostics...
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/modal.svelte:59:2
+Warn: Elements with the 'dialog' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus (svelte)
+{#if open}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+		onclick={(e) => {
+			if (e.target === e.currentTarget) onClose?.();
+		}}
+		role="dialog"
+		aria-modal="true"
+	>
+		<div
+			class={cn(
+				'relative bg-background border shadow-lg rounded-lg max-w-md w-full mx-4 p-6',
+				variantStyles[variant],
+				className
+			)}
+		>
+			{#if title}
+				<div class="flex items-center justify-between mb-4">
+					<h2
+						class={cn(
+							'text-lg font-semibold',
+							variant === 'destructive' && 'text-destructive',
+							variant === 'success' && 'text-green-700'
+						)}
+					>
+						{title}
+					</h2>
+					{#if onClose}
+						<button
+							onclick={onClose}
+							class="text-muted-foreground hover:text-foreground transition-colors"
+							aria-label="Close modal"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<line x1="18" y1="6" x2="6" y2="18" />
+								<line x1="6" y1="6" x2="18" y2="18" />
+							</svg>
+						</button>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="space-y-4">
+				{#if children}
+					{@render children()}
+				{/if}
+			</div>
+
+			{#if actions?.confirm || actions?.cancel}
+				<div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+					{#if actions.cancel}
+						<Button
+							variant={actions.cancel.variant ?? 'outline'}
+							onclick={actions.cancel.onClick}
+							disabled={actions.cancel.disabled}
+						>
+							{actions.cancel.label}
+						</Button>
+					{/if}
+					{#if actions.confirm}
+						<Button
+							variant={actions.confirm.variant ??
+								(variant === 'destructive' ? 'destructive' : 'default')}
+							onclick={actions.confirm.onClick}
+							disabled={actions.confirm.disabled}
+						>
+							{actions.confirm.label}
+						</Button>
+					{/if}
+				</div>
+			{/if}
+		</div>
+	</div>
+{/if}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/modal.svelte:59:2
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+{#if open}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+		onclick={(e) => {
+			if (e.target === e.currentTarget) onClose?.();
+		}}
+		role="dialog"
+		aria-modal="true"
+	>
+		<div
+			class={cn(
+				'relative bg-background border shadow-lg rounded-lg max-w-md w-full mx-4 p-6',
+				variantStyles[variant],
+				className
+			)}
+		>
+			{#if title}
+				<div class="flex items-center justify-between mb-4">
+					<h2
+						class={cn(
+							'text-lg font-semibold',
+							variant === 'destructive' && 'text-destructive',
+							variant === 'success' && 'text-green-700'
+						)}
+					>
+						{title}
+					</h2>
+					{#if onClose}
+						<button
+							onclick={onClose}
+							class="text-muted-foreground hover:text-foreground transition-colors"
+							aria-label="Close modal"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<line x1="18" y1="6" x2="6" y2="18" />
+								<line x1="6" y1="6" x2="18" y2="18" />
+							</svg>
+						</button>
+					{/if}
+				</div>
+			{/if}
+
+			<div class="space-y-4">
+				{#if children}
+					{@render children()}
+				{/if}
+			</div>
+
+			{#if actions?.confirm || actions?.cancel}
+				<div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+					{#if actions.cancel}
+						<Button
+							variant={actions.cancel.variant ?? 'outline'}
+							onclick={actions.cancel.onClick}
+							disabled={actions.cancel.disabled}
+						>
+							{actions.cancel.label}
+						</Button>
+					{/if}
+					{#if actions.confirm}
+						<Button
+							variant={actions.confirm.variant ??
+								(variant === 'destructive' ? 'destructive' : 'default')}
+							onclick={actions.confirm.onClick}
+							disabled={actions.confirm.disabled}
+						>
+							{actions.confirm.label}
+						</Button>
+					{/if}
+				</div>
+			{/if}
+		</div>
+	</div>
+{/if}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:29:12
+Warn: This reference only captures the initial value of `onConfirm`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	const actions = {
+		confirm: onConfirm
+			? {
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:31:13
+Warn: This reference only captures the initial value of `confirmLabel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+			? {
+					label: confirmLabel,
+					onClick: onConfirm,
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:32:15
+Warn: This reference only captures the initial value of `onConfirm`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+					label: confirmLabel,
+					onClick: onConfirm,
+					variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:33:15
+Warn: This reference only captures the initial value of `variant`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+					onClick: onConfirm,
+					variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+					disabled: confirmDisabled
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:34:16
+Warn: This reference only captures the initial value of `confirmDisabled`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+					variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+					disabled: confirmDisabled
+				}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:37:11
+Warn: This reference only captures the initial value of `onCancel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+			: undefined,
+		cancel: onCancel
+			? {
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:39:13
+Warn: This reference only captures the initial value of `cancelLabel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+			? {
+					label: cancelLabel,
+					onClick: onCancel,
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/dialog.svelte:40:15
+Warn: This reference only captures the initial value of `onCancel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+					label: cancelLabel,
+					onClick: onCancel,
+					variant: 'outline' as const
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/select-content.svelte:6:14
+Error: Cannot find name 'Snippet'. (ts)
+	interface Props extends HTMLAttributes<HTMLDivElement> {
+		children?: Snippet;
+	}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/table.svelte:11:2
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<table ...></table>` rather than `<table ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+<div class="relative w-full overflow-auto">
+	<table class={cn('w-full caption-bottom text-sm', className)} {...restProps} />
+</div>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/table-head.svelte:10:1
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<th ...></th>` rather than `<th ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+
+<th
+	class={cn(
+		'[&:has([role=checkbox])]:pr-0 relative px-4 text-left align-middle font-medium text-muted-foreground [&>[role=checkbox]]:translate-y-[2px]',
+		className
+	)}
+	{...restProps}
+/>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/table-row.svelte:10:1
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<tr ...></tr>` rather than `<tr ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+
+<tr
+	class={cn(
+		'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
+		className
+	)}
+	{...restProps}
+/>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/table-cell.svelte:10:1
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<td ...></td>` rather than `<td ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+
+<td
+	class={cn(
+		'[&:has([role=checkbox])]:pr-0 relative px-4 align-middle [&>[role=checkbox]]:translate-y-[2px]',
+		className
+	)}
+	{...restProps}
+/>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/table-body.svelte:10:1
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<tbody ...></tbody>` rather than `<tbody ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+
+<tbody class={cn('[&_tr:last-child]:border-0', className)} {...restProps} />
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/table-caption.svelte:10:1
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<caption ...></caption>` rather than `<caption ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+
+<caption class={cn('mt-4 text-sm text-muted-foreground', className)} {...restProps} />
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/ui/table-caption.svelte:10:8
+Error: Argument of type '{ accesskey?: string | undefined | null; autocapitalize?: "characters" | "off" | "on" | "none" | "sentences" | "words" | undefined | null; autofocus?: boolean | undefined | null; ... 433 more ...; class: string; }' is not assignable to parameter of type 'HTMLProps<"caption", HTMLAttributes<any>>'.
+  Type '{ accesskey?: string | undefined | null; autocapitalize?: "characters" | "off" | "on" | "none" | "sentences" | "words" | undefined | null; autofocus?: boolean | undefined | null; ... 433 more ...; class: string; }' is not assignable to type 'Omit<HTMLAttributes<HTMLElement>, never>'.
+    Types of property ''on:copy'' are incompatible.
+      Type 'ClipboardEventHandler<HTMLTableCaptionElement> | null | undefined' is not assignable to type 'ClipboardEventHandler<HTMLElement> | null | undefined'.
+        Type 'ClipboardEventHandler<HTMLTableCaptionElement>' is not assignable to type 'ClipboardEventHandler<HTMLElement>'.
+          Property 'align' is missing in type 'HTMLElement' but required in type 'HTMLTableCaptionElement'. (ts)
+
+<caption class={cn('mt-4 text-sm text-muted-foreground', className)} {...restProps} />
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/components/forms/dynamic/fields/SelectField.svelte:30:3
+Error: Cannot use 'bind:' with this property. It is declared as non-bindable inside the component.
+To mark a property as bindable: 'let { value = $bindable() } = $props()' (ts)
+		name={field.key}
+		bind:value
+		aria-invalid={!!error}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/server/db/tenant.ts:9:19
+Error: Conversion of type 'PgTransaction<NeonHttpQueryResultHKT, typeof import("/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/server/db/schema"), ExtractTablesWithRelations<typeof import("/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/server/db/schema")>>' to type 'NeonHttpDatabase<typeof import("/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/server/db/schema")> & { $client: NeonQueryFunction<false, false>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'PgTransaction<NeonHttpQueryResultHKT, typeof import("/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/server/db/schema"), ExtractTablesWithRelations<typeof import("/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/server/db/schema")>>' is missing the following properties from type 'NeonHttpDatabase<typeof import("/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/lib/server/db/schema")>': $withAuth, batch 
+		await tx.execute(sql`SELECT set_config('app.current_tenant_id', ${tenantId}, true)`);
+		return callback(tx as typeof db);
+	});
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/start/+page.server.ts:74:34
+Error: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'. 
+
+			cookies.set('otp_session_id', result.sessionId, {
+				path: '/',
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:14:37
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	// Initialize store
+	const draftStore = createFormDraft(data.draft || {});
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:16:31
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	let admissionPathId = $state(data.draft?.admissionPathId || '');
+	let childFullName = $state(data.draft?.childFullName || '');
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:17:29
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let admissionPathId = $state(data.draft?.admissionPathId || '');
+	let childFullName = $state(data.draft?.childFullName || '');
+	let childNickname = $state(data.draft?.childNickname || '');
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:18:29
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let childFullName = $state(data.draft?.childFullName || '');
+	let childNickname = $state(data.draft?.childNickname || '');
+	let childDob = $state(
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:20:3
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let childDob = $state(
+		data.draft?.childDob
+			? (typeof data.draft.childDob === 'string'
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:21:14
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+		data.draft?.childDob
+			? (typeof data.draft.childDob === 'string'
+					? data.draft.childDob
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:22:8
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+			? (typeof data.draft.childDob === 'string'
+					? data.draft.childDob
+					: data.draft.childDob.toISOString()
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:23:8
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+					? data.draft.childDob
+					: data.draft.childDob.toISOString()
+				).split('T')[0]
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:28:27
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	let childGender = $state(data.draft?.childGender || '');
+	let isSubmitting = $state(false);
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-1/+page.svelte:77:40
+Error: Object literal may only specify known properties, and 'children' does not exist in type 'Props'. (ts)
+			{#if form?.error}
+				<Alert variant="destructive" class="mb-6">
+					{form.error}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-2/+page.svelte:14:37
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	// Initialize store
+	const draftStore = createFormDraft(data.draft || {});
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-2/+page.svelte:16:30
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	let parentFullName = $state(data.draft?.parentFullName || '');
+	let parentPhone = $state(data.draft?.parentPhone || '');
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-2/+page.svelte:17:27
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let parentFullName = $state(data.draft?.parentFullName || '');
+	let parentPhone = $state(data.draft?.parentPhone || '');
+	let parentEmail = $state(data.draft?.parentEmail || '');
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-2/+page.svelte:18:27
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let parentPhone = $state(data.draft?.parentPhone || '');
+	let parentEmail = $state(data.draft?.parentEmail || '');
+	let isSubmitting = $state(false);
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-2/+page.svelte:59:40
+Error: Object literal may only specify known properties, and 'children' does not exist in type 'Props'. (ts)
+			{#if form?.error}
+				<Alert variant="destructive" class="mb-6">
+					{form.error}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-2/+page.svelte:127:11
+Error: Object literal may only specify known properties, and '"onchange"' does not exist in type '$$ComponentProps'. (ts)
+										value={draftStore.data.customFieldValues[field.key]}
+										onchange={(val) => draftStore.updateCustomField(field.key, val)}
+									/>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-2/+page.svelte:127:22
+Error: Parameter 'val' implicitly has an 'any' type. (ts)
+										value={draftStore.data.customFieldValues[field.key]}
+										onchange={(val) => draftStore.updateCustomField(field.key, val)}
+									/>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:14:37
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	// Initialize store
+	const draftStore = createFormDraft(data.draft || {});
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:16:23
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	let address = $state(data.draft?.address || '');
+	let city = $state(data.draft?.city || '');
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:17:20
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let address = $state(data.draft?.address || '');
+	let city = $state(data.draft?.city || '');
+	let province = $state(data.draft?.province || '');
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:18:24
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let city = $state(data.draft?.city || '');
+	let province = $state(data.draft?.province || '');
+	let postalCode = $state(data.draft?.postalCode || '');
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:19:26
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	let province = $state(data.draft?.province || '');
+	let postalCode = $state(data.draft?.postalCode || '');
+	let isSubmitting = $state(false);
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:61:40
+Error: Object literal may only specify known properties, and 'children' does not exist in type 'Props'. (ts)
+			{#if form?.error}
+				<Alert variant="destructive" class="mb-6">
+					{form.error}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:142:11
+Error: Object literal may only specify known properties, and '"onchange"' does not exist in type '$$ComponentProps'. (ts)
+										value={draftStore.data.customFieldValues[field.key]}
+										onchange={(val) => draftStore.updateCustomField(field.key, val)}
+									/>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-3/+page.svelte:142:22
+Error: Parameter 'val' implicitly has an 'any' type. (ts)
+										value={draftStore.data.customFieldValues[field.key]}
+										onchange={(val) => draftStore.updateCustomField(field.key, val)}
+									/>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-4/+page.svelte:14:37
+Warn: This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+	// Initialize store
+	const draftStore = createFormDraft(data.draft || {});
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-4/+page.svelte:57:40
+Error: Object literal may only specify known properties, and 'children' does not exist in type 'Props'. (ts)
+			{#if form?.error}
+				<Alert variant="destructive" class="mb-6">
+					{form.error}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/form/step-4/+page.svelte:72:55
+Error: Property 'split' does not exist on type 'Date'. (ts)
+						<span class="text-gray-500">Tgl Lahir:</span>
+						<span class="font-medium">{data.draft.childDob?.split('T')[0]}</span>
+						<span class="text-gray-500">Jenis Kelamin:</span>
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/start/+page.svelte:12:27
+Warn: This reference only captures the initial value of `form`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+	let phoneNumber = $state(form?.phone || '');
+	let isSubmitting = $state(false);
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/start/+page.svelte:36:39
+Error: Object literal may only specify known properties, and 'children' does not exist in type 'Props'. (ts)
+		{#if form?.error}
+			<Alert variant="destructive" class="mb-6">
+				{form.error}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/verify/+page.svelte:32:39
+Error: Object literal may only specify known properties, and 'children' does not exist in type 'Props'. (ts)
+		{#if form?.error}
+			<Alert variant="destructive" class="mb-6">
+				{form.error}
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/[tenant]/register/verify/+page.svelte:59:7
+Error: Type 'string' is not assignable to type 'number'. (ts)
+						pattern="[0-9]{6}"
+						maxlength="6"
+						placeholder="123456"
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/admin/settings/school-admins/+page.svelte:12:6
+Warn: `showCreateForm` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+
+	let showCreateForm = false;
+	let createEmail = '';
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/admin/settings/school-admins/+page.svelte:13:6
+Warn: `createEmail` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+	let showCreateForm = false;
+	let createEmail = '';
+	let createName = '';
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/admin/settings/school-admins/+page.svelte:14:6
+Warn: `createName` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+	let createEmail = '';
+	let createName = '';
+	let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+
+/Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/src/routes/admin/settings/school-admins/+page.svelte:15:6
+Warn: `createRole` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update (svelte)
+	let createName = '';
+	let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+</script>
+
+====================================
+svelte-check found 17 errors and 40 warnings in 19 files

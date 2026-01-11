@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button';
+	import Button from '$lib/components/ui/button.svelte';
+
 	import { Loader2, Save, Eye, ChevronRight, Check } from 'lucide-svelte';
 	import FieldPalette from '$lib/components/admin/form-builder/FieldPalette.svelte';
 	import FormCanvas from '$lib/components/admin/form-builder/FormCanvas.svelte';

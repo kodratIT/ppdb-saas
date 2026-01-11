@@ -4,7 +4,8 @@
 	import type { Snippet } from 'svelte';
 
 	type Status = 'active' | 'inactive' | 'pending' | 'approved' | 'rejected';
-	type Role = 'super_admin' | 'school_admin' | 'verifier' | 'treasurer';
+	type Role = 'super_admin' | 'school_admin' | 'verifier' | 'treasurer' | 'parent';
+
 	type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 	interface Props extends HTMLAttributes<HTMLSpanElement> {
@@ -45,7 +46,8 @@
 		super_admin: 'bg-purple-500 text-white border-purple-600',
 		school_admin: 'bg-blue-500 text-white border-blue-600',
 		verifier: 'bg-green-500 text-white border-green-600',
-		treasurer: 'bg-orange-500 text-white border-orange-600'
+		treasurer: 'bg-orange-500 text-white border-orange-600',
+		parent: 'bg-gray-500 text-white border-gray-600'
 	};
 
 	const priorityClasses: Record<Priority, string> = {

@@ -1,0 +1,215 @@
+
+> ppdb@0.0.1 build
+> vite build
+
+vite v7.3.0 building ssr environment for production...
+transforming...
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:16:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+                                       ^
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:17:28 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+17:   let childFullName = $state(data.draft?.childFullName || '');
+                                     ^
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:18:28 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+                                     ^
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+20:   let childGender = $state(data.draft?.childGender || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:19:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+                                ^
+20:   let childGender = $state(data.draft?.childGender || '');
+21:   let isSubmitting = $state(false);
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:20:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+20:   let childGender = $state(data.draft?.childGender || '');
+                                   ^
+21:   let isSubmitting = $state(false);
+22: 
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-4/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   const currentStep = 4;
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let address = $state(data.draft?.address || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:16:22 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let address = $state(data.draft?.address || '');
+                               ^
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:17:19 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let address = $state(data.draft?.address || '');
+17:   let city = $state(data.draft?.city || '');
+                            ^
+18:   let province = $state(data.draft?.province || '');
+19:   let postalCode = $state(data.draft?.postalCode || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:18:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let address = $state(data.draft?.address || '');
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+                                ^
+19:   let postalCode = $state(data.draft?.postalCode || '');
+20:   let isSubmitting = $state(false);
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:19:25 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+19:   let postalCode = $state(data.draft?.postalCode || '');
+                                  ^
+20:   let isSubmitting = $state(false);
+21: 
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/start/+page.svelte:12:26 This reference only captures the initial value of `form`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+10:   let { data, form } = $props();
+11: 
+12:   let phoneNumber = $state(form?.phone || '');
+                                   ^
+13:   let isSubmitting = $state(false);
+14: 
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:16:29 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+                                      ^
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:17:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+                                   ^
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+19:   let isSubmitting = $state(false);
+3:31:26 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:18:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+                                   ^
+19:   let isSubmitting = $state(false);
+20: 
+3:31:26 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:12:5 `showCreateForm` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+10:   let { data, form } = $props();
+11: 
+12:   let showCreateForm = false;
+                        ^
+13:   let createEmail = '';
+14:   let createName = '';
+3:31:26 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:13:5 `createEmail` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+11: 
+12:   let showCreateForm = false;
+13:   let createEmail = '';
+                     ^
+14:   let createName = '';
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+3:31:26 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:14:5 `createName` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+12:   let showCreateForm = false;
+13:   let createEmail = '';
+14:   let createName = '';
+                    ^
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+16: </script>
+3:31:26 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:15:5 `createRole` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+13:   let createEmail = '';
+14:   let createName = '';
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+                                                               ^
+16: </script>
+17: 
+3:31:27 PM [vite-plugin-svelte] src/lib/components/ui/modal.svelte:59:1 Elements with the 'dialog' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus
+57: 
+58: {#if open}
+59:   <div
+          ^
+60:     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+61:     onclick={(e) => {
+3:31:27 PM [vite-plugin-svelte] src/lib/components/ui/modal.svelte:59:1 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+57: 
+58: {#if open}
+59:   <div
+          ^
+60:     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+61:     onclick={(e) => {
+✓ 288 modules transformed.
+✗ Build failed in 1.08s
+error during build:
+[commonjs--resolver] No known conditions for "./elements" specifier in "svelte" package
+    at e (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:6651:8)
+    at n (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:6663:43)
+    at o (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:6691:10)
+    at resolveExportsOrImports (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:32826:45)
+    at resolveDeepImport (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:32840:22)
+    at tryNodeResolve (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:32715:70)
+    at Object.handler (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:32554:16)
+    at Object.handler (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:33705:13)
+    at file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22571:40
+    at async PluginDriver.hookFirstAndGetPlugin (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22453:28)
+    at async resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:20929:26)
+    at async ModuleLoader.resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:21366:15)
+    at async Object.resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/@sveltejs/kit/src/exports/vite/index.js:556:22)
+    at async PluginDriver.hookFirstAndGetPlugin (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22453:28)
+    at async resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:20929:26)
+    at async ModuleLoader.resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:21366:15)
+    at async Object.resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:4154:21)
+    at async PluginDriver.hookFirstAndGetPlugin (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22453:28)
+    at async resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:20929:26)
+    at async ModuleLoader.resolveId (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:21366:15)
+    at async file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:21670:50

@@ -1,28 +1,10 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
+	import type { HTMLInputAttributes } from 'svelte/elements';
 
-	interface Props {
-		class?: string;
-		value?: string | number;
-		placeholder?: string;
-		type?: string;
-		disabled?: boolean;
-		required?: boolean;
-		name?: string;
-		id?: string;
-	}
+	interface Props extends HTMLInputAttributes {}
 
-	let {
-		class: className,
-		value = $bindable(),
-		placeholder,
-		type = 'text',
-		disabled,
-		required,
-		name,
-		id,
-		...restProps
-	}: Props = $props();
+	let { class: className, value = $bindable(), type = 'text', ...restProps }: Props = $props();
 </script>
 
 <input
@@ -31,11 +13,6 @@
 		className
 	)}
 	bind:value
-	{placeholder}
 	{type}
-	{disabled}
-	{required}
-	{name}
-	{id}
 	{...restProps}
 />

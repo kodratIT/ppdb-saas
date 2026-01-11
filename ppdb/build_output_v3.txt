@@ -1,0 +1,774 @@
+
+> ppdb@0.0.1 build
+> vite build
+
+vite v7.3.0 building ssr environment for production...
+transforming...
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:16:29 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+                                      ^
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:17:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+                                   ^
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+19:   let isSubmitting = $state(false);
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:18:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+                                   ^
+19:   let isSubmitting = $state(false);
+20: 
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-4/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   const currentStep = 4;
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let address = $state(data.draft?.address || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:16:22 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let address = $state(data.draft?.address || '');
+                               ^
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:17:19 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let address = $state(data.draft?.address || '');
+17:   let city = $state(data.draft?.city || '');
+                            ^
+18:   let province = $state(data.draft?.province || '');
+19:   let postalCode = $state(data.draft?.postalCode || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:18:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let address = $state(data.draft?.address || '');
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+                                ^
+19:   let postalCode = $state(data.draft?.postalCode || '');
+20:   let isSubmitting = $state(false);
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:19:25 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+19:   let postalCode = $state(data.draft?.postalCode || '');
+                                  ^
+20:   let isSubmitting = $state(false);
+21: 
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/start/+page.svelte:12:26 This reference only captures the initial value of `form`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+10:   let { data, form } = $props();
+11: 
+12:   let phoneNumber = $state(form?.phone || '');
+                                   ^
+13:   let isSubmitting = $state(false);
+14: 
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:16:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+                                       ^
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:17:28 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+17:   let childFullName = $state(data.draft?.childFullName || '');
+                                     ^
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:18:28 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+                                     ^
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+20:   let childGender = $state(data.draft?.childGender || '');
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:19:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+                                ^
+20:   let childGender = $state(data.draft?.childGender || '');
+21:   let isSubmitting = $state(false);
+3:33:24 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:20:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+20:   let childGender = $state(data.draft?.childGender || '');
+                                   ^
+21:   let isSubmitting = $state(false);
+22: 
+3:33:24 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:12:5 `showCreateForm` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+10:   let { data, form } = $props();
+11: 
+12:   let showCreateForm = false;
+                        ^
+13:   let createEmail = '';
+14:   let createName = '';
+3:33:24 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:13:5 `createEmail` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+11: 
+12:   let showCreateForm = false;
+13:   let createEmail = '';
+                     ^
+14:   let createName = '';
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+3:33:24 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:14:5 `createName` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+12:   let showCreateForm = false;
+13:   let createEmail = '';
+14:   let createName = '';
+                    ^
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+16: </script>
+3:33:24 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:15:5 `createRole` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+13:   let createEmail = '';
+14:   let createName = '';
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+                                                               ^
+16: </script>
+17: 
+3:33:25 PM [vite-plugin-svelte] src/lib/components/ui/modal.svelte:59:1 Elements with the 'dialog' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus
+57: 
+58: {#if open}
+59:   <div
+          ^
+60:     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+61:     onclick={(e) => {
+3:33:25 PM [vite-plugin-svelte] src/lib/components/ui/modal.svelte:59:1 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+57: 
+58: {#if open}
+59:   <div
+          ^
+60:     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+61:     onclick={(e) => {
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:29:11 This reference only captures the initial value of `onConfirm`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+27: 
+28:   const actions = {
+29:     confirm: onConfirm
+                          ^
+30:       ? {
+31:           label: confirmLabel,
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:31:12 This reference only captures the initial value of `confirmLabel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+29:     confirm: onConfirm
+30:       ? {
+31:           label: confirmLabel,
+                                 ^
+32:           onClick: onConfirm,
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:32:14 This reference only captures the initial value of `onConfirm`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+30:       ? {
+31:           label: confirmLabel,
+32:           onClick: onConfirm,
+                                ^
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+34:           disabled: confirmDisabled
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:33:14 This reference only captures the initial value of `variant`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+31:           label: confirmLabel,
+32:           onClick: onConfirm,
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+                              ^
+34:           disabled: confirmDisabled
+35:         }
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:34:15 This reference only captures the initial value of `confirmDisabled`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+32:           onClick: onConfirm,
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+34:           disabled: confirmDisabled
+                                       ^
+35:         }
+36:       : undefined,
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:37:10 This reference only captures the initial value of `onCancel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+35:         }
+36:       : undefined,
+37:     cancel: onCancel
+                        ^
+38:       ? {
+39:           label: cancelLabel,
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:39:12 This reference only captures the initial value of `cancelLabel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+37:     cancel: onCancel
+38:       ? {
+39:           label: cancelLabel,
+                                ^
+40:           onClick: onCancel,
+41:           variant: 'outline' as const
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:40:14 This reference only captures the initial value of `onCancel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+38:       ? {
+39:           label: cancelLabel,
+40:           onClick: onCancel,
+                               ^
+41:           variant: 'outline' as const
+42:         }
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/table.svelte:11:1 Self-closing HTML tags for non-void elements are ambiguous — use `<table ...></table>` rather than `<table ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 9: 
+10: <div class="relative w-full overflow-auto">
+11:   <table class={cn('w-full caption-bottom text-sm', className)} {...restProps} />
+                                                                                     ^
+12: </div>
+13: 
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/table-row.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<tr ...></tr>` rather than `<tr ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <tr
+      ^
+11:   class={cn(
+12:     'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/table-cell.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<td ...></td>` rather than `<td ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <td
+      ^
+11:   class={cn(
+12:     '[&:has([role=checkbox])]:pr-0 relative px-4 align-middle [&>[role=checkbox]]:translate-y-[2px]',
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/table-head.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<th ...></th>` rather than `<th ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <th
+      ^
+11:   class={cn(
+12:     '[&:has([role=checkbox])]:pr-0 relative px-4 text-left align-middle font-medium text-muted-foreground [&>[role=checkbox]]:translate-y-[2px]',
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/table-body.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<tbody ...></tbody>` rather than `<tbody ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <tbody class={cn('[&_tr:last-child]:border-0', className)} {...restProps} />
+                                                                                ^
+11: 
+3:33:26 PM [vite-plugin-svelte] src/lib/components/ui/table-caption.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<caption ...></caption>` rather than `<caption ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <caption class={cn('mt-4 text-sm text-muted-foreground', className)} {...restProps} />
+                                                                                          ^
+11: 
+"gte" is imported from external module "drizzle-orm" but never used in "src/routes/api/otp/+page.server.ts".
+"uniqueIndex" is imported from external module "drizzle-orm/pg-core" but never used in "src/lib/server/db/schema.ts".
+✓ 3884 modules transformed.
+[esbuild css minify]
+▲ [WARNING] "file" is not a known CSS property [unsupported-css-property]
+
+    <stdin>:521:2:
+      521 │   file: line;
+          │   ~~~~
+          ╵   flex
+
+  Did you mean "flex" instead?
+
+
+rendering chunks...
+vite v7.3.0 building client environment for production...
+transforming...
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:16:30 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+                                       ^
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:17:28 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+17:   let childFullName = $state(data.draft?.childFullName || '');
+                                     ^
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:18:28 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let admissionPathId = $state(data.draft?.admissionPathId || '');
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+                                     ^
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+20:   let childGender = $state(data.draft?.childGender || '');
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:19:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+17:   let childFullName = $state(data.draft?.childFullName || '');
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+                                ^
+20:   let childGender = $state(data.draft?.childGender || '');
+21:   let isSubmitting = $state(false);
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-1/+page.svelte:20:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+18:   let childNickname = $state(data.draft?.childNickname || '');
+19:   let childDob = $state(data.draft?.childDob?.split('T')[0] || '');
+20:   let childGender = $state(data.draft?.childGender || '');
+                                   ^
+21:   let isSubmitting = $state(false);
+22: 
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-4/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   const currentStep = 4;
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let address = $state(data.draft?.address || '');
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:16:22 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let address = $state(data.draft?.address || '');
+                               ^
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:17:19 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let address = $state(data.draft?.address || '');
+17:   let city = $state(data.draft?.city || '');
+                            ^
+18:   let province = $state(data.draft?.province || '');
+19:   let postalCode = $state(data.draft?.postalCode || '');
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:18:23 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let address = $state(data.draft?.address || '');
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+                                ^
+19:   let postalCode = $state(data.draft?.postalCode || '');
+20:   let isSubmitting = $state(false);
+3:33:30 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-3/+page.svelte:19:25 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+17:   let city = $state(data.draft?.city || '');
+18:   let province = $state(data.draft?.province || '');
+19:   let postalCode = $state(data.draft?.postalCode || '');
+                                  ^
+20:   let isSubmitting = $state(false);
+21: 
+3:33:31 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:14:36 This reference only captures the initial value of `data`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+12: 
+13:   // Initialize store
+14:   const draftStore = createFormDraft(data.draft || {});
+                                             ^
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+3:33:31 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:16:29 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+14:   const draftStore = createFormDraft(data.draft || {});
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+                                      ^
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+3:33:31 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:17:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+15: 
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+                                   ^
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+19:   let isSubmitting = $state(false);
+3:33:31 PM [vite-plugin-svelte] src/routes/[tenant]/register/form/step-2/+page.svelte:18:26 This reference only captures the initial value of `data`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+16:   let parentFullName = $state(data.draft?.parentFullName || '');
+17:   let parentPhone = $state(data.draft?.parentPhone || '');
+18:   let parentEmail = $state(data.draft?.parentEmail || '');
+                                   ^
+19:   let isSubmitting = $state(false);
+20: 
+3:33:31 PM [vite-plugin-svelte] src/routes/[tenant]/register/start/+page.svelte:12:26 This reference only captures the initial value of `form`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally
+10:   let { data, form } = $props();
+11: 
+12:   let phoneNumber = $state(form?.phone || '');
+                                   ^
+13:   let isSubmitting = $state(false);
+14: 
+3:33:31 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:12:5 `showCreateForm` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+10:   let { data, form } = $props();
+11: 
+12:   let showCreateForm = false;
+                        ^
+13:   let createEmail = '';
+14:   let createName = '';
+3:33:31 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:13:5 `createEmail` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+11: 
+12:   let showCreateForm = false;
+13:   let createEmail = '';
+                     ^
+14:   let createName = '';
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+3:33:31 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:14:5 `createName` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+12:   let showCreateForm = false;
+13:   let createEmail = '';
+14:   let createName = '';
+                    ^
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+16: </script>
+3:33:31 PM [vite-plugin-svelte] src/routes/admin/settings/school-admins/+page.svelte:15:5 `createRole` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates
+https://svelte.dev/e/non_reactive_update
+13:   let createEmail = '';
+14:   let createName = '';
+15:   let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+                                                               ^
+16: </script>
+17: 
+3:33:31 PM [vite-plugin-svelte] src/lib/components/ui/modal.svelte:59:1 Elements with the 'dialog' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus
+57: 
+58: {#if open}
+59:   <div
+          ^
+60:     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+61:     onclick={(e) => {
+3:33:31 PM [vite-plugin-svelte] src/lib/components/ui/modal.svelte:59:1 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+57: 
+58: {#if open}
+59:   <div
+          ^
+60:     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+61:     onclick={(e) => {
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:29:11 This reference only captures the initial value of `onConfirm`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+27: 
+28:   const actions = {
+29:     confirm: onConfirm
+                          ^
+30:       ? {
+31:           label: confirmLabel,
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:31:12 This reference only captures the initial value of `confirmLabel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+29:     confirm: onConfirm
+30:       ? {
+31:           label: confirmLabel,
+                                 ^
+32:           onClick: onConfirm,
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:32:14 This reference only captures the initial value of `onConfirm`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+30:       ? {
+31:           label: confirmLabel,
+32:           onClick: onConfirm,
+                                ^
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+34:           disabled: confirmDisabled
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:33:14 This reference only captures the initial value of `variant`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+31:           label: confirmLabel,
+32:           onClick: onConfirm,
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+                              ^
+34:           disabled: confirmDisabled
+35:         }
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:34:15 This reference only captures the initial value of `confirmDisabled`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+32:           onClick: onConfirm,
+33:           variant: variant === 'destructive' ? ('destructive' as const) : ('default' as const),
+34:           disabled: confirmDisabled
+                                       ^
+35:         }
+36:       : undefined,
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:37:10 This reference only captures the initial value of `onCancel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+35:         }
+36:       : undefined,
+37:     cancel: onCancel
+                        ^
+38:       ? {
+39:           label: cancelLabel,
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:39:12 This reference only captures the initial value of `cancelLabel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+37:     cancel: onCancel
+38:       ? {
+39:           label: cancelLabel,
+                                ^
+40:           onClick: onCancel,
+41:           variant: 'outline' as const
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/dialog.svelte:40:14 This reference only captures the initial value of `onCancel`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally
+38:       ? {
+39:           label: cancelLabel,
+40:           onClick: onCancel,
+                               ^
+41:           variant: 'outline' as const
+42:         }
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/table.svelte:11:1 Self-closing HTML tags for non-void elements are ambiguous — use `<table ...></table>` rather than `<table ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 9: 
+10: <div class="relative w-full overflow-auto">
+11:   <table class={cn('w-full caption-bottom text-sm', className)} {...restProps} />
+                                                                                     ^
+12: </div>
+13: 
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/table-row.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<tr ...></tr>` rather than `<tr ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <tr
+      ^
+11:   class={cn(
+12:     'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/table-cell.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<td ...></td>` rather than `<td ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <td
+      ^
+11:   class={cn(
+12:     '[&:has([role=checkbox])]:pr-0 relative px-4 align-middle [&>[role=checkbox]]:translate-y-[2px]',
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/table-body.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<tbody ...></tbody>` rather than `<tbody ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <tbody class={cn('[&_tr:last-child]:border-0', className)} {...restProps} />
+                                                                                ^
+11: 
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/table-head.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<th ...></th>` rather than `<th ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <th
+      ^
+11:   class={cn(
+12:     '[&:has([role=checkbox])]:pr-0 relative px-4 text-left align-middle font-medium text-muted-foreground [&>[role=checkbox]]:translate-y-[2px]',
+3:33:34 PM [vite-plugin-svelte] src/lib/components/ui/table-caption.svelte:10:0 Self-closing HTML tags for non-void elements are ambiguous — use `<caption ...></caption>` rather than `<caption ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+ 8: </script>
+ 9: 
+10: <caption class={cn('mt-4 text-sm text-muted-foreground', className)} {...restProps} />
+                                                                                          ^
+11: 
+✓ 3904 modules transformed.
+rendering chunks...
+[esbuild css minify]
+▲ [WARNING] "file" is not a known CSS property [unsupported-css-property]
+
+    <stdin>:521:2:
+      521 │   file: line;
+          │   ~~~~
+          ╵   flex
+
+  Did you mean "flex" instead?
+
+
+computing gzip size...
+.svelte-kit/output/client/_app/version.json                        0.03 kB │ gzip:  0.05 kB
+.svelte-kit/output/client/.vite/manifest.json                     17.75 kB │ gzip:  1.83 kB
+.svelte-kit/output/client/_app/immutable/assets/5.C6sQX_-R.css     0.56 kB │ gzip:  0.17 kB
+.svelte-kit/output/client/_app/immutable/assets/0.D278Vc3E.css    22.21 kB │ gzip:  4.22 kB
+.svelte-kit/output/client/_app/immutable/chunks/RgT8Djbv.js        0.04 kB │ gzip:  0.06 kB
+.svelte-kit/output/client/_app/immutable/entry/start.BejnHVet.js   0.08 kB │ gzip:  0.09 kB
+.svelte-kit/output/client/_app/immutable/chunks/BUkiK1H8.js        0.16 kB │ gzip:  0.15 kB
+.svelte-kit/output/client/_app/immutable/chunks/BJFFR841.js        0.16 kB │ gzip:  0.16 kB
+.svelte-kit/output/client/_app/immutable/chunks/BgBzN1gg.js        0.17 kB │ gzip:  0.16 kB
+.svelte-kit/output/client/_app/immutable/chunks/DdSZxCo_.js        0.20 kB │ gzip:  0.16 kB
+.svelte-kit/output/client/_app/immutable/chunks/CAOlXNvr.js        0.25 kB │ gzip:  0.21 kB
+.svelte-kit/output/client/_app/immutable/chunks/BijHRo2y.js        0.34 kB │ gzip:  0.25 kB
+.svelte-kit/output/client/_app/immutable/chunks/A2-6Vrll.js        0.35 kB │ gzip:  0.27 kB
+.svelte-kit/output/client/_app/immutable/nodes/2.BRIZx0yB.js       0.37 kB │ gzip:  0.28 kB
+.svelte-kit/output/client/_app/immutable/chunks/B_6nCoxy.js        0.37 kB │ gzip:  0.28 kB
+.svelte-kit/output/client/_app/immutable/chunks/EP4g-Bhf.js        0.51 kB │ gzip:  0.35 kB
+.svelte-kit/output/client/_app/immutable/chunks/w6WIQrFK.js        0.51 kB │ gzip:  0.33 kB
+.svelte-kit/output/client/_app/immutable/chunks/CVCmZMMM.js        0.57 kB │ gzip:  0.40 kB
+.svelte-kit/output/client/_app/immutable/chunks/e7PQG48R.js        0.59 kB │ gzip:  0.41 kB
+.svelte-kit/output/client/_app/immutable/nodes/1.DAttedVH.js       0.66 kB │ gzip:  0.42 kB
+.svelte-kit/output/client/_app/immutable/chunks/B6K5K23k.js        0.69 kB │ gzip:  0.46 kB
+.svelte-kit/output/client/_app/immutable/chunks/0yO_5fWn.js        0.95 kB │ gzip:  0.57 kB
+.svelte-kit/output/client/_app/immutable/nodes/3.mq8_TNz0.js       1.29 kB │ gzip:  0.69 kB
+.svelte-kit/output/client/_app/immutable/chunks/BND8fRPp.js        1.76 kB │ gzip:  0.90 kB
+.svelte-kit/output/client/_app/immutable/chunks/DoX7xmnZ.js        2.01 kB │ gzip:  1.04 kB
+.svelte-kit/output/client/_app/immutable/chunks/DbfgSoI7.js        2.23 kB │ gzip:  1.03 kB
+.svelte-kit/output/client/_app/immutable/chunks/Cl5t2Y--.js        2.24 kB │ gzip:  1.12 kB
+.svelte-kit/output/client/_app/immutable/chunks/Cv7zix25.js        2.52 kB │ gzip:  1.22 kB
+.svelte-kit/output/client/_app/immutable/nodes/0.BLpIXp4Y.js       2.70 kB │ gzip:  1.14 kB
+.svelte-kit/output/client/_app/immutable/nodes/12.Bj3wIITd.js      2.74 kB │ gzip:  1.29 kB
+.svelte-kit/output/client/_app/immutable/chunks/B3IjZiV7.js        3.05 kB │ gzip:  1.23 kB
+.svelte-kit/output/client/_app/immutable/nodes/11.CVTr-G6z.js      3.10 kB │ gzip:  1.56 kB
+.svelte-kit/output/client/_app/immutable/nodes/20.1AN_rbXw.js      3.15 kB │ gzip:  1.40 kB
+.svelte-kit/output/client/_app/immutable/nodes/13.GohCV5dP.js      3.28 kB │ gzip:  1.63 kB
+.svelte-kit/output/client/_app/immutable/chunks/DHcm23Km.js        3.66 kB │ gzip:  1.69 kB
+.svelte-kit/output/client/_app/immutable/nodes/21.egaN9QvO.js      3.81 kB │ gzip:  1.49 kB
+.svelte-kit/output/client/_app/immutable/chunks/D3Pbzcv7.js        3.88 kB │ gzip:  1.84 kB
+.svelte-kit/output/client/_app/immutable/nodes/14.LVdPtPT8.js      4.37 kB │ gzip:  1.79 kB
+.svelte-kit/output/client/_app/immutable/nodes/4.BhEF-Evd.js       4.56 kB │ gzip:  1.75 kB
+.svelte-kit/output/client/_app/immutable/chunks/CL057ASs.js        4.75 kB │ gzip:  1.75 kB
+.svelte-kit/output/client/_app/immutable/chunks/CPIX9BAU.js        5.47 kB │ gzip:  2.59 kB
+.svelte-kit/output/client/_app/immutable/nodes/6.iSegOqsJ.js       6.69 kB │ gzip:  2.96 kB
+.svelte-kit/output/client/_app/immutable/nodes/8.BCKb9vzX.js       6.76 kB │ gzip:  2.67 kB
+.svelte-kit/output/client/_app/immutable/nodes/9.Cx-8rx3S.js       7.28 kB │ gzip:  2.80 kB
+.svelte-kit/output/client/_app/immutable/nodes/10.CwZKXFh2.js      7.46 kB │ gzip:  2.81 kB
+.svelte-kit/output/client/_app/immutable/nodes/15.CgxzAF1o.js      8.63 kB │ gzip:  2.57 kB
+.svelte-kit/output/client/_app/immutable/nodes/7.DG6rciTp.js       8.86 kB │ gzip:  3.30 kB
+.svelte-kit/output/client/_app/immutable/entry/app.DEpXpQ-y.js    10.95 kB │ gzip:  3.93 kB
+.svelte-kit/output/client/_app/immutable/nodes/16.DXO94FNx.js     11.66 kB │ gzip:  3.63 kB
+.svelte-kit/output/client/_app/immutable/chunks/SYKIiRxh.js       15.51 kB │ gzip:  3.94 kB
+.svelte-kit/output/client/_app/immutable/nodes/17.C1PfYHfc.js     15.79 kB │ gzip:  5.11 kB
+.svelte-kit/output/client/_app/immutable/chunks/fi2vk-lN.js       25.18 kB │ gzip:  8.02 kB
+.svelte-kit/output/client/_app/immutable/chunks/DVtVkqWU.js       36.11 kB │ gzip: 14.17 kB
+.svelte-kit/output/client/_app/immutable/chunks/ChlsxWFy.js       47.79 kB │ gzip: 17.74 kB
+.svelte-kit/output/client/_app/immutable/nodes/18.H0fvkRLX.js     67.29 kB │ gzip: 19.27 kB
+.svelte-kit/output/client/_app/immutable/nodes/5.BoTPVBz_.js      68.98 kB │ gzip: 21.26 kB
+✓ built in 4.43s
+.svelte-kit/output/server/.vite/manifest.json                                                                  22.48 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.C6sQX_-R.css                                              0.56 kB
+.svelte-kit/output/server/_app/immutable/assets/_layout.DZUtFjnv.css                                           21.96 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/success/_page.server.ts.js                            0.11 kB
+.svelte-kit/output/server/chunks/utils2.js                                                                      0.15 kB
+.svelte-kit/output/server/chunks/types.js                                                                       0.32 kB
+.svelte-kit/output/server/chunks/equality.js                                                                    0.33 kB
+.svelte-kit/output/server/chunks/shared-server.js                                                               0.35 kB
+.svelte-kit/output/server/entries/pages/_page.server.ts.js                                                      0.38 kB
+.svelte-kit/output/server/internal.js                                                                           0.38 kB
+.svelte-kit/output/server/chunks/validate.js                                                                    0.52 kB
+.svelte-kit/output/server/entries/fallbacks/layout.svelte.js                                                    0.63 kB
+.svelte-kit/output/server/chunks/environment.js                                                                 0.65 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/_layout.server.ts.js                             0.67 kB
+.svelte-kit/output/server/chunks/index4.js                                                                      0.78 kB
+.svelte-kit/output/server/chunks/index3.js                                                                      0.92 kB
+.svelte-kit/output/server/chunks/card.js                                                                        1.01 kB
+.svelte-kit/output/server/entries/fallbacks/error.svelte.js                                                     1.03 kB
+.svelte-kit/output/server/chunks/utils.js                                                                       1.15 kB
+.svelte-kit/output/server/chunks/crypto.js                                                                      1.21 kB
+.svelte-kit/output/server/chunks/client.js                                                                      1.24 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/_page.server.ts.js                                    1.28 kB
+.svelte-kit/output/server/chunks/school-admin.js                                                                1.37 kB
+.svelte-kit/output/server/chunks/textarea.js                                                                    1.48 kB
+.svelte-kit/output/server/entries/endpoints/api/admin/form-builder/_admissionPathId_/_fieldId_/_server.ts.js    2.06 kB
+.svelte-kit/output/server/entries/pages/admin/_page.server.ts.js                                                2.15 kB
+.svelte-kit/output/server/entries/endpoints/api/applications/_applicationId_/draft/_server.ts.js                2.18 kB
+.svelte-kit/output/server/entries/pages/sign-in/_page.server.ts.js                                              2.22 kB
+.svelte-kit/output/server/chunks/label.js                                                                       2.32 kB
+.svelte-kit/output/server/chunks/button.js                                                                      2.33 kB
+.svelte-kit/output/server/entries/endpoints/api/admin/form-builder/_admissionPathId_/_server.ts.js              2.49 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/start/_page.server.ts.js                              2.58 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/verify/_page.server.ts.js                             2.85 kB
+.svelte-kit/output/server/entries/pages/sign-up/_page.server.ts.js                                              2.88 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-4/_page.server.ts.js                        2.89 kB
+.svelte-kit/output/server/entries/pages/admin/settings/_page.server.ts.js                                       2.90 kB
+.svelte-kit/output/server/chunks/hooks.server.js                                                                3.00 kB
+.svelte-kit/output/server/entries/pages/admin/_layout.svelte.js                                                 3.04 kB
+.svelte-kit/output/server/chunks/firebase.js                                                                    3.04 kB
+.svelte-kit/output/server/entries/pages/_layout.svelte.js                                                       3.05 kB
+.svelte-kit/output/server/chunks/badge.js                                                                       3.20 kB
+.svelte-kit/output/server/chunks/session.js                                                                     3.31 kB
+.svelte-kit/output/server/chunks/waha.js                                                                        3.43 kB
+.svelte-kit/output/server/chunks/index-client.js                                                                3.75 kB
+.svelte-kit/output/server/entries/pages/api/otp/_page.server.ts.js                                              3.81 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-2/_page.server.ts.js                        3.89 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-3/_page.server.ts.js                        3.92 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-1/_page.server.ts.js                        4.44 kB
+.svelte-kit/output/server/entries/pages/sign-in/_page.svelte.js                                                 4.70 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/start/_page.svelte.js                                 4.97 kB
+.svelte-kit/output/server/chunks/sanitizer.js                                                                   5.44 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/success/_page.svelte.js                               5.51 kB
+.svelte-kit/output/server/entries/pages/sign-up/_page.svelte.js                                                 5.52 kB
+.svelte-kit/output/server/chunks/modal.js                                                                       5.63 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/verify/_page.svelte.js                                5.64 kB
+.svelte-kit/output/server/chunks/authorization.js                                                               5.73 kB
+.svelte-kit/output/server/entries/pages/admin/settings/school-admins/_page.server.ts.js                         6.58 kB
+.svelte-kit/output/server/chunks/exports.js                                                                     7.03 kB
+.svelte-kit/output/server/chunks/dev.js                                                                         8.19 kB
+.svelte-kit/output/server/chunks/alert.js                                                                       8.21 kB
+.svelte-kit/output/server/entries/pages/_page.svelte.js                                                         8.24 kB
+.svelte-kit/output/server/entries/pages/admin/_page.svelte.js                                                   8.80 kB
+.svelte-kit/output/server/entries/pages/admin/settings/fee-structures/_page.server.ts.js                        9.90 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-2/_page.svelte.js                          10.61 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/_page.svelte.js                                      11.25 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-3/_page.svelte.js                          11.50 kB
+.svelte-kit/output/server/chunks/index2.js                                                                     11.54 kB
+.svelte-kit/output/server/entries/pages/admin/settings/admission-paths/_page.server.ts.js                      12.00 kB
+.svelte-kit/output/server/entries/pages/admin/settings/_page.svelte.js                                         12.16 kB
+.svelte-kit/output/server/entries/pages/admin/settings/admission-paths/_page.svelte.js                         12.20 kB
+.svelte-kit/output/server/entries/pages/admin/settings/fee-structures/_page.svelte.js                          13.06 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-1/_page.svelte.js                          14.56 kB
+.svelte-kit/output/server/entries/pages/_tenant_/register/form/step-4/_page.svelte.js                          15.47 kB
+.svelte-kit/output/server/entries/pages/admin/settings/school-admins/_page.svelte.js                           15.68 kB
+.svelte-kit/output/server/remote-entry.js                                                                      18.68 kB
+.svelte-kit/output/server/chunks/shared.js                                                                     20.21 kB
+.svelte-kit/output/server/chunks/form-draft.svelte.js                                                          26.89 kB
+.svelte-kit/output/server/chunks/index.js                                                                      36.05 kB
+.svelte-kit/output/server/entries/pages/_tenant_/admin/form-builder/_admissionPathId_/_page.svelte.js          70.25 kB
+.svelte-kit/output/server/chunks/internal.js                                                                   87.37 kB
+.svelte-kit/output/server/index.js                                                                            135.98 kB
+✓ built in 11.60s
+
+Run npm run preview to preview your production build locally.
+
+> Using @sveltejs/adapter-cloudflare
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing wrangler.jsonc configuration:[0m
+
+    - Unexpected fields found in top-level field: "observatory"
+
+
+  ✔ done
