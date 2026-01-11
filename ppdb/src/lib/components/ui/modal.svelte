@@ -1,5 +1,13 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
+	import Button from './button.svelte';
+
+	interface ActionButton {
+		label: string;
+		onClick: () => void;
+		variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+		disabled?: boolean;
+	}
 
 	interface Props {
 		open?: boolean;
@@ -8,6 +16,10 @@
 		variant?: 'default' | 'destructive' | 'success';
 		class?: string;
 		children?: any;
+		actions?: {
+			confirm?: ActionButton;
+			cancel?: ActionButton;
+		};
 	}
 
 	let {
@@ -16,7 +28,8 @@
 		onClose,
 		variant = 'default',
 		class: className,
-		children
+		children,
+		actions
 	}: Props = $props();
 
 	const variantStyles = {
@@ -83,6 +96,30 @@
 					{@render children()}
 				{/if}
 			</div>
+
+			{#if actions?.confirm || actions?.cancel}
+				<div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+					{#if actions.cancel}
+						<Button
+							variant={actions.cancel.variant ?? 'outline'}
+							onclick={actions.cancel.onClick}
+							disabled={actions.cancel.disabled}
+						>
+							{actions.cancel.label}
+						</Button>
+					{/if}
+					{#if actions.confirm}
+						<Button
+							variant={actions.confirm.variant ??
+								(variant === 'destructive' ? 'destructive' : 'default')}
+							onclick={actions.confirm.onClick}
+							disabled={actions.confirm.disabled}
+						>
+							{actions.confirm.label}
+						</Button>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}
