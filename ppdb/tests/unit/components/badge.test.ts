@@ -67,3 +67,74 @@ describe('Status Badge Variants', () => {
 		expect(badge?.className).toContain('text-gray-800');
 	});
 });
+
+describe('Role Badge Variants', () => {
+	it('should render super_admin role badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'role', role: 'super_admin', text: 'Super Admin' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-purple-500');
+		expect(badge?.className).toContain('text-white');
+	});
+
+	it('should render school_admin role badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'role', role: 'school_admin', text: 'School Admin' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-blue-500');
+	});
+
+	it('should render verifier role badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'role', role: 'verifier', text: 'Verifier' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-green-500');
+	});
+
+	it('should render treasurer role badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'role', role: 'treasurer', text: 'Treasurer' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-orange-500');
+	});
+});
+
+describe('Priority Badge Variants', () => {
+	it('should render low priority badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'priority', priority: 'low', text: 'Low' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-gray-100');
+		expect(badge?.className).toContain('text-gray-700');
+	});
+
+	it('should render medium priority badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'priority', priority: 'medium', text: 'Medium' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-yellow-100');
+	});
+
+	it('should render high priority badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'priority', priority: 'high', text: 'High' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-orange-100');
+	});
+
+	it('should render urgent priority badge', () => {
+		const { container } = render(BadgeWrapper, {
+			props: { variant: 'priority', priority: 'urgent', text: 'Urgent' }
+		});
+		const badge = container.querySelector('span');
+		expect(badge?.className).toContain('bg-red-500');
+		expect(badge?.className).toContain('text-white');
+	});
+});
