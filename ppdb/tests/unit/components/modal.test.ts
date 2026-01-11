@@ -76,4 +76,20 @@ describe('Modal Component', () => {
 		await user.click(getByRole('button', { name: 'OK' }));
 		expect(onConfirm).toHaveBeenCalledOnce();
 	});
+
+	it('should close modal when escape key pressed', async () => {
+		const user = userEvent.setup();
+		const onClose = vi.fn();
+
+		render(Modal, {
+			props: {
+				open: true,
+				title: 'Test Modal',
+				onClose
+			}
+		});
+
+		await user.keyboard('{Escape}');
+		expect(onClose).toHaveBeenCalledOnce();
+	});
 });

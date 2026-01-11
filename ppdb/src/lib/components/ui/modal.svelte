@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import Button from './button.svelte';
+	import { onMount } from 'svelte';
 
 	interface ActionButton {
 		label: string;
@@ -37,6 +38,21 @@
 		destructive: 'border-destructive bg-destructive/5',
 		success: 'border-green-500 bg-green-50/50'
 	};
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' && open && onClose) {
+			onClose();
+		}
+	}
+
+	onMount(() => {
+		if (typeof window !== 'undefined') {
+			window.addEventListener('keydown', handleKeydown);
+			return () => {
+				window.removeEventListener('keydown', handleKeydown);
+			};
+		}
+	});
 </script>
 
 {#if open}
