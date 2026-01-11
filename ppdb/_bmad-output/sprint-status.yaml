@@ -48,7 +48,8 @@ epics:
 
   - id: 'epic-2.5'
     name: 'Auth Foundation - Hybrid Auth (Firebase + WAHA)'
-    status: 'in_progress'
+    status: 'completed'
+    completed_at: '2026-01-11'
     priority: 'critical'
     is_blocker_for: ['epic-3']
     planned_start: '2026-01-10'
@@ -56,7 +57,8 @@ epics:
     stories:
       - id: '2.5.1'
         name: 'Integrate Firebase + WAHA Hybrid Authentication'
-        status: 'review'
+        status: 'done'
+        completed_at: '2026-01-11'
         owner: 'Elena'
         estimated_time: '1 day'
       - id: '2.5.2'
@@ -73,12 +75,14 @@ epics:
         estimated_time: '1 day'
       - id: '2.5.4'
         name: 'Test Auth Flow End-to-End'
-        status: 'review'
+        status: 'done'
+        completed_at: '2026-01-11'
         owner: 'Dana'
         estimated_time: '2-3 days'
       - id: '2.5.5'
         name: 'Document Auth Integration for Epic 3'
-        status: 'ready-for-dev'
+        status: 'done'
+        completed_at: '2026-01-11'
         owner: 'Alice'
         estimated_time: '1 day'
 
@@ -154,11 +158,11 @@ epics:
 
   - id: 'epic-3'
     name: 'Frictionless Registration & Data Collection'
-    status: 'planned'
+    status: 'ready'
     priority: 'high'
     is_blocker_for: []
     depends_on: ['epic-2.5']
-    planned_start: '2026-01-13'
+    planned_start: '2026-01-11'
     stories:
       - id: '3-1'
         name: 'Public Landing & Draft Initiation'
