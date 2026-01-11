@@ -15,6 +15,15 @@ export const paymentTimingEnum = pgEnum('payment_timing', [
 	'custom'
 ]);
 export const feeStatusEnum = pgEnum('fee_status', ['active', 'inactive']);
+export const applicationStatusEnum = pgEnum('application_status', [
+	'draft',
+	'submitted',
+	'under_review',
+	'verified',
+	'accepted',
+	'rejected',
+	'waitlisted'
+]);
 
 // Story 2.4: School Admin RBAC Assignment
 export const userRoleEnum = pgEnum('user_role', [
@@ -156,6 +165,65 @@ export const feeStructuresRelations = relations(feeStructures, ({ one }) => ({
 	}),
 	admissionPath: one(admissionPaths, {
 		fields: [feeStructures.admissionPathId],
+		references: [admissionPaths.id]
+	})
+}));
+
+// Epic 3: Registration & Data Collection
+export const applications = pgTable('applications', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	userId: uuid('user_id')
+		.references(() => users.id)
+		.notNull(), // Parent who created the application
+	admissionPathId: uuid('admission_path_id')
+		.references(() => admissionPaths.id)
+		.notNull(),
+	status: applicationStatusEnum('status').default('draft').notNull(),
+
+	// Child information (filled in multi-step form)
+	childFullName: text('child_full_name'),
+	childNickname: text('child_nickname'),
+	childDob: timestamp('child_dob'),
+	childGender: text('child_gender'), // 'male' | 'female'
+
+	// Parent information
+	parentFullName: text('parent_full_name'),
+	parentPhone: text('parent_phone'),
+	parentEmail: text('parent_email'),
+
+	// Address
+	address: text('address'),
+	city: text('city'),
+	province: text('province'),
+	postalCode: text('postal_code'),
+
+	// Documents (JSON array of document metadata)
+	documents: text('documents'), // JSON: [{type: 'birth_cert', url: '...', uploadedAt: '...'}]
+
+	// Progress tracking
+	currentStep: integer('current_step').default(1).notNull(),
+	completedSteps: text('completed_steps'), // JSON array: [1, 2, 3]
+
+	// Timestamps
+	submittedAt: timestamp('submitted_at'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const applicationsRelations = relations(applications, ({ one }) => ({
+	tenant: one(tenants, {
+		fields: [applications.tenantId],
+		references: [tenants.id]
+	}),
+	user: one(users, {
+		fields: [applications.userId],
+		references: [users.id]
+	}),
+	admissionPath: one(admissionPaths, {
+		fields: [applications.admissionPathId],
 		references: [admissionPaths.id]
 	})
 }));
