@@ -430,3 +430,60 @@ export const documentReviewsRelations = relations(documentReviews, ({ one }) => 
 		references: [users.id]
 	})
 }));
+
+// Epic 4.2: Scoring & Interview Input
+export const applicationScores = pgTable(
+	'application_scores',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		applicationId: uuid('application_id')
+			.references(() => applications.id, { onDelete: 'cascade' })
+			.notNull(),
+		tenantId: uuid('tenant_id')
+			.references(() => tenants.id)
+			.notNull(),
+		scorerId: uuid('scorer_id')
+			.references(() => users.id)
+			.notNull(),
+
+		// Score data
+		score: integer('score').notNull(), // 0-100, validated in application logic
+		notes: text('notes'), // Qualitative feedback
+
+		// Finalization tracking
+		isFinalized: boolean('is_finalized').default(false).notNull(),
+		finalizedAt: timestamp('finalized_at'),
+
+		// Admin override tracking
+		unlockedBy: uuid('unlocked_by').references(() => users.id),
+		unlockedAt: timestamp('unlocked_at'),
+		unlockReason: text('unlock_reason'),
+
+		// Timestamps
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(table) => ({
+		// Unique constraint: one score per application
+		uniqApplicationTenant: unique().on(table.applicationId, table.tenantId)
+	})
+);
+
+export const applicationScoresRelations = relations(applicationScores, ({ one }) => ({
+	application: one(applications, {
+		fields: [applicationScores.applicationId],
+		references: [applications.id]
+	}),
+	tenant: one(tenants, {
+		fields: [applicationScores.tenantId],
+		references: [tenants.id]
+	}),
+	scorer: one(users, {
+		fields: [applicationScores.scorerId],
+		references: [users.id]
+	}),
+	unlocker: one(users, {
+		fields: [applicationScores.unlockedBy],
+		references: [users.id]
+	})
+}));
