@@ -142,3 +142,22 @@ Error: Cannot apply unknown utility class `border-border`. Are you using CSS mod
       at async EnvironmentPluginContainer.transform (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:28796:14)
       at async loadAndTransform (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:22669:26)
       at async viteTransformMiddleware (file:///Users/kodrat/Public/Source/PPDB-SAAS-V2/ppdb/node_modules/vite/dist/node/chunks/config.js:24541:20)
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: read EIO
+    at TTY.onStreamRead (node:internal/stream_base_commons:216:20)
+Emitted 'error' event on Interface instance at:
+    at ReadStream.onerror (node:internal/readline/interface:259:10)
+    at ReadStream.emit (node:events:508:28)
+    at ReadStream.emit (node:domain:489:12)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  errno: -5,
+  code: 'EIO',
+  syscall: 'read'
+}
+
+Node.js v25.2.1

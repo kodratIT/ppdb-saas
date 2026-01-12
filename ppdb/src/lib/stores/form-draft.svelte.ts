@@ -51,6 +51,53 @@ export function createFormDraft(initialData: Partial<any> = {}) {
 
 	let version = $state(initialData.version || 1);
 	let syncStatus = $state<SyncStatus>('idle');
+	let lastSavedData = JSON.stringify(data);
+
+	async function save() {
+		if (syncStatus === 'saving') return;
+
+		const currentDataJson = JSON.stringify(data);
+		if (currentDataJson === lastSavedData) return;
+
+		syncStatus = 'saving';
+		try {
+			const response = await fetch(`/api/applications/${initialData.id}/draft`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					customFieldValues: data.customFieldValues,
+					currentStep: data.currentStep,
+					version: version
+				})
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				version = result.version;
+				lastSavedData = currentDataJson;
+				syncStatus = 'idle';
+			} else if (response.status === 409) {
+				syncStatus = 'conflict';
+			} else {
+				syncStatus = 'error';
+			}
+		} catch (e) {
+			console.error('Auto-save error:', e);
+			syncStatus = 'error';
+		}
+	}
+
+	// Auto-save logic with debounce
+	$effect(() => {
+		// Track all relevant data changes
+		const _trigger = JSON.stringify(data);
+
+		const timer = setTimeout(() => {
+			save();
+		}, 2000);
+
+		return () => clearTimeout(timer);
+	});
 
 	return {
 		get data() {

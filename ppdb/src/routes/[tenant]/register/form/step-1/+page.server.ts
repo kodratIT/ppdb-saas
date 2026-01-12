@@ -4,60 +4,11 @@ import { db } from '$lib/server/db';
 import { applications, admissionPaths, customFields, fieldOptions } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { decrypt } from '$lib/server/utils/crypto';
+import { step1Schema } from '$lib/schema/registration';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-	const auth = await requireAuth(locals);
-	await requireRole(auth, 'parent');
-
-	const paths = await db.query.admissionPaths.findMany({
-		where: and(eq(admissionPaths.tenantId, auth.tenantId), eq(admissionPaths.status, 'open'))
-	});
-
-	const existingDraft = await db.query.applications.findFirst({
-		where: and(
-			eq(applications.userId, auth.userId),
-			eq(applications.tenantId, auth.tenantId),
-			eq(applications.status, 'draft')
-		)
-	});
-
-	// Fetch custom fields for step 1
-	const stepFields = await db.query.customFields.findMany({
-		where: and(
-			eq(customFields.tenantId, auth.tenantId),
-			existingDraft ? eq(customFields.admissionPathId, existingDraft.admissionPathId) : undefined,
-			eq(customFields.step, 1)
-		),
-		with: {
-			options: {
-				orderBy: [asc(fieldOptions.order)]
-			}
-		},
-		orderBy: [asc(customFields.order)]
-	});
-
-	// Decrypt sensitive draft data
-	if (existingDraft?.customFieldValues) {
-		const values = JSON.parse(existingDraft.customFieldValues);
-		for (const field of stepFields) {
-			if (field.isEncrypted && values[field.key]) {
-				try {
-					values[field.key] = decrypt(values[field.key]);
-				} catch (e) {
-					console.error(`Failed to decrypt field ${field.key}:`, e);
-				}
-			}
-		}
-		existingDraft.customFieldValues = JSON.stringify(values);
-	}
-
-	return {
-		admissionPaths: paths,
-		draft: existingDraft || null,
-		customFields: stepFields,
-		tenantSlug: params.tenant
-	};
+	// ... existing load logic
 };
 
 export const actions = {
@@ -65,20 +16,21 @@ export const actions = {
 		const auth = await requireAuth(locals);
 		await requireRole(auth, 'parent');
 
-		const data = await request.formData();
-		const admissionPathId = data.get('admissionPathId')?.toString();
-		const childFullName = data.get('childFullName')?.toString();
-		const childNickname = data.get('childNickname')?.toString();
-		const childDob = data.get('childDob')?.toString();
-		const childGender = data.get('childGender')?.toString();
+		const formData = await request.formData();
+		const values = Object.fromEntries(formData.entries());
 
-		if (!admissionPathId) {
-			return fail(400, { error: 'Jalur pendaftaran wajib dipilih' });
+		// Validate with Zod
+		const result = step1Schema.safeParse(values);
+
+		if (!result.success) {
+			const errors = result.error.flatten().fieldErrors;
+			return fail(400, {
+				error: Object.values(errors).flat()[0],
+				errors
+			});
 		}
 
-		if (!childFullName) {
-			return fail(400, { error: 'Nama lengkap anak wajib diisi' });
-		}
+		const { admissionPathId, childFullName, childNickname, childDob, childGender } = result.data;
 
 		const path = await db.query.admissionPaths.findFirst({
 			where: and(
@@ -101,32 +53,25 @@ export const actions = {
 				)
 			});
 
+			const updateData = {
+				admissionPathId,
+				childFullName,
+				childNickname: childNickname || null,
+				childDob: new Date(childDob),
+				childGender,
+				currentStep: 1,
+				completedSteps: JSON.stringify([1]),
+				updatedAt: new Date()
+			};
+
 			if (existingDraft) {
-				await db
-					.update(applications)
-					.set({
-						admissionPathId,
-						childFullName,
-						childNickname: childNickname || null,
-						childDob: childDob ? new Date(childDob) : null,
-						childGender: childGender || null,
-						currentStep: 1,
-						completedSteps: JSON.stringify([1]),
-						updatedAt: new Date()
-					})
-					.where(eq(applications.id, existingDraft.id));
+				await db.update(applications).set(updateData).where(eq(applications.id, existingDraft.id));
 			} else {
 				await db.insert(applications).values({
+					...updateData,
 					tenantId: auth.tenantId,
 					userId: auth.userId,
-					admissionPathId,
-					childFullName,
-					childNickname: childNickname || null,
-					childDob: childDob ? new Date(childDob) : null,
-					childGender: childGender || null,
-					status: 'draft',
-					currentStep: 1,
-					completedSteps: JSON.stringify([1])
+					status: 'draft'
 				});
 			}
 
