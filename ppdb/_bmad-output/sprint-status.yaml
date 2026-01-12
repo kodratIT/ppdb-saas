@@ -193,11 +193,15 @@ epics:
 
   - id: 'epic-4'
     name: 'Verification, Selection & Ranking Engine'
-    status: 'planned'
+    status: 'in_progress'
+    priority: 'high'
+    planned_start: '2026-01-12'
     stories:
       - id: '4-1'
         name: 'Side-by-Side Verification Interface'
-        status: 'pending'
+        status: 'done'
+        completed_at: '2026-01-12'
+        owner: 'Elena'
       - id: '4-2'
         name: 'Scoring & Interview Input'
         status: 'pending'
