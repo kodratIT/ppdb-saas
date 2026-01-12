@@ -1,12 +1,12 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { eq, and, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { applications, customFields, fieldOptions } from '$lib/server/db/schema';
+import { applications, customFields, fieldOptions, users, sessions } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { decrypt } from '$lib/server/utils/crypto';
-import type { Actions, PageServerLoad } from './$types';
+import { sendOTP, verifyOTP } from '$lib/server/whatsapp/providers/waha';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+export async function load({ locals, params }: RequestEvent<{ tenant: string }>) {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 
@@ -56,14 +56,51 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		customFields: allFields,
 		tenantSlug: params.tenant
 	};
-};
+}
 
 export const actions = {
-	submitApplication: async ({ locals, params }) => {
+	sendOTP: async ({ request, locals, params }: RequestEvent<{ tenant: string }>) => {
 		const auth = await requireAuth(locals);
 		await requireRole(auth, 'parent');
 
+		const formData = await request.formData();
+		const phoneNumber = formData.get('phoneNumber')?.toString();
+
+		if (!phoneNumber) {
+			return fail(400, { error: 'Nomor WhatsApp harus diisi' });
+		}
+
 		try {
+			const result = await sendOTP(phoneNumber);
+			return { success: true, sessionId: result.sessionId, phoneNumber };
+		} catch (error: any) {
+			console.error('Failed to send OTP:', error);
+			return fail(500, { error: error.message || 'Gagal mengirim kode OTP' });
+		}
+	},
+
+	submitApplication: async ({ request, locals, params }: RequestEvent<{ tenant: string }>) => {
+		const auth = await requireAuth(locals);
+		await requireRole(auth, 'parent');
+
+		const formData = await request.formData();
+		const sessionId = formData.get('sessionId')?.toString();
+		const otpCode = formData.get('otpCode')?.toString();
+		const phoneNumber = formData.get('phoneNumber')?.toString();
+
+		if (!sessionId || !otpCode || !phoneNumber) {
+			return fail(400, { error: 'Session ID, kode OTP, dan nomor telepon harus diisi' });
+		}
+
+		try {
+			// Verify OTP
+			const verification = await verifyOTP(sessionId, otpCode);
+
+			if (!verification.valid) {
+				return fail(400, { error: 'Kode OTP tidak valid atau sudah kadaluarsa' });
+			}
+
+			// Get existing draft
 			const existingDraft = await db.query.applications.findFirst({
 				where: and(
 					eq(applications.userId, auth.userId),
@@ -76,21 +113,53 @@ export const actions = {
 				return fail(404, { error: 'Draft pendaftaran tidak ditemukan' });
 			}
 
-			// Final submission
+			// Check if account with this phone already exists
+			let user = await db.query.users.findFirst({
+				where: and(
+					eq(users.email, phoneNumber), // We use email field to store phone
+					eq(users.tenantId, auth.tenantId)
+				)
+			});
+
+			// If no persistent account exists, create one
+			if (!user) {
+				const [newUser] = await db
+					.insert(users)
+					.values({
+						email: phoneNumber,
+						name: existingDraft.parentFullName || 'Orang Tua',
+						tenantId: auth.tenantId,
+						role: 'parent',
+						status: 'active'
+					})
+					.returning();
+				user = newUser;
+			}
+
+			// Update application with final submission
 			await db
 				.update(applications)
 				.set({
+					userId: user.id, // Link to persistent account
 					status: 'submitted',
 					submittedAt: new Date(),
-					currentStep: 4,
-					completedSteps: JSON.stringify([1, 2, 3, 4]),
+					currentStep: 5,
+					completedSteps: JSON.stringify([1, 2, 3, 4, 5]),
 					updatedAt: new Date()
 				})
 				.where(eq(applications.id, existingDraft.id));
 
-			// In a real app, you might trigger email notifications here
+			// Create persistent session
+			const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+			await db.insert(sessions).values({
+				userId: user.id,
+				tenantId: auth.tenantId,
+				authType: 'waha',
+				authIdentifier: phoneNumber,
+				expiresAt
+			});
 
-			throw redirect(303, `/${params.tenant}/register/success`);
+			throw redirect(303, `/${params.tenant}/register/success?applicationId=${existingDraft.id}`);
 		} catch (error) {
 			if (error instanceof Response && error.status === 303) {
 				throw error;
@@ -100,4 +169,4 @@ export const actions = {
 			return fail(500, { error: 'Gagal mengirim pendaftaran. Silakan coba lagi.' });
 		}
 	}
-} satisfies Actions;
+};

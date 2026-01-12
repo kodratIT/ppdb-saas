@@ -61,7 +61,7 @@ development_status:
   3-1-public-landing-draft-initiation: done
   3-2-multi-step-form-wizard-with-auto-save: done
   3-3-document-upload-with-camera-guide: done
-  3-4-finalization-via-whatsapp-otp-account-creation: backlog
+  3-4-finalization-via-whatsapp-otp-account-creation: done
   3-5-multi-child-registration-support: backlog
   epic-3-retrospective: optional
 
