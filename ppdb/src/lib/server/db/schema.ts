@@ -389,3 +389,44 @@ export const applicationDocumentsRelations = relations(applicationDocuments, ({ 
 		references: [users.id]
 	})
 }));
+
+// Epic 4.1: Verification Action Tracking
+export const verificationActionEnum = pgEnum('verification_action', [
+	'approve',
+	'reject',
+	'request_revision'
+]);
+
+// Story 4.1: Document Reviews History
+export const documentReviews = pgTable('document_reviews', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	documentId: uuid('document_id')
+		.references(() => applicationDocuments.id, { onDelete: 'cascade' })
+		.notNull(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	reviewerId: uuid('reviewer_id')
+		.references(() => users.id)
+		.notNull(),
+	action: verificationActionEnum('action').notNull(),
+	reason: text('reason'), // Required for reject/request_revision
+	previousStatus: documentStatusEnum('previous_status').notNull(),
+	newStatus: documentStatusEnum('new_status').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const documentReviewsRelations = relations(documentReviews, ({ one }) => ({
+	document: one(applicationDocuments, {
+		fields: [documentReviews.documentId],
+		references: [applicationDocuments.id]
+	}),
+	tenant: one(tenants, {
+		fields: [documentReviews.tenantId],
+		references: [tenants.id]
+	}),
+	reviewer: one(users, {
+		fields: [documentReviews.reviewerId],
+		references: [users.id]
+	})
+}));
