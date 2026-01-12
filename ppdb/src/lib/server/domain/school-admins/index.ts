@@ -35,7 +35,13 @@ export async function listSchoolAdmins(
 	const allUsers = await db.select().from(schema.users).where(eq(schema.users.tenantId, tenantId));
 
 	// Filter to only admin roles (exclude parents)
-	const adminRoles: UserRole[] = ['school_admin', 'verifier', 'treasurer', 'super_admin'];
+	const adminRoles: UserRole[] = [
+		'school_admin',
+		'verifier',
+		'treasurer',
+		'interviewer',
+		'super_admin'
+	];
 	return allUsers.filter((user) => adminRoles.includes(user.role));
 }
 

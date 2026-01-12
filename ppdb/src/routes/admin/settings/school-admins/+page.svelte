@@ -12,7 +12,7 @@
 	let showCreateForm = false;
 	let createEmail = '';
 	let createName = '';
-	let createRole: 'school_admin' | 'verifier' | 'treasurer' = 'school_admin';
+	let createRole: 'school_admin' | 'verifier' | 'treasurer' | 'interviewer' = 'school_admin';
 </script>
 
 <div class="container mx-auto py-6 space-y-6">
@@ -73,6 +73,7 @@
 						<option value="school_admin">School Admin</option>
 						<option value="verifier">Verifier</option>
 						<option value="treasurer">Treasurer</option>
+						<option value="interviewer">Interviewer</option>
 					</select>
 				</div>
 
@@ -179,6 +180,9 @@
 									>
 									<option value="verifier" selected={admin.role === 'verifier'}>Verifier</option>
 									<option value="treasurer" selected={admin.role === 'treasurer'}>Treasurer</option>
+									<option value="interviewer" selected={admin.role === 'interviewer'}
+										>Interviewer</option
+									>
 								</select>
 							</form>
 

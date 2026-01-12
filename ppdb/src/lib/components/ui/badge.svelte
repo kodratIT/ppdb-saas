@@ -4,7 +4,7 @@
 	import type { Snippet } from 'svelte';
 
 	type Status = 'active' | 'inactive' | 'pending' | 'approved' | 'rejected';
-	type Role = 'super_admin' | 'school_admin' | 'verifier' | 'treasurer' | 'parent';
+	type Role = 'super_admin' | 'school_admin' | 'verifier' | 'treasurer' | 'interviewer' | 'parent';
 
 	type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
@@ -47,6 +47,7 @@
 		school_admin: 'bg-blue-500 text-white border-blue-600',
 		verifier: 'bg-green-500 text-white border-green-600',
 		treasurer: 'bg-orange-500 text-white border-orange-600',
+		interviewer: 'bg-indigo-500 text-white border-indigo-600', // NEW: Epic 4.2
 		parent: 'bg-gray-500 text-white border-gray-600'
 	};
 

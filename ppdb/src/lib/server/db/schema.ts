@@ -41,6 +41,7 @@ export const userRoleEnum = pgEnum('user_role', [
 	'school_admin',
 	'verifier',
 	'treasurer',
+	'interviewer', // NEW: Epic 4.2
 	'parent'
 ]);
 export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);

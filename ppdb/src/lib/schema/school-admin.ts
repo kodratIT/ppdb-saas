@@ -9,6 +9,7 @@ export const roleEnum = z.enum([
 	'school_admin', // Full access to school settings for their tenant
 	'verifier', // Can access verification workflow
 	'treasurer', // Can access finance/payments
+	'interviewer', // NEW: Epic 4.2 - Can input and manage interview scores
 	'parent' // Can access parent portal
 ]);
 export type UserRole = z.infer<typeof roleEnum>;
@@ -85,6 +86,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 	],
 	verifier: ['access_verification'],
 	treasurer: ['access_finance'],
+	interviewer: [], // NEW: Epic 4.2 - No admin panel access, uses scoring API endpoints
 	parent: [] // Parents have no admin permissions
 };
 
@@ -111,6 +113,7 @@ export function formatRoleForDisplay(role: UserRole): string {
 		school_admin: 'School Admin',
 		verifier: 'Verifier',
 		treasurer: 'Treasurer',
+		interviewer: 'Interviewer', // NEW: Epic 4.2
 		parent: 'Parent'
 	};
 	return displayNames[role];

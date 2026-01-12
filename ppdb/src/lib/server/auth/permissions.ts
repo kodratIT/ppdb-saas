@@ -33,6 +33,13 @@ export const PERMISSIONS = {
 	SCORES_INPUT: 'scores:input',
 	SCORES_UPDATE: 'scores:update',
 
+	// Epic 4.2: Scoring & Interview Input
+	SCORE_CREATE: 'score:create',
+	SCORE_READ: 'score:read',
+	SCORE_UPDATE: 'score:update',
+	SCORE_FINALIZE: 'score:finalize',
+	SCORE_UNLOCK: 'score:unlock',
+
 	PAYMENTS_READ: 'payments:read',
 	PAYMENTS_VERIFY_MANUAL: 'payments:verify_manual',
 	PAYMENTS_MANAGE: 'payments:manage',
@@ -97,6 +104,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 		PERMISSIONS.APPLICATIONS_REJECT,
 		PERMISSIONS.SCORES_INPUT,
 		PERMISSIONS.SCORES_UPDATE,
+		PERMISSIONS.SCORE_UNLOCK, // NEW: Epic 4.2 - Can unlock finalized scores
 		PERMISSIONS.PAYMENTS_READ,
 		PERMISSIONS.PAYMENTS_VERIFY_MANUAL,
 		PERMISSIONS.PAYMENTS_MANAGE,
@@ -121,6 +129,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 		PERMISSIONS.PAYMENTS_MANAGE,
 		PERMISSIONS.REPORTS_READ,
 		PERMISSIONS.REPORTS_EXPORT
+	],
+
+	// Epic 4.2: Dedicated interviewer role for scoring
+	interviewer: [
+		PERMISSIONS.SCORE_CREATE,
+		PERMISSIONS.SCORE_READ,
+		PERMISSIONS.SCORE_UPDATE,
+		PERMISSIONS.SCORE_FINALIZE
 	],
 
 	parent: [PERMISSIONS.REPORTS_READ]
