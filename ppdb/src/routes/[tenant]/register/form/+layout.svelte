@@ -7,11 +7,18 @@
 
 	// Calculate current step from URL
 	const stepMatch = $derived(page.url.pathname.match(/step-(\d+)/));
-	const currentStep = $derived(stepMatch ? parseInt(stepMatch[1]) : 1);
-	const totalSteps = 4;
+	const isDocuments = $derived(page.url.pathname.includes('/documents'));
+	const currentStep = $derived(isDocuments ? 4 : stepMatch ? parseInt(stepMatch[1]) : 1);
+	const totalSteps = 5;
 	const progress = $derived((currentStep / totalSteps) * 100);
 
-	const stepTitles = ['Data Anak', 'Data Orang Tua', 'Alamat Tinggal', 'Pernyataan & Finalisasi'];
+	const stepTitles = [
+		'Data Anak',
+		'Data Orang Tua',
+		'Alamat Tinggal',
+		'Upload Dokumen',
+		'Ringkasan & Finalisasi'
+	];
 
 	// Get sync status from page data (assuming store is shared or accessible)
 	// For now, let's add a placeholder for visual feedback

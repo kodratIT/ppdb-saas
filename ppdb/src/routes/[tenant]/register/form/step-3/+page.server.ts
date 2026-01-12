@@ -77,7 +77,7 @@ export const actions = {
 				})
 				.where(eq(applications.id, existingDraft.id));
 
-			throw redirect(303, `/${params.tenant}/register/form/step-4`);
+			throw redirect(303, `/${params.tenant}/register/form/documents`);
 		} catch (error) {
 			if (error instanceof Response && error.status === 303) {
 				throw error;

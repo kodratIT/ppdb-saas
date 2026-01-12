@@ -59,6 +59,17 @@ export const fieldTypeEnum = pgEnum('field_type', [
 	'file'
 ]);
 
+export const documentTypeEnum = pgEnum('document_type', [
+	'kk', // Kartu Keluarga
+	'akta', // Akta Kelahiran
+	'passport',
+	'kitas',
+	'photo',
+	'other'
+]);
+
+export const documentStatusEnum = pgEnum('document_status', ['pending', 'verified', 'rejected']);
+
 export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: text('name').notNull(),
@@ -337,6 +348,44 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 	}),
 	user: one(users, {
 		fields: [sessions.userId],
+		references: [users.id]
+	})
+}));
+
+// Story 3.3: Document Upload with Camera Guide
+export const applicationDocuments = pgTable('application_documents', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	applicationId: uuid('application_id')
+		.references(() => applications.id, { onDelete: 'cascade' })
+		.notNull(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	documentType: documentTypeEnum('document_type').notNull(),
+	fileName: text('file_name').notNull(),
+	fileSize: integer('file_size').notNull(), // in bytes
+	mimeType: text('mime_type').notNull(),
+	encryptedUrl: text('encrypted_url').notNull(), // Cloudflare R2/Firebase Storage URL
+	thumbnailUrl: text('thumbnail_url'), // Optional compressed thumbnail
+	status: documentStatusEnum('status').default('pending').notNull(),
+	verifiedBy: uuid('verified_by').references(() => users.id),
+	verifiedAt: timestamp('verified_at'),
+	rejectionReason: text('rejection_reason'),
+	uploadedAt: timestamp('uploaded_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const applicationDocumentsRelations = relations(applicationDocuments, ({ one }) => ({
+	application: one(applications, {
+		fields: [applicationDocuments.applicationId],
+		references: [applications.id]
+	}),
+	tenant: one(tenants, {
+		fields: [applicationDocuments.tenantId],
+		references: [tenants.id]
+	}),
+	verifier: one(users, {
+		fields: [applicationDocuments.verifiedBy],
 		references: [users.id]
 	})
 }));
