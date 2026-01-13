@@ -5,6 +5,45 @@ import { applications, applicationScores, auditLogs } from '$lib/server/db/schem
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { scoreInputSchema } from '$lib/schema/score';
 
+export async function GET({ locals, params }: RequestEvent) {
+	const auth = await requireAuth(locals);
+	requireRole(auth, 'interviewer', 'school_admin');
+
+	const applicationId = params.applicationId;
+	if (!applicationId) {
+		throw svelteError(400, 'Application ID required');
+	}
+
+	const score = await db.query.applicationScores.findFirst({
+		where: and(
+			eq(applicationScores.applicationId, applicationId),
+			eq(applicationScores.tenantId, auth.tenantId)
+		),
+		with: {
+			scorer: {
+				columns: {
+					id: true,
+					name: true,
+					email: true
+				}
+			},
+			unlocker: {
+				columns: {
+					id: true,
+					name: true,
+					email: true
+				}
+			}
+		}
+	});
+
+	if (!score) {
+		return json({ score: null });
+	}
+
+	return json({ score });
+}
+
 export async function POST({ request, locals, params }: RequestEvent) {
 	const auth = await requireAuth(locals);
 	requireRole(auth, 'interviewer', 'school_admin');
