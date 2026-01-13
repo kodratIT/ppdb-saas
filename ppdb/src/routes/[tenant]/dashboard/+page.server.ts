@@ -18,9 +18,33 @@ export async function load({ locals, params }: RequestEvent<{ tenant: string }>)
 	}
 
 	// Fetch all applications for this parent
-	const applications = await db.query.applications.findMany({
+	const rawApplications = await db.query.applications.findMany({
 		where: and(eq(applications.userId, auth.userId), eq(applications.tenantId, auth.tenantId)),
+		with: {
+			admissionPath: true
+		},
 		orderBy: [desc(applications.createdAt)]
+	});
+
+	// Process applications to handle announcement dates
+	const now = new Date();
+	const processedApplications = rawApplications.map((app) => {
+		const announcementDate = app.admissionPath?.announcementDate;
+		const showAnnouncement = announcementDate ? now >= announcementDate : false;
+
+		// Mask status if announcement date hasn't passed
+		let status: string = app.status;
+		if (!showAnnouncement && ['accepted', 'rejected', 'waitlisted'].includes(app.status)) {
+			status = 'pending_announcement';
+		}
+
+		return {
+			...app,
+			status,
+			admissionPathName: app.admissionPath?.name,
+			announcementDate,
+			showAnnouncement
+		};
 	});
 
 	// Get latest submitted application for potential pre-fill
@@ -34,7 +58,7 @@ export async function load({ locals, params }: RequestEvent<{ tenant: string }>)
 	});
 
 	return {
-		applications,
+		applications: processedApplications,
 		latestApplication: latestSubmittedApplication,
 		tenant,
 		tenantSlug: params.tenant

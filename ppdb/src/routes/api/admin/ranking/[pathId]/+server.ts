@@ -1,25 +1,27 @@
-import { json, error } from '@sveltejs/kit';
-import type { RequestEvent } from './$types';
-import { requireAuth, requireRole } from '$lib/server/auth/authorization';
-import { RankingService } from '$lib/server/domain/ranking';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from '@sveltejs/kit';
+import { getDraftRanking } from '$lib/server/ranking/ranking-service';
 
-export async function GET({ locals, params }: RequestEvent) {
-	const auth = requireAuth(locals);
-	requireRole(auth, 'school_admin', 'super_admin');
+export const GET: RequestHandler = async ({ params }) => {
+	const { pathId } = params as { pathId: string };
 
-	const pathId = params.pathId;
 	if (!pathId) {
-		throw error(400, 'Path ID required');
+		return json({ error: 'Path ID is required' }, { status: 400 });
 	}
 
 	try {
-		const ranking = await RankingService.getDraftRanking(pathId);
-		return json(ranking);
-	} catch (e: any) {
-		if (e.message === 'Admission path not found') {
-			throw error(404, e.message);
+		const candidates = await getDraftRanking(pathId);
+
+		if (candidates.length === 0) {
+			return json({ error: 'Admission path not found or no candidates' }, { status: 404 });
 		}
-		console.error('Ranking error:', e);
-		throw error(500, 'Failed to fetch ranking');
+
+		return json({
+			admissionPathId: pathId,
+			candidates
+		});
+	} catch (error) {
+		console.error('Error fetching draft ranking:', error);
+		return json({ error: 'Failed to fetch ranking' }, { status: 500 });
 	}
-}
+};

@@ -10,10 +10,11 @@
 		draft: { icon: FileText, color: 'text-gray-400', label: 'Draft' },
 		submitted: { icon: Clock, color: 'text-yellow-500', label: 'Disubmit' },
 		under_review: { icon: Clock, color: 'text-blue-500', label: 'Dalam Review' },
-		veried: { icon: CheckCircle, color: 'text-green-500', label: 'Veried' },
+		verified: { icon: CheckCircle, color: 'text-green-500', label: 'Terverifikasi' },
 		accepted: { icon: CheckCircle, color: 'text-green-600', label: 'Diterima' },
-		rejected: { icon: AlertCircle, color: 'text-red-500', label: 'Ditolak' },
-		waitlisted: { icon: AlertCircle, color: 'text-orange-500', label: 'Daftar Tunggu' }
+		rejected: { icon: AlertCircle, color: 'text-red-500', label: 'Tidak Lolos' },
+		waitlisted: { icon: AlertCircle, color: 'text-orange-500', label: 'Cadangan' },
+		pending_announcement: { icon: Clock, color: 'text-blue-500', label: 'Menunggu Pengumuman' }
 	};
 
 	function handleRegisterChild() {
@@ -165,25 +166,74 @@
 				</div>
 			{:else}
 				<div class="space-y-4">
-					{#each data.applications as app (index)}
-						{@const statusInfo = statusIcons[app.status as keyof typeof statusIcons]}
+					{#each data.applications as app (app.id)}
+						{@const appAny = app as any}
+						{@const statusInfo = statusIcons[appAny.status as keyof typeof statusIcons] || statusIcons.draft}
 						<div class="border rounded-lg p-4 hover:border-blue-300 transition-colors">
-							<div class="flex items-start justify-between gap-4">
-								<div class="flex-1">
-									<div class="flex items-center gap-3 mb-2">
-										<div class="p-2 bg-gray-100 rounded-lg">
-											<svelte:component this={statusInfo.icon} class="w-5 h-5 {statusInfo.color}" />
-										</div>
-										<div>
-											<h3 class="font-semibold text-gray-900">
-												{app.childFullName}
-											</h3>
-											<p class="text-xs text-gray-500">
-												REG-{app.id.slice(0, 8).toUpperCase()}
-											</p>
-										</div>
+							<div class="flex items-start justify-between gap-4 mb-3">
+								<div class="flex items-center gap-3">
+									<div class="p-2 bg-gray-100 rounded-lg">
+										<svelte:component this={statusInfo.icon} class="w-5 h-5 {statusInfo.color}" />
 									</div>
+									<div>
+										<h3 class="font-semibold text-gray-900">
+											{app.childFullName}
+										</h3>
+										<p class="text-xs text-gray-500">
+											REG-{app.id.slice(0, 8).toUpperCase()}
+										</p>
+									</div>
+								</div>
 
+								<ChevronRight class="w-5 h-5 text-gray-400 flex-shrink-0" />
+							</div>
+
+							<!-- Status Result Banners -->
+							{#if appAny.status === 'pending_announcement'}
+								<div class="bg-blue-50 border border-blue-200 rounded-md p-3 mb-3">
+									<div class="flex items-center gap-2 text-blue-800 mb-1">
+										<Clock class="w-4 h-4" />
+										<span class="font-bold text-sm">Pengumuman Belum Dibuka</span>
+									</div>
+									<p class="text-sm text-blue-700">
+										Hasil seleksi akan diumumkan pada <span class="font-semibold"
+											>{formatDateTime(appAny.announcementDate)}</span
+										>
+									</p>
+								</div>
+							{:else if app.status === 'accepted'}
+								<div class="bg-green-50 border border-green-200 rounded-md p-3 mb-3">
+									<div class="flex items-center gap-2 text-green-800 mb-1">
+										<CheckCircle class="w-4 h-4" />
+										<span class="font-bold text-sm">SELAMAT! Anda Diterima</span>
+									</div>
+									<p class="text-sm text-green-700">
+										Selamat! Anda dinyatakan lolos seleksi. Silakan cek menu pembayaran/daftar ulang.
+									</p>
+								</div>
+							{:else if app.status === 'waitlisted'}
+								<div class="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-3">
+									<div class="flex items-center gap-2 text-yellow-800 mb-1">
+										<Clock class="w-4 h-4" />
+										<span class="font-bold text-sm">Daftar Cadangan (Reserved)</span>
+									</div>
+									<p class="text-sm text-yellow-700">
+										Anda berada dalam daftar cadangan. Kami akan menghubungi Anda jika kuota tersedia.
+									</p>
+								</div>
+							{:else if app.status === 'rejected'}
+								<div class="bg-gray-50 border border-gray-200 rounded-md p-3 mb-3">
+									<div class="flex items-center gap-2 text-gray-800 mb-1">
+										<AlertCircle class="w-4 h-4" />
+										<span class="font-bold text-sm">Mohon Maaf, Belum Lolos</span>
+									</div>
+									<p class="text-sm text-gray-600">
+										Mohon maaf, Anda belum lolos seleksi pada periode ini.
+									</p>
+								</div>
+							{:else}
+								<!-- Standard Status Badge -->
+								<div class="mb-3">
 									<span
 										class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
 										{statusInfo.color === 'text-gray-400' ? 'bg-gray-100 text-gray-600' : ''}
@@ -200,16 +250,14 @@
 										{statusInfo.label}
 									</span>
 								</div>
-
-								<ChevronRight class="w-5 h-5 text-gray-400 flex-shrink-0" />
-							</div>
+							{/if}
 
 							<div
 								class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 pt-3 border-t border-gray-100 text-sm"
 							>
 								<div>
 									<span class="text-gray-500">Jalur:</span>
-									<span class="font-medium">{app.admissionPathName || 'N/A'}</span>
+									<span class="font-medium">{appAny.admissionPathName || 'N/A'}</span>
 								</div>
 								<div>
 									<span class="text-gray-500">Tanggal Daftar:</span>
