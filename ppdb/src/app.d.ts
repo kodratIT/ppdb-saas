@@ -39,6 +39,14 @@ declare global {
 		}
 		// interface PageData {}
 		// interface PageState {}
+		interface PageParams {
+			tenant?: string;
+			applicationId?: string;
+			admissionPathId?: string;
+			documentId?: string;
+			fieldId?: string;
+			scoreId?: string;
+		}
 		interface Platform {
 			env: {
 				TENANTS_KV: KVNamespace;
