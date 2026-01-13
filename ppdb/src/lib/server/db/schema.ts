@@ -7,7 +7,9 @@ import {
 	unique,
 	integer,
 	uniqueIndex,
-	boolean
+	boolean,
+	numeric,
+	varchar
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -160,6 +162,8 @@ export const admissionPaths = pgTable('admission_paths', {
 	quota: integer('quota').notNull(),
 	filledSlots: integer('filled_slots').notNull().default(0),
 	status: admissionPathStatusEnum('status').notNull().default('draft'),
+	// Epic 4.3: Ranking Engine - Announcement date for scheduling
+	announcementDate: timestamp('announcement_date'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
@@ -292,6 +296,9 @@ export const applications = pgTable('applications', {
 
 	// Documents (JSON array of document metadata)
 	documents: text('documents'), // JSON: [{type: 'birth_cert', url: '...', uploadedAt: '...'}]
+
+	// Epic 4.3: Ranking Engine - Distance for tie-breaking
+	distance_m: integer('distance_m'),
 
 	// Progress tracking
 	currentStep: integer('current_step').default(1).notNull(),
@@ -486,5 +493,64 @@ export const applicationScoresRelations = relations(applicationScores, ({ one })
 	unlocker: one(users, {
 		fields: [applicationScores.unlockedBy],
 		references: [users.id]
+	})
+}));
+
+// Epic 4.3: Automated Ranking Engine
+export const selectionResults = pgTable('selection_results', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	admissionPathId: uuid('admission_path_id')
+		.references(() => admissionPaths.id)
+		.notNull(),
+	finalizedAt: timestamp('finalized_at').defaultNow().notNull(),
+	finalizedBy: uuid('finalized_by').references(() => users.id),
+	quotaAccepted: integer('quota_accepted'),
+	quotaReserved: integer('quota_reserved'),
+	totalCandidates: integer('total_candidates'),
+	cutoffScoreAccepted: numeric('cutoff_score_accepted'),
+	cutoffScoreReserved: numeric('cutoff_score_reserved'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const selectionResultsRelations = relations(selectionResults, ({ one, many }) => ({
+	tenant: one(tenants, {
+		fields: [selectionResults.tenantId],
+		references: [tenants.id]
+	}),
+	admissionPath: one(admissionPaths, {
+		fields: [selectionResults.admissionPathId],
+		references: [admissionPaths.id]
+	}),
+	finalizer: one(users, {
+		fields: [selectionResults.finalizedBy],
+		references: [users.id]
+	}),
+	details: many(selectionResultDetails)
+}));
+
+export const selectionResultDetails = pgTable('selection_result_details', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	selectionResultId: uuid('selection_result_id')
+		.references(() => selectionResults.id, { onDelete: 'cascade' })
+		.notNull(),
+	applicationId: uuid('application_id')
+		.references(() => applications.id, { onDelete: 'cascade' })
+		.notNull(),
+	rank: integer('rank').notNull(),
+	status: varchar('status', { length: 20 }).notNull() // 'accepted', 'reserved', 'rejected'
+});
+
+export const selectionResultDetailsRelations = relations(selectionResultDetails, ({ one }) => ({
+	selectionResult: one(selectionResults, {
+		fields: [selectionResultDetails.selectionResultId],
+		references: [selectionResults.id]
+	}),
+	application: one(applications, {
+		fields: [selectionResultDetails.applicationId],
+		references: [applications.id]
 	})
 }));
