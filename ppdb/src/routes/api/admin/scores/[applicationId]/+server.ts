@@ -9,7 +9,7 @@ export async function POST({ request, locals, params }: RequestEvent) {
 	const auth = await requireAuth(locals);
 	requireRole(auth, 'interviewer', 'school_admin');
 
-	const applicationId = (params as any).applicationId as string;
+	const applicationId = params.applicationId;
 	if (!applicationId) {
 		throw svelteError(400, 'Application ID required');
 	}
@@ -51,60 +51,65 @@ export async function POST({ request, locals, params }: RequestEvent) {
 	}
 
 	try {
-		let savedScore;
+		const result = await db.transaction(async (tx) => {
+			let savedScore;
 
-		if (existingScore) {
-			// Update existing score
-			const [updated] = await db
-				.update(applicationScores)
-				.set({
-					score,
-					notes: notes || null,
-					isFinalized: finalize || existingScore.isFinalized,
-					finalizedAt: finalize ? new Date() : existingScore.finalizedAt,
-					updatedAt: new Date()
-				})
-				.where(eq(applicationScores.id, existingScore.id))
-				.returning();
+			if (existingScore) {
+				// Update existing score
+				const [updated] = await tx
+					.update(applicationScores)
+					.set({
+						score,
+						notes: notes || null,
+						isFinalized: finalize || existingScore.isFinalized,
+						finalizedAt:
+							finalize && !existingScore.isFinalized ? new Date() : existingScore.finalizedAt,
+						updatedAt: new Date()
+					})
+					.where(eq(applicationScores.id, existingScore.id))
+					.returning();
 
-			savedScore = updated;
-		} else {
-			// Create new score
-			const [created] = await db
-				.insert(applicationScores)
-				.values({
-					applicationId,
-					tenantId: auth.tenantId,
-					scorerId: auth.userId,
-					score,
-					notes: notes || null,
-					isFinalized: finalize || false,
-					finalizedAt: finalize ? new Date() : null
-				})
-				.returning();
+				savedScore = updated;
+			} else {
+				// Create new score
+				const [created] = await tx
+					.insert(applicationScores)
+					.values({
+						applicationId,
+						tenantId: auth.tenantId,
+						scorerId: auth.userId,
+						score,
+						notes: notes || null,
+						isFinalized: finalize || false,
+						finalizedAt: finalize ? new Date() : null
+					})
+					.returning();
 
-			savedScore = created;
-		}
+				savedScore = created;
+			}
 
-		// Create audit log if finalized
-		if (finalize && !existingScore?.isFinalized) {
-			await db.insert(auditLogs).values({
-				actorId: auth.userId,
-				action: 'finalize',
-				target: `score:${savedScore.id}`,
-				details: JSON.stringify({
-					tenantId: auth.tenantId,
-					applicationId,
-					score,
-					action: 'finalize_score'
-				})
-			});
-		}
+			// Create audit log if finalized
+			if (finalize && !existingScore?.isFinalized) {
+				await tx.insert(auditLogs).values({
+					actorId: auth.userId,
+					action: 'finalize',
+					target: `score:${savedScore.id}`,
+					details: JSON.stringify({
+						tenantId: auth.tenantId,
+						applicationId,
+						score,
+						action: 'finalize_score'
+					})
+				});
+			}
+
+			return savedScore;
+		});
 
 		return json({
 			success: true,
 			message: finalize ? 'Score finalized successfully' : 'Score saved as draft',
-			score: savedScore
+			score: result
 		});
 	} catch (error) {
 		console.error('Score creation error:', error);
