@@ -44,6 +44,7 @@ export const userRoleEnum = pgEnum('user_role', [
 	'verifier',
 	'treasurer',
 	'interviewer', // NEW: Epic 4.2
+	'field_officer', // NEW: Epic 4.4
 	'parent'
 ]);
 export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);
@@ -71,7 +72,12 @@ export const documentTypeEnum = pgEnum('document_type', [
 	'other'
 ]);
 
-export const documentStatusEnum = pgEnum('document_status', ['pending', 'verified', 'rejected']);
+export const documentStatusEnum = pgEnum('document_status', [
+	'pending',
+	'verified',
+	'rejected',
+	'revision_requested'
+]);
 
 export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -87,6 +93,7 @@ export const users = pgTable(
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
 		email: text('email').notNull(),
+		firebaseUid: text('firebase_uid'),
 		tenantId: uuid('tenant_id')
 			.references(() => tenants.id)
 			.notNull(),
@@ -98,7 +105,8 @@ export const users = pgTable(
 		updatedAt: timestamp('updated_at').defaultNow().notNull()
 	},
 	(t) => ({
-		unq: unique().on(t.email, t.tenantId)
+		unq: unique().on(t.email, t.tenantId),
+		firebaseUidUnique: uniqueIndex('users_firebase_uid_unique').on(t.firebaseUid)
 	})
 );
 
@@ -131,7 +139,11 @@ export const schoolProfiles = pgTable('school_profiles', {
 		.unique(), // One profile per tenant
 	// Core fields (MVP)
 	name: text('name').notNull(),
+    npsn: text('npsn'), // Nomor Pokok Sekolah Nasional
+    schoolLevel: text('school_level'), // SD, SMP, SMA, SMK, etc.
+    accreditation: text('accreditation'), // A, B, C, Unggul, etc.
 	description: text('description'),
+    website: text('website'),
 	contactEmail: text('contact_email'),
 	contactPhone: text('contact_phone'),
 	logoUrl: text('logo_url'),
@@ -139,7 +151,16 @@ export const schoolProfiles = pgTable('school_profiles', {
 	bannerUrl: text('banner_url'),
 	primaryColor: text('primary_color'),
 	secondaryColor: text('secondary_color'),
+    // Address Details
 	address: text('address'),
+    province: text('province'),
+    city: text('city'),
+    district: text('district'),
+    postalCode: text('postal_code'),
+	// Epic 5: Manual Payment Bank Info
+	bankName: text('bank_name'),
+	bankAccountName: text('bank_account_name'),
+	bankAccountNumber: text('bank_account_number'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
@@ -286,31 +307,12 @@ export const applications = pgTable('applications', {
 	// Parent information
 	parentFullName: text('parent_full_name'),
 	parentPhone: text('parent_phone'),
-	parentEmail: text('parent_email'),
 
-	// Address
-	address: text('address'),
-	city: text('city'),
-	province: text('province'),
-	postalCode: text('postal_code'),
-
-	// Documents (JSON array of document metadata)
-	documents: text('documents'), // JSON: [{type: 'birth_cert', url: '...', uploadedAt: '...'}]
-
-	// Epic 4.3: Ranking Engine - Distance for tie-breaking
-	distance_m: integer('distance_m'),
-
-	// Progress tracking
-	currentStep: integer('current_step').default(1).notNull(),
-	completedSteps: text('completed_steps'), // JSON array: [1, 2, 3]
-
-	// Timestamps
-	submittedAt: timestamp('submitted_at'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-export const applicationsRelations = relations(applications, ({ one }) => ({
+export const applicationsRelations = relations(applications, ({ one, many }) => ({
 	tenant: one(tenants, {
 		fields: [applications.tenantId],
 		references: [tenants.id]
@@ -322,45 +324,12 @@ export const applicationsRelations = relations(applications, ({ one }) => ({
 	admissionPath: one(admissionPaths, {
 		fields: [applications.admissionPathId],
 		references: [admissionPaths.id]
-	})
-}));
-
-// Story 2.5.1: Firebase + WAHA Hybrid Authentication
-export const otpCodes = pgTable('otp_codes', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	sessionId: text('session_id').notNull().unique(),
-	phoneNumber: text('phone_number').notNull(),
-	code: text('code').notNull(),
-	expiresAt: timestamp('expires_at').notNull(),
-	createdAt: timestamp('created_at').defaultNow().notNull()
-});
-
-export const sessions = pgTable('sessions', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	userId: uuid('user_id')
-		.references(() => users.id, { onDelete: 'cascade' })
-		.notNull(),
-	tenantId: uuid('tenant_id')
-		.references(() => tenants.id)
-		.notNull(),
-	authType: authTypeEnum('auth_type').notNull(),
-	authIdentifier: text('auth_identifier').notNull(),
-	expiresAt: timestamp('expires_at').notNull(),
-	createdAt: timestamp('created_at').defaultNow().notNull()
-});
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-	tenant: one(tenants, {
-		fields: [sessions.tenantId],
-		references: [tenants.id]
 	}),
-	user: one(users, {
-		fields: [sessions.userId],
-		references: [users.id]
-	})
+	documents: many(applicationDocuments),
+	invoices: many(invoices)
 }));
 
-// Story 3.3: Document Upload with Camera Guide
+// Story 3.2: Document Upload & Verification
 export const applicationDocuments = pgTable('application_documents', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	applicationId: uuid('application_id')
@@ -370,20 +339,21 @@ export const applicationDocuments = pgTable('application_documents', {
 		.references(() => tenants.id)
 		.notNull(),
 	documentType: documentTypeEnum('document_type').notNull(),
-	fileName: text('file_name').notNull(),
-	fileSize: integer('file_size').notNull(), // in bytes
+	customFieldId: uuid('custom_field_id'), // Link if uploaded via custom field
+	fileUrl: text('file_url').notNull(), // Public URL
+	encryptedUrl: text('encrypted_url').notNull(), // R2 path
+	originalName: text('original_name').notNull(),
 	mimeType: text('mime_type').notNull(),
-	encryptedUrl: text('encrypted_url').notNull(), // Cloudflare R2/Firebase Storage URL
-	thumbnailUrl: text('thumbnail_url'), // Optional compressed thumbnail
+	size: integer('size').notNull(),
 	status: documentStatusEnum('status').default('pending').notNull(),
-	verifiedBy: uuid('verified_by').references(() => users.id),
-	verifiedAt: timestamp('verified_at'),
 	rejectionReason: text('rejection_reason'),
-	uploadedAt: timestamp('uploaded_at').defaultNow().notNull(),
+	verifiedAt: timestamp('verified_at'),
+	verifiedBy: uuid('verified_by').references(() => users.id),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-export const applicationDocumentsRelations = relations(applicationDocuments, ({ one }) => ({
+export const applicationDocumentsRelations = relations(applicationDocuments, ({ one, many }) => ({
 	application: one(applications, {
 		fields: [applicationDocuments.applicationId],
 		references: [applications.id]
@@ -392,13 +362,9 @@ export const applicationDocumentsRelations = relations(applicationDocuments, ({ 
 		fields: [applicationDocuments.tenantId],
 		references: [tenants.id]
 	}),
-	verifier: one(users, {
-		fields: [applicationDocuments.verifiedBy],
-		references: [users.id]
-	})
+	reviews: many(documentReviews)
 }));
 
-// Epic 4.1: Verification Action Tracking
 export const verificationActionEnum = pgEnum('verification_action', [
 	'approve',
 	'reject',
@@ -505,15 +471,13 @@ export const selectionResults = pgTable('selection_results', {
 	admissionPathId: uuid('admission_path_id')
 		.references(() => admissionPaths.id)
 		.notNull(),
-	finalizedAt: timestamp('finalized_at').defaultNow().notNull(),
-	finalizedBy: uuid('finalized_by').references(() => users.id),
-	quotaAccepted: integer('quota_accepted'),
-	quotaReserved: integer('quota_reserved'),
-	totalCandidates: integer('total_candidates'),
-	cutoffScoreAccepted: numeric('cutoff_score_accepted'),
-	cutoffScoreReserved: numeric('cutoff_score_reserved'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
+	batchId: text('batch_id').notNull(), // e.g., "2024-06-01-batch-1"
+	publishedAt: timestamp('published_at').defaultNow().notNull(),
+	totalCandidates: integer('total_candidates').notNull(),
+	acceptedCount: integer('accepted_count').notNull(),
+	reservedCount: integer('reserved_count').notNull(),
+	rejectedCount: integer('rejected_count').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
 export const selectionResultsRelations = relations(selectionResults, ({ one, many }) => ({
@@ -525,10 +489,6 @@ export const selectionResultsRelations = relations(selectionResults, ({ one, man
 		fields: [selectionResults.admissionPathId],
 		references: [admissionPaths.id]
 	}),
-	finalizer: one(users, {
-		fields: [selectionResults.finalizedBy],
-		references: [users.id]
-	}),
 	details: many(selectionResultDetails)
 }));
 
@@ -538,8 +498,9 @@ export const selectionResultDetails = pgTable('selection_result_details', {
 		.references(() => selectionResults.id, { onDelete: 'cascade' })
 		.notNull(),
 	applicationId: uuid('application_id')
-		.references(() => applications.id, { onDelete: 'cascade' })
+		.references(() => applications.id)
 		.notNull(),
+	totalScore: numeric('total_score').notNull(),
 	rank: integer('rank').notNull(),
 	status: varchar('status', { length: 20 }).notNull() // 'accepted', 'reserved', 'rejected'
 });
@@ -552,5 +513,161 @@ export const selectionResultDetailsRelations = relations(selectionResultDetails,
 	application: one(applications, {
 		fields: [selectionResultDetails.applicationId],
 		references: [applications.id]
+	})
+}));
+
+// Epic 4.4: Home Visit Report Upload
+export const homeVisitReports = pgTable('home_visit_reports', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	applicationId: uuid('application_id')
+		.references(() => applications.id, { onDelete: 'cascade' })
+		.notNull(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	officerId: uuid('officer_id')
+		.references(() => users.id)
+		.notNull(),
+
+	// Survey data (JSONB for flexibility)
+	surveyData: text('survey_data'), // JSON: { roof: 'good', floor: 'cement', ... }
+	gpsLocation: text('gps_location'), // "lat,lng"
+	summary: text('summary'),
+	recommendation: text('recommendation'), // 'recommended', 'not_recommended'
+
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const homeVisitPhotos = pgTable('home_visit_photos', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	reportId: uuid('report_id')
+		.references(() => homeVisitReports.id, { onDelete: 'cascade' })
+		.notNull(),
+	photoUrl: text('photo_url').notNull(),
+	caption: text('caption'),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const homeVisitReportsRelations = relations(homeVisitReports, ({ one, many }) => ({
+	application: one(applications, {
+		fields: [homeVisitReports.applicationId],
+		references: [applications.id]
+	}),
+	tenant: one(tenants, {
+		fields: [homeVisitReports.tenantId],
+		references: [tenants.id]
+	}),
+	officer: one(users, {
+		fields: [homeVisitReports.officerId],
+		references: [users.id]
+	}),
+	photos: many(homeVisitPhotos)
+}));
+
+export const homeVisitPhotosRelations = relations(homeVisitPhotos, ({ one }) => ({
+	report: one(homeVisitReports, {
+		fields: [homeVisitPhotos.reportId],
+		references: [homeVisitReports.id]
+	})
+}));
+
+// Epic 5.1: Payment & Invoices
+export const invoiceStatusEnum = pgEnum('invoice_status', [
+	'PENDING',
+	'PAID',
+	'EXPIRED',
+	'FAILED',
+	'VERIFYING',
+	'REJECTED'
+]);
+export const paymentStatusEnum = pgEnum('payment_status', ['PENDING', 'SUCCESS', 'FAILED']);
+export const proofStatusEnum = pgEnum('proof_status', ['PENDING', 'ACCEPTED', 'REJECTED']);
+
+export const invoices = pgTable('invoices', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	applicationId: uuid('application_id')
+		.references(() => applications.id)
+		.notNull(),
+	externalId: text('external_id').notNull().unique(), // Xendit Invoice ID
+	amount: integer('amount').notNull(),
+	status: invoiceStatusEnum('status').notNull().default('PENDING'),
+	invoiceUrl: text('invoice_url').notNull(),
+	expiryDate: timestamp('expiry_date').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
+	application: one(applications, {
+		fields: [invoices.applicationId],
+		references: [applications.id]
+	}),
+	tenant: one(tenants, {
+		fields: [invoices.tenantId],
+		references: [tenants.id]
+	}),
+	transactions: many(paymentTransactions),
+	proofs: many(paymentProofs)
+}));
+
+// Epic 5.2: Payment Webhooks & Transaction Logs
+export const paymentTransactions = pgTable('payment_transactions', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	invoiceId: uuid('invoice_id')
+		.references(() => invoices.id)
+		.notNull(),
+	externalId: text('external_id').notNull(), // Xendit Transaction ID / Payment ID
+	amount: integer('amount').notNull(),
+	paymentMethod: text('payment_method'), // e.g., 'BCA', 'OVO'
+	status: paymentStatusEnum('status').notNull(),
+	paidAt: timestamp('paid_at').defaultNow().notNull(),
+	rawResponse: text('raw_response'), // JSON string
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const paymentTransactionsRelations = relations(paymentTransactions, ({ one }) => ({
+	invoice: one(invoices, {
+		fields: [paymentTransactions.invoiceId],
+		references: [invoices.id]
+	}),
+	tenant: one(tenants, {
+		fields: [paymentTransactions.tenantId],
+		references: [tenants.id]
+	})
+}));
+
+// Epic 5.3: Manual Verification
+export const paymentProofs = pgTable('payment_proofs', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	invoiceId: uuid('invoice_id')
+		.references(() => invoices.id)
+		.notNull(),
+	fileUrl: text('file_url').notNull(), // Uploaded proof image
+	notes: text('notes'), // User notes
+	uploadedAt: timestamp('uploaded_at').defaultNow().notNull(),
+	reviewedBy: uuid('reviewed_by').references(() => users.id),
+	reviewedAt: timestamp('reviewed_at'),
+	rejectionReason: text('rejection_reason'),
+	status: proofStatusEnum('status').default('PENDING').notNull()
+});
+
+export const paymentProofsRelations = relations(paymentProofs, ({ one }) => ({
+	invoice: one(invoices, {
+		fields: [paymentProofs.invoiceId],
+		references: [invoices.id]
+	}),
+	reviewer: one(users, {
+		fields: [paymentProofs.reviewedBy],
+		references: [users.id]
 	})
 }));

@@ -24,6 +24,7 @@ CREATE TABLE "school_profiles" (
 	CONSTRAINT "school_profiles_tenant_id_unique" UNIQUE("tenant_id")
 );
 --> statement-breakpoint
-ALTER TABLE "users" DROP CONSTRAINT "users_email_unique";--> statement-breakpoint
+ALTER TABLE "users" DROP CONSTRAINT IF EXISTS "users_email_unique";--> statement-breakpoint
+ALTER TABLE "users" DROP CONSTRAINT IF EXISTS "users_email_tenant_unique";--> statement-breakpoint
 ALTER TABLE "school_profiles" ADD CONSTRAINT "school_profiles_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_email_tenant_id_unique" UNIQUE("email","tenant_id");
