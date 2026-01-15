@@ -50,6 +50,7 @@ declare global {
 		interface Platform {
 			env: {
 				TENANTS_KV: KVNamespace;
+				DOCUMENTS_BUCKET: R2Bucket;
 			};
 			context: {
 				waitUntil(promise: Promise<any>): void;

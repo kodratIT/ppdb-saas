@@ -30,7 +30,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	let tenantId: string | undefined;
 	if (subdomain) {
-		const tenant = await resolveTenant(subdomain, event.platform);
+		// Avoid Cloudflare platform emulation in local dev to prevent EPERM writes
+		const platformForResolution =
+			process.env.NODE_ENV === 'development' ? undefined : event.platform;
+		const tenant = await resolveTenant(subdomain, platformForResolution);
 		if (tenant) {
 			tenantId = tenant.id;
 			event.locals.tenantId = tenant.id;

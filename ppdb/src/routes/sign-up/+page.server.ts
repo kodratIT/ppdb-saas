@@ -51,18 +51,15 @@ export const actions: Actions = {
 
 		try {
 			const firebaseUser = await createFirebaseUser(email, password);
-
-			const userId = firebaseUser.uid;
-
 			const [newUser] = await db
 				.insert(users)
 				.values({
-					id: userId,
 					email,
 					tenantId: locals.tenantId,
 					name: email.split('@')[0],
 					role: 'school_admin',
-					status: 'active'
+					status: 'active',
+					firebaseUid: firebaseUser.uid
 				})
 				.returning();
 
@@ -71,7 +68,7 @@ export const actions: Actions = {
 			}
 
 			const session = await createSession({
-				userId,
+				userId: newUser.id,
 				tenantId: locals.tenantId,
 				authType: 'firebase',
 				authIdentifier: firebaseUser.uid

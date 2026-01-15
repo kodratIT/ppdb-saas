@@ -10,13 +10,20 @@
 		CardDescription,
 		Badge
 	} from '$lib/components/ui';
-	import { CalendarDays, Users, ArrowRight } from 'lucide-svelte';
+	import { CalendarDays, Users, ArrowRight, Download } from 'lucide-svelte';
 
 	export let data: { paths: any[] };
 </script>
 
 <div class="flex items-center justify-between space-y-2">
 	<h2 class="text-3xl font-bold tracking-tight">Ranking & Selection</h2>
+	<Button
+		variant="outline"
+		href={`/${$page.params.tenant}/admin/export/dapodik`}
+	>
+		<Download class="mr-2 h-4 w-4" />
+		Export Dapodik
+	</Button>
 </div>
 
 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">

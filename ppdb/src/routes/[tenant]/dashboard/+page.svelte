@@ -281,10 +281,26 @@
 		</Card>
 
 		<!-- Tenant Info Footer -->
-		<div class="mt-8 text-center text-sm text-gray-400">
+		<div class="mt-8 flex flex-col items-center gap-4 text-sm text-gray-400">
 			<p>
 				{data.tenant?.name} • Powered by PPDB SaaS V2
 			</p>
+			
+			<form method="POST" action="?/deleteAccount" use:enhance={() => {
+				return async ({ result }) => {
+					if (result.type === 'success') {
+						goto(`/${data.tenantSlug}`);
+					}
+				}
+			}}>
+				<button type="submit" class="text-xs text-red-400 hover:text-red-600 underline" onclick={(e) => {
+					if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+						e.preventDefault();
+					}
+				}}>
+					Delete My Account
+				</button>
+			</form>
 		</div>
 	</div>
 </div>

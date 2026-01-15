@@ -8,6 +8,7 @@ import {
 	documentReviews
 } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
+import { getHomeVisitReport } from '$lib/server/domain/home-visit';
 
 export async function load({
 	locals,
@@ -29,6 +30,9 @@ export async function load({
 	if (!application) {
 		throw svelteError(404, 'Application not found');
 	}
+
+	// Fetch home visit report
+	const homeVisitReport = await getHomeVisitReport(applicationId, auth.tenantId);
 
 	// Fetch all documents for this application
 	const documents = await db.query.applicationDocuments.findMany({
@@ -67,6 +71,7 @@ export async function load({
 		application,
 		documents,
 		reviewHistory,
+		homeVisitReport,
 		tenantSlug: params.tenant,
 		currentUserId: auth.userId
 	};

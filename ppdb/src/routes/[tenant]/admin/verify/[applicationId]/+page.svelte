@@ -12,6 +12,7 @@
 	let { data } = $props();
 
 	let selectedDocumentIndex = $state(0);
+	let showHomeVisit = $state(false);
 
 	const selectedDocument = $derived(data.documents[selectedDocumentIndex]);
 
@@ -113,9 +114,12 @@
 				<div class="flex gap-2 overflow-x-auto pb-2">
 					{#each data.documents as doc, index}
 						<button
-							onclick={() => (selectedDocumentIndex = index)}
+							onclick={() => {
+								selectedDocumentIndex = index;
+								showHomeVisit = false;
+							}}
 							class="px-4 py-2 rounded-lg border transition-all whitespace-nowrap
-                {selectedDocumentIndex === index
+                {!showHomeVisit && selectedDocumentIndex === index
 								? 'bg-blue-600 text-white border-blue-600'
 								: 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'}"
 						>
@@ -132,6 +136,31 @@
 							</div>
 						</button>
 					{/each}
+
+					{#if data.homeVisitReport}
+						<button
+							onclick={() => (showHomeVisit = true)}
+							class="px-4 py-2 rounded-lg border transition-all whitespace-nowrap
+                {showHomeVisit
+								? 'bg-purple-600 text-white border-purple-600'
+								: 'bg-white text-gray-700 border-gray-300 hover:border-purple-300'}"
+						>
+							<div class="flex items-center gap-2">
+								<CheckCircle2 class="w-4 h-4" />
+								<span class="text-sm font-medium">Home Visit Report</span>
+							</div>
+						</button>
+					{:else}
+						<button
+							onclick={() => goto(`/${data.tenantSlug}/admin/home-visit/${data.application.id}`)}
+							class="px-4 py-2 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all whitespace-nowrap"
+						>
+							<div class="flex items-center gap-2">
+								<FileText class="w-4 h-4" />
+								<span class="text-sm font-medium">Create Home Visit</span>
+							</div>
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -144,7 +173,74 @@
 
 				<!-- Right: Document Viewer + Actions -->
 				<div class="space-y-4">
-					{#if selectedDocument}
+					{#if showHomeVisit && data.homeVisitReport}
+						<Card class="p-6">
+							<div class="flex items-center justify-between mb-6">
+								<h3 class="text-lg font-bold">Laporan Kunjungan Rumah</h3>
+								<Badge variant={data.homeVisitReport.recommendation === 'recommended' ? 'default' : 'destructive'}>
+									{data.homeVisitReport.recommendation === 'recommended' ? 'Direkomendasikan' : 'Tidak Direkomendasikan'}
+								</Badge>
+							</div>
+
+							<div class="grid grid-cols-2 gap-4 mb-6 text-sm">
+								<div class="space-y-1">
+									<p class="text-gray-500">Petugas</p>
+									<p class="font-medium">{data.homeVisitReport.officer?.name || 'N/A'}</p>
+								</div>
+								<div class="space-y-1">
+									<p class="text-gray-500">Tanggal Kunjungan</p>
+									<p class="font-medium">{formatDate(data.homeVisitReport.createdAt)}</p>
+								</div>
+								{#if data.homeVisitReport.gpsLocation}
+									<div class="col-span-2 space-y-1">
+										<p class="text-gray-500">Lokasi GPS</p>
+										<p class="font-medium text-blue-600">
+											<a href="https://www.google.com/maps/search/?api=1&query={data.homeVisitReport.gpsLocation}" target="_blank">
+												{data.homeVisitReport.gpsLocation} (Lihat di Peta)
+											</a>
+										</p>
+									</div>
+								{/if}
+							</div>
+
+							<div class="space-y-4 mb-6">
+								<div>
+									<h4 class="text-sm font-semibold text-gray-700 mb-2">Detail Kondisi</h4>
+									<div class="bg-gray-50 p-3 rounded-lg text-sm grid grid-cols-2 gap-2">
+										{#if data.homeVisitReport.surveyData}
+											{@const survey = JSON.parse(data.homeVisitReport.surveyData)}
+											<p class="text-gray-500">Atap:</p> <p>{survey.roof || '-'}</p>
+											<p class="text-gray-500">Lantai:</p> <p>{survey.floor || '-'}</p>
+											<p class="text-gray-500">Dinding:</p> <p>{survey.walls || '-'}</p>
+										{/if}
+									</div>
+								</div>
+
+								<div>
+									<h4 class="text-sm font-semibold text-gray-700 mb-2">Catatan Petugas</h4>
+									<p class="text-sm bg-gray-50 p-3 rounded-lg">{data.homeVisitReport.summary || '-'}</p>
+								</div>
+							</div>
+
+							{#if data.homeVisitReport.photos?.length > 0}
+								<div>
+									<h4 class="text-sm font-semibold text-gray-700 mb-3">Foto Lapangan</h4>
+									<div class="grid grid-cols-2 gap-3">
+										{#each data.homeVisitReport.photos as photo}
+											<div class="space-y-1">
+												<div class="aspect-video rounded-lg overflow-hidden border">
+													<img src={photo.photoUrl} alt={photo.caption} class="w-full h-full object-cover" />
+												</div>
+												{#if photo.caption}
+													<p class="text-xs text-center text-gray-500">{photo.caption}</p>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								</div>
+							{/if}
+						</Card>
+					{:else if selectedDocument}
 						<Card class="overflow-hidden">
 							<div class="p-4 border-b bg-gray-50">
 								<div class="flex items-center justify-between">
@@ -162,7 +258,7 @@
 
 							<div class="p-4">
 								<DocumentViewer
-									src={selectedDocument.encryptedUrl}
+									src={`/api/documents/${selectedDocument.id}/content`}
 									alt={getDocumentLabel(selectedDocument.documentType)}
 									documentType={getDocumentLabel(selectedDocument.documentType)}
 								/>

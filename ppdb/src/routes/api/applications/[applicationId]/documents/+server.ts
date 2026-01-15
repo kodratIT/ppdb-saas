@@ -4,11 +4,12 @@ import { applicationDocuments, applications } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { encrypt } from '$lib/server/utils/crypto';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
+import { R2Storage } from '$lib/server/storage/r2';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export async function POST({ request, locals, params }: RequestEvent<{ applicationId: string }>) {
+export async function POST({ request, locals, params, platform }: RequestEvent<{ applicationId: string }>) {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 
@@ -50,17 +51,30 @@ export async function POST({ request, locals, params }: RequestEvent<{ applicati
 	}
 
 	try {
-		// Convert file to buffer
-		const arrayBuffer = await file.arrayBuffer();
-		const buffer = Buffer.from(arrayBuffer);
+		let fileUrl: string;
 
-		// Encrypt file content (AES-256)
-		const encryptedContent = encrypt(buffer.toString('base64'));
+		if (platform?.env?.DOCUMENTS_BUCKET) {
+			const storage = new R2Storage(platform.env.DOCUMENTS_BUCKET);
+			// Unique key: tenants/{tenantId}/applications/{applicationId}/{timestamp}-{random}-{filename}
+			// Sanitize filename to avoid issues with special characters in URL
+			const safeFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+			const key = `tenants/${auth.tenantId}/applications/${applicationId}/${Date.now()}-${crypto.randomUUID()}-${safeFilename}`;
 
-		// In production, upload to Cloudflare R2 or Firebase Storage
-		// For now, we'll store encrypted base64 in database (not recommended for production)
-		// TODO: Implement actual file storage (R2/Firebase)
-		const fileUrl = `encrypted:${encryptedContent}`;
+			await storage.upload(key, new Uint8Array(await file.arrayBuffer()), {
+				httpMetadata: { contentType: file.type }
+			});
+
+			fileUrl = `r2:${key}`;
+		} else {
+			// Fallback: Store encrypted base64 in database (Legacy/Dev)
+			// Convert file to buffer
+			const arrayBuffer = await file.arrayBuffer();
+			const buffer = Buffer.from(arrayBuffer);
+
+			// Encrypt file content (AES-256)
+			const encryptedContent = encrypt(buffer.toString('base64'));
+			fileUrl = `encrypted:${encryptedContent}`;
+		}
 
 		// Save to database
 		const [document] = await db
@@ -121,12 +135,12 @@ export async function GET({ locals, params }: RequestEvent<{ applicationId: stri
 }
 
 // Delete a document
-export async function DELETE({ request, locals, params }: RequestEvent<{ applicationId: string }>) {
+export async function DELETE({ request, locals, params, platform }: RequestEvent<{ applicationId: string }>) {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 
 	const { applicationId } = params;
-	const { documentId } = await request.json();
+	const { documentId } = (await request.json()) as { documentId: string };
 
 	if (!documentId) {
 		throw error(400, 'Document ID harus disediakan');
@@ -145,16 +159,37 @@ export async function DELETE({ request, locals, params }: RequestEvent<{ applica
 		throw error(404, 'Aplikasi pendaftaran tidak ditemukan');
 	}
 
-	// Delete document
-	await db
-		.delete(applicationDocuments)
-		.where(
-			and(
-				eq(applicationDocuments.id, documentId),
-				eq(applicationDocuments.applicationId, applicationId),
-				eq(applicationDocuments.tenantId, auth.tenantId)
-			)
-		);
+	// Find document to delete (need to check if it's in R2)
+	const document = await db.query.applicationDocuments.findFirst({
+		where: and(
+			eq(applicationDocuments.id, documentId),
+			eq(applicationDocuments.applicationId, applicationId),
+			eq(applicationDocuments.tenantId, auth.tenantId)
+		)
+	});
+
+	if (document) {
+		// Delete from R2 if applicable
+		if (
+			document.encryptedUrl.startsWith('r2:') &&
+			platform?.env?.DOCUMENTS_BUCKET
+		) {
+			const key = document.encryptedUrl.substring(3);
+			const storage = new R2Storage(platform.env.DOCUMENTS_BUCKET);
+			await storage.delete(key);
+		}
+
+		// Delete from database
+		await db
+			.delete(applicationDocuments)
+			.where(
+				and(
+					eq(applicationDocuments.id, documentId),
+					eq(applicationDocuments.applicationId, applicationId),
+					eq(applicationDocuments.tenantId, auth.tenantId)
+				)
+			);
+	}
 
 	return json({ success: true });
 }

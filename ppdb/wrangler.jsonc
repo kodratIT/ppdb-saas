@@ -8,6 +8,12 @@
 			"id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 		}
 	],
+	"r2_buckets": [
+		{
+			"binding": "DOCUMENTS_BUCKET",
+			"bucket_name": "ppdb-documents"
+		}
+	],
 	"pages_build_output_dir": ".svelte-kit/cloudflare",
 	"observatory": {
 		"enabled": true

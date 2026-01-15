@@ -6,8 +6,8 @@ import { AuthError, type FirebaseCustomClaims, type FirebaseUser } from './types
 let firebaseApp: admin.app.App | null = null;
 
 export function getFirebaseApp(): admin.app.App {
-	if (firebaseApp) {
-		return firebaseApp;
+	if (admin.apps.length > 0) {
+		return admin.app();
 	}
 
 	if (!env.FIREBASE_PROJECT_ID || !env.FIREBASE_PRIVATE_KEY || !env.FIREBASE_CLIENT_EMAIL) {

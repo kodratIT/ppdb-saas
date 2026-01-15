@@ -133,7 +133,7 @@
 
 <svelte:head>
 	<title>Finalisasi Pendaftaran - Langkah 5</title>
-</svelte>
+</svelte:head>
 
 {#if currentStep === 'summary'}
 	<Card class="p-8">

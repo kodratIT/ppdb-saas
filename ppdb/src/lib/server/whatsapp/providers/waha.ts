@@ -10,16 +10,7 @@ export function generateOTP(): string {
 	return otp;
 }
 
-export async function sendOTP(phoneNumber: string): Promise<WAHAOTPResponse> {
-	if (!phoneNumber || phoneNumber.trim() === '') {
-		throw new AuthError('Phone number is required', 'INVALID_PHONE_NUMBER', 400);
-	}
-
-	const phoneRegex = /^(\+62|62|0)[0-9]{9,12}$/;
-	if (!phoneRegex.test(phoneNumber)) {
-		throw new AuthError('Invalid phone number format', 'INVALID_PHONE_NUMBER', 400);
-	}
-
+export async function sendWhatsappMessage(phoneNumber: string, message: string): Promise<boolean> {
 	// For testing purpose, we need to check if we are in test environment and using mocks
 	let wahaBaseUrl = env.WAHA_BASE_URL;
 	let wahaSession = env.WAHA_SESSION;
@@ -28,16 +19,64 @@ export async function sendOTP(phoneNumber: string): Promise<WAHAOTPResponse> {
 		wahaBaseUrl = process.env.WAHA_BASE_URL || wahaBaseUrl;
 		wahaSession = process.env.WAHA_SESSION || wahaSession;
         
-        // Extra check for the test case where we want to simulate missing config
-        // In the test we set WAHA_BASE_URL to empty string, but process.env.WAHA_BASE_URL might be undefined
-        // If undefined, it falls back to wahaBaseUrl (from env) which might be set in .env.test or similar
-        
         if (process.env.WAHA_BASE_URL === '') wahaBaseUrl = '';
         if (process.env.WAHA_SESSION === '') wahaSession = '';
 	}
 
 	if (!wahaBaseUrl || !wahaSession) {
-		throw new AuthError('WAHA configuration missing', 'WAHA_CONFIG_ERROR', 500);
+		console.warn('WAHA configuration missing, skipping WhatsApp message');
+		return false;
+	}
+
+	// Format phone number: ensure it ends with @c.us and has country code
+	// Assuming input is already cleaned or we clean it here.
+	// The existing sendOTP had regex check: /^(\+62|62|0)[0-9]{9,12}$/
+	let chatId = phoneNumber;
+	if (!chatId.includes('@c.us')) {
+		// Basic cleanup if needed, but assuming caller provides valid phone for now or we rely on existing validation
+		// For WAHA, usually needs country code. 
+		if (chatId.startsWith('0')) {
+			chatId = '62' + chatId.slice(1);
+		}
+		if (chatId.startsWith('+')) {
+			chatId = chatId.slice(1);
+		}
+		chatId = `${chatId}@c.us`;
+	}
+
+	try {
+		const response = await fetch(`${wahaBaseUrl}/api/sendText`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				session: wahaSession,
+				chatId: chatId,
+				text: message
+			})
+		});
+
+		if (!response.ok) {
+			console.error('WAHA API error:', response.statusText);
+			return false;
+		}
+
+		return true;
+	} catch (error) {
+		console.error('Failed to send message via WAHA:', error);
+		return false;
+	}
+}
+
+export async function sendOTP(phoneNumber: string): Promise<WAHAOTPResponse> {
+	if (!phoneNumber || phoneNumber.trim() === '') {
+		throw new AuthError('Phone number is required', 'INVALID_PHONE_NUMBER', 400);
+	}
+
+	const phoneRegex = /^(\+62|62|0)[0-9]{9,12}$/;
+	if (!phoneRegex.test(phoneNumber)) {
+		throw new AuthError('Invalid phone number format', 'INVALID_PHONE_NUMBER', 400);
 	}
 
 	const code = generateOTP();
@@ -56,34 +95,18 @@ export async function sendOTP(phoneNumber: string): Promise<WAHAOTPResponse> {
 		throw new AuthError('Failed to store OTP', 'OTP_STORAGE_FAILED', 500);
 	}
 
-	try {
-		const response = await fetch(`${wahaBaseUrl}/api/sendText`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				session: wahaSession,
-				chatId: `${phoneNumber}@c.us`,
-				text: `Kode OTP Anda adalah: ${code}. Berlaku 5 menit. Jangan bagikan kode ini kepada siapapun.`
-			})
-		});
+	const message = `Kode OTP Anda adalah: ${code}. Berlaku 5 menit. Jangan bagikan kode ini kepada siapapun.`;
+	const sent = await sendWhatsappMessage(phoneNumber, message);
 
-		if (!response.ok) {
-			console.error('WAHA API error:', response.statusText);
-			throw new AuthError('Failed to send OTP', 'OTP_SEND_FAILED', 500);
-		}
-
-		return {
-			success: true,
-			message: 'OTP sent successfully',
-			sessionId
-		};
-	} catch (error) {
-		if (error instanceof AuthError) throw error;
-		console.error('Failed to send OTP via WAHA:', error);
+	if (!sent) {
 		throw new AuthError('Failed to send OTP', 'OTP_SEND_FAILED', 500);
 	}
+
+	return {
+		success: true,
+		message: 'OTP sent successfully',
+		sessionId
+	};
 }
 
 export async function verifyOTP(
