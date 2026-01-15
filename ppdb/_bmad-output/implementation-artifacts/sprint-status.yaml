@@ -66,16 +66,16 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4: Verification, Selection & Ranking Engine
-  epic-4: backlog
-  4-1-side-by-side-verification-interface: backlog
-  4-2-scoring-interview-input: backlog
-  4-3-automated-ranking-engine: backlog
-  4-4-home-visit-report-upload: backlog
-  epic-4-retrospective: optional
+  epic-4: done
+  4-1-side-by-side-verification-interface: done
+  4-2-scoring-interview-input: done
+  4-3-automated-ranking-engine: done
+  4-4-home-visit-report-upload: done
+  epic-4-retrospective: done
 
   # Epic 5: Integrated Payment & Settlement
-  epic-5: backlog
-  5-1-digital-payment-integration-va-qris: backlog
+  epic-5: in-progress
+  5-1-digital-payment-integration-va-qris: done
   5-2-manual-payment-verification: backlog
   5-3-invoice-generation-proof-of-payment: backlog
   epic-5-retrospective: optional
