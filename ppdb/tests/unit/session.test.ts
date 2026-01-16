@@ -32,25 +32,25 @@ describe('Session Management', () => {
 
 			const mockUser = { id: 'user-123', email: 'test@example.com', role: 'school_admin' };
 
-            // Mock select chain for users
-            const selectMock = vi.fn().mockReturnValue({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockReturnValue({
-                        limit: vi.fn().mockResolvedValue([mockUser])
-                    })
-                })
-            });
-            // @ts-ignore
-            db.select = selectMock;
+			// Mock select chain for users
+			const selectMock = vi.fn().mockReturnValue({
+				from: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						limit: vi.fn().mockResolvedValue([mockUser])
+					})
+				})
+			});
+			// @ts-ignore
+			db.select = selectMock;
 
-            // Mock insert chain
-            const insertMock = vi.fn().mockReturnValue({
-                values: vi.fn().mockReturnValue({
-                    returning: vi.fn().mockResolvedValue([mockSession])
-                })
-            });
-            // @ts-ignore
-            db.insert = insertMock;
+			// Mock insert chain
+			const insertMock = vi.fn().mockReturnValue({
+				values: vi.fn().mockReturnValue({
+					returning: vi.fn().mockResolvedValue([mockSession])
+				})
+			});
+			// @ts-ignore
+			db.insert = insertMock;
 
 			const result = await sessionModule.createSession(sessionData);
 
@@ -69,27 +69,27 @@ describe('Session Management', () => {
 			};
 
 			const wahaSession = { ...mockSession, ...sessionData };
-            const mockUser = { id: 'user-456', email: 'test@example.com', role: 'parent' };
+			const mockUser = { id: 'user-456', email: 'test@example.com', role: 'parent' };
 
-             // Mock select chain for users
-             const selectMock = vi.fn().mockReturnValue({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockReturnValue({
-                        limit: vi.fn().mockResolvedValue([mockUser])
-                    })
-                })
-            });
-            // @ts-ignore
-            db.select = selectMock;
+			// Mock select chain for users
+			const selectMock = vi.fn().mockReturnValue({
+				from: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						limit: vi.fn().mockResolvedValue([mockUser])
+					})
+				})
+			});
+			// @ts-ignore
+			db.select = selectMock;
 
-            // Mock insert chain
+			// Mock insert chain
 			const insertMock = vi.fn().mockReturnValue({
 				values: vi.fn().mockReturnValue({
 					returning: vi.fn().mockResolvedValue([wahaSession])
 				})
 			});
-            // @ts-ignore
-            db.insert = insertMock;
+			// @ts-ignore
+			db.insert = insertMock;
 
 			const result = await sessionModule.createSession(sessionData);
 
@@ -105,33 +105,33 @@ describe('Session Management', () => {
 				authIdentifier: 'firebase-uid-123',
 				expiresIn: 7200
 			};
-            
-            const mockUser = { id: 'user-123', email: 'test@example.com', role: 'school_admin' };
+
+			const mockUser = { id: 'user-123', email: 'test@example.com', role: 'school_admin' };
 
 			const sessionWithExpiry = {
 				...mockSession,
 				expiresAt: new Date(Date.now() + 7200000)
 			};
 
-            // Mock select chain for users
-            const selectMock = vi.fn().mockReturnValue({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockReturnValue({
-                        limit: vi.fn().mockResolvedValue([mockUser])
-                    })
-                })
-            });
-            // @ts-ignore
-            db.select = selectMock;
+			// Mock select chain for users
+			const selectMock = vi.fn().mockReturnValue({
+				from: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						limit: vi.fn().mockResolvedValue([mockUser])
+					})
+				})
+			});
+			// @ts-ignore
+			db.select = selectMock;
 
-            // Mock insert chain
+			// Mock insert chain
 			const insertMock = vi.fn().mockReturnValue({
 				values: vi.fn().mockReturnValue({
 					returning: vi.fn().mockResolvedValue([sessionWithExpiry])
 				})
 			});
-            // @ts-ignore
-            db.insert = insertMock;
+			// @ts-ignore
+			db.insert = insertMock;
 
 			const result = await sessionModule.createSession(sessionData);
 
@@ -142,17 +142,18 @@ describe('Session Management', () => {
 
 	describe('validateSession', () => {
 		it('should return null (throw error) for non-existent session', async () => {
-            // Mock select chain for sessions returning empty
-            const selectMock = vi.fn().mockReturnValue({
+			// Mock select chain for sessions returning empty
+			const selectMock = vi.fn().mockReturnValue({
 				from: vi.fn().mockReturnValue({
 					where: vi.fn().mockResolvedValue([])
 				})
 			});
-            // @ts-ignore
-            db.select = selectMock;
+			// @ts-ignore
+			db.select = selectMock;
 
-			await expect(sessionModule.validateSession('non-existent-session-id'))
-                .rejects.toThrow('Session not found');
+			await expect(sessionModule.validateSession('non-existent-session-id')).rejects.toThrow(
+				'Session not found'
+			);
 		});
 
 		it('should return null (throw error) for expired session', async () => {
@@ -161,49 +162,53 @@ describe('Session Management', () => {
 				expiresAt: new Date(Date.now() - 1000)
 			};
 
-            // Mock select chain: first call returns expired session, second call (users) not reached
-            const selectMock = vi.fn().mockReturnValue({
+			// Mock select chain: first call returns expired session, second call (users) not reached
+			const selectMock = vi.fn().mockReturnValue({
 				from: vi.fn().mockReturnValue({
 					where: vi.fn().mockResolvedValue([expiredSession])
 				})
 			});
-            // @ts-ignore
-            db.select = selectMock;
-            
-            // Mock delete for invalidation
-            const deleteMock = vi.fn().mockReturnValue({
+			// @ts-ignore
+			db.select = selectMock;
+
+			// Mock delete for invalidation
+			const deleteMock = vi.fn().mockReturnValue({
 				where: vi.fn().mockResolvedValue([])
 			});
-            // @ts-ignore
-            db.delete = deleteMock;
+			// @ts-ignore
+			db.delete = deleteMock;
 
-			await expect(sessionModule.validateSession('expired-session-id'))
-                .rejects.toThrow('Session expired');
-            
-            expect(db.delete).toHaveBeenCalled();
+			await expect(sessionModule.validateSession('expired-session-id')).rejects.toThrow(
+				'Session expired'
+			);
+
+			expect(db.delete).toHaveBeenCalled();
 		});
 
 		it('should return valid session data', async () => {
-            const mockUser = { id: 'user-123', role: 'school_admin' };
+			const mockUser = { id: 'user-123', role: 'school_admin' };
 
-            // Mock select chain: 
-            // 1. session query
-            // 2. user query
-            const selectMock = vi.fn()
-                .mockReturnValueOnce({ // Session query
-                    from: vi.fn().mockReturnValue({
-                        where: vi.fn().mockResolvedValue([mockSession])
-                    })
-                })
-                .mockReturnValueOnce({ // User query
-                    from: vi.fn().mockReturnValue({
-                        where: vi.fn().mockReturnValue({
-                            limit: vi.fn().mockResolvedValue([mockUser])
-                        })
-                    })
-                });
-            // @ts-ignore
-            db.select = selectMock;
+			// Mock select chain:
+			// 1. session query
+			// 2. user query
+			const selectMock = vi
+				.fn()
+				.mockReturnValueOnce({
+					// Session query
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockResolvedValue([mockSession])
+					})
+				})
+				.mockReturnValueOnce({
+					// User query
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							limit: vi.fn().mockResolvedValue([mockUser])
+						})
+					})
+				});
+			// @ts-ignore
+			db.select = selectMock;
 
 			const result = await sessionModule.validateSession('session-123');
 
@@ -215,11 +220,11 @@ describe('Session Management', () => {
 
 	describe('invalidateSession', () => {
 		it('should delete session from database', async () => {
-            const deleteMock = vi.fn().mockReturnValue({
+			const deleteMock = vi.fn().mockReturnValue({
 				where: vi.fn().mockResolvedValue([mockSession])
 			});
-            // @ts-ignore
-            db.delete = deleteMock;
+			// @ts-ignore
+			db.delete = deleteMock;
 
 			await sessionModule.invalidateSession('session-123');
 
@@ -234,29 +239,29 @@ describe('Session Management', () => {
 				expiresAt: new Date(Date.now() + 3600000)
 			};
 
-            const mockUser = { id: 'user-123', role: 'school_admin' };
+			const mockUser = { id: 'user-123', role: 'school_admin' };
 
-            // Mock update chain
-            const updateMock = vi.fn().mockReturnValue({
+			// Mock update chain
+			const updateMock = vi.fn().mockReturnValue({
 				set: vi.fn().mockReturnValue({
 					where: vi.fn().mockReturnValue({
 						returning: vi.fn().mockResolvedValue([refreshedSession])
 					})
 				})
 			});
-            // @ts-ignore
-            db.update = updateMock;
+			// @ts-ignore
+			db.update = updateMock;
 
-             // Mock select chain for user query at end of refreshSession
-             const selectMock = vi.fn().mockReturnValue({
-                from: vi.fn().mockReturnValue({
-                    where: vi.fn().mockReturnValue({
-                        limit: vi.fn().mockResolvedValue([mockUser])
-                    })
-                })
-            });
-            // @ts-ignore
-            db.select = selectMock;
+			// Mock select chain for user query at end of refreshSession
+			const selectMock = vi.fn().mockReturnValue({
+				from: vi.fn().mockReturnValue({
+					where: vi.fn().mockReturnValue({
+						limit: vi.fn().mockResolvedValue([mockUser])
+					})
+				})
+			});
+			// @ts-ignore
+			db.select = selectMock;
 
 			const result = await sessionModule.refreshSession('session-123', 3600);
 
