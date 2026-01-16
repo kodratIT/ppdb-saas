@@ -3,7 +3,7 @@
 	import Card from '$lib/components/ui/card.svelte';
 	import Button from '$lib/components/ui/button.svelte';
 	import Badge from '$lib/components/ui/badge.svelte';
-	import { FileCheck, Clock, CheckCircle2, AlertCircle, Eye, Search, Filter } from 'lucide-svelte';
+	import { FileCheck, Clock, CheckCircle2, AlertCircle, Eye, Search, Filter, Download } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -64,9 +64,22 @@
 <div class="min-h-screen bg-gradient-to-b from-blue-50 to-white py-8 px-4">
 	<div class="max-w-7xl mx-auto">
 		<!-- Header -->
-		<div class="mb-8">
-			<h1 class="text-3xl font-bold text-gray-900">Document Verification</h1>
-			<p class="text-gray-600 mt-1">Review and verify application documents</p>
+		<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+			<div>
+				<h1 class="text-3xl font-bold text-gray-900">Document Verification</h1>
+				<p class="text-gray-600 mt-1">Review and verify application documents</p>
+			</div>
+			
+			<div class="flex gap-2">
+				<Button
+					href="/{data.tenantSlug}/admin/export/dapodik"
+					variant="outline"
+					class="flex items-center gap-2"
+				>
+					<Download class="w-4 h-4" />
+					Export Dapodik
+				</Button>
+			</div>
 		</div>
 
 		<!-- Stats Cards -->
@@ -199,41 +212,40 @@
 										</div>
 									</td>
 									<td class="px-6 py-4">
-										<span class="text-sm text-gray-900">{app.admissionPathName || 'N/A'}</span>
+										<Badge variant="outline">{app.admissionPath.name}</Badge>
 									</td>
 									<td class="px-6 py-4">
-										<div class="flex flex-wrap gap-2">
+										<div class="flex flex-col gap-1">
+											<div class="flex items-center text-xs">
+												<span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+												<span>{app.totalDocuments} Total</span>
+											</div>
 											{#if Number(app.pendingDocuments) > 0}
-												<Badge variant="warning">
-													<Clock class="w-3 h-3 mr-1" />
-													{app.pendingDocuments} Pending
-												</Badge>
-											{/if}
-											{#if Number(app.verifiedDocuments) > 0}
-												<Badge variant="success">
-													<CheckCircle2 class="w-3 h-3 mr-1" />
-													{app.verifiedDocuments} Verified
-												</Badge>
+												<div class="flex items-center text-xs text-blue-600 font-medium">
+													<span class="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"
+													></span>
+													<span>{app.pendingDocuments} Pending</span>
+												</div>
 											{/if}
 											{#if Number(app.rejectedDocuments) > 0}
-												<Badge variant="destructive">
-													<AlertCircle class="w-3 h-3 mr-1" />
-													{app.rejectedDocuments} Rejected
-												</Badge>
+												<div class="flex items-center text-xs text-red-600 font-medium">
+													<span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+													<span>{app.rejectedDocuments} Rejected</span>
+												</div>
 											{/if}
 										</div>
 									</td>
-									<td class="px-6 py-4">
-										<span class="text-sm text-gray-900">{formatDate(app.submittedAt)}</span>
+									<td class="px-6 py-4 text-sm text-gray-500">
+										{formatDate(app.submittedAt)}
 									</td>
 									<td class="px-6 py-4">
 										<Button
+											variant="ghost"
 											size="sm"
 											onclick={() => handleViewApplication(app.id)}
-											class="bg-blue-600 hover:bg-blue-700"
 										>
-											<Eye class="w-4 h-4 mr-1" />
-											Review
+											<Eye class="w-4 h-4 mr-2" />
+											View
 										</Button>
 									</td>
 								</tr>

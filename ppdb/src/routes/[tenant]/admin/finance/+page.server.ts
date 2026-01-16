@@ -5,7 +5,10 @@ import { eq, desc } from 'drizzle-orm';
 import { fail, type Actions } from '@sveltejs/kit';
 import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 import type { PageServerLoad } from './$types';
-import { sendPaymentSuccessNotification, sendPaymentFailedNotification } from '$lib/server/domain/payment/notifications';
+import {
+	sendPaymentSuccessNotification,
+	sendPaymentFailedNotification
+} from '$lib/server/domain/payment/notifications';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const auth = requireAuth(locals);
@@ -49,7 +52,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			expiryDate: inv.expiryDate,
 			studentName: inv.application.childFullName,
 			parentName: inv.application.parentFullName || inv.application.user.name,
-			parentEmail: inv.application.parentEmail || inv.application.user.email,
+			parentEmail: inv.application.user.email,
 			transactions: inv.transactions,
 			latestProof: inv.proofs[0] || null
 		})),
@@ -98,8 +101,8 @@ export const actions: Actions = {
 					.update(paymentProofs)
 					.set({
 						status: 'ACCEPTED',
-						verifiedBy: auth.userId,
-						verifiedAt: new Date()
+						reviewedBy: auth.userId,
+						reviewedAt: new Date()
 					})
 					.where(eq(paymentProofs.id, proofId));
 
@@ -115,11 +118,12 @@ export const actions: Actions = {
 				// 3. Create Transaction
 				await tx.insert(paymentTransactions).values({
 					invoiceId: proof.invoiceId,
+					tenantId: proof.invoice.tenantId,
 					amount: proof.invoice.amount,
 					paymentMethod: 'MANUAL_TRANSFER',
 					status: 'SUCCESS',
 					paidAt: new Date(),
-					externalReference: proofId
+					externalId: proofId
 				});
 			});
 
@@ -135,7 +139,6 @@ export const actions: Actions = {
 				proof.invoice.application,
 				proof.invoice.application.user
 			);
-
 		} else if (action === 'reject') {
 			await db.transaction(async (tx) => {
 				// 1. Update Proof
@@ -144,8 +147,8 @@ export const actions: Actions = {
 					.set({
 						status: 'REJECTED',
 						rejectionReason: reason || 'Bukti tidak valid',
-						verifiedBy: auth.userId,
-						verifiedAt: new Date()
+						reviewedBy: auth.userId,
+						reviewedAt: new Date()
 					})
 					.where(eq(paymentProofs.id, proofId));
 

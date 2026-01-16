@@ -8,17 +8,14 @@ export class WaitlistService {
 	 * Promotes the next candidate from waitlist when a slot opens up
 	 */
 	static async processVacancy(tenantId: string, admissionPathId: string) {
-		// 1. Check if there is a vacancy
-		// Count accepted students who haven't withdrawn
-		// (Assuming 'accepted' status means active accepted)
-		// If we had 'withdrawn' status, we would exclude them.
-		// For now, let's assume this function is called explicitly after a withdrawal.
+		console.log(`Processing vacancy for path ${admissionPathId}`);
 		
 		const path = await db.query.admissionPaths.findFirst({
 			where: eq(admissionPaths.id, admissionPathId)
 		});
 		if (!path) return;
 
+		// 1. Check Vacancy
 		const acceptedCount = await db.$count(
 			applications,
 			and(
@@ -27,35 +24,35 @@ export class WaitlistService {
 			)
 		);
 
+		console.log(`Quota: ${path.quota}, Accepted: ${acceptedCount}`);
+
 		if (acceptedCount >= path.quota) {
 			console.log('No vacancy available');
 			return;
 		}
 
 		// 2. Find top waitlisted candidate
-		// We need to look at the latest selection result to know the rank order?
-		// Or just rely on current score/rank logic?
-		// Better to look at the 'waitlisted' status and order by score/rank.
-		// But score is in applicationScores.
-		// Let's assume we can query applications with status 'waitlisted' and sort by rank stored in selectionResultDetails
-		
-		// Find latest selection result for this path
+		// We look for 'reserved' status in selection details which maps to waitlist
+		// Need to find the latest published batch first
 		const latestResult = await db.query.selectionResults.findFirst({
 			where: eq(selectionResults.admissionPathId, admissionPathId),
-			orderBy: [desc(selectionResults.finalizedAt)]
+			orderBy: [desc(selectionResults.publishedAt)] // Use publishedAt, not finalizedAt (schema check)
 		});
 
 		if (!latestResult) {
-			console.log('No selection result found to base waitlist on');
+			console.log('No selection result found');
 			return;
 		}
 
+		// Find highest ranked candidate (lowest rank number) who is currently waitlisted
+		// We join with applications to ensure current status is indeed 'waitlisted'
+		// (e.g. not already withdrawn or manually rejected)
 		const nextCandidateDetail = await db.query.selectionResultDetails.findFirst({
 			where: and(
 				eq(selectionResultDetails.selectionResultId, latestResult.id),
-				eq(selectionResultDetails.status, 'reserved') // 'reserved' maps to waitlisted in DB status
+				eq(selectionResultDetails.status, 'reserved')
 			),
-			orderBy: [asc(selectionResultDetails.rank)], // Lowest rank number is best (e.g. 11 is better than 12)
+			orderBy: [asc(selectionResultDetails.rank)],
 			with: {
 				application: true
 			}
@@ -66,27 +63,21 @@ export class WaitlistService {
 			return;
 		}
 		
-		// Double check if application is still waitlisted (might have withdrawn)
-		if (nextCandidateDetail.application.status !== 'waitlisted') {
-			// Skip this one and try next? For MVP simplicity, let's just log.
-			console.log('Top candidate no longer waitlisted');
+		const candidate = nextCandidateDetail.application;
+
+		if (candidate.status !== 'waitlisted') {
+			console.log(`Candidate ${candidate.id} has rank but status is ${candidate.status}, skipping`);
+			// In a real system we might loop to find the next one. 
+			// For MVP, we stop or could recursively call processVacancy again?
+			// Let's just return for safety to avoid infinite loops.
 			return; 
 		}
 
-		// 3. Promote Candidate
-		const candidate = nextCandidateDetail.application;
+		console.log(`Promoting candidate: ${candidate.childFullName} (Rank ${nextCandidateDetail.rank})`);
 
+		// 3. Promote Candidate
 		await db.transaction(async (tx) => {
-			// Update status to 'offered' (or 'accepted' if we skip offer step)
-			// Requirement says: "Sistem ubah status Siswa B jadi 'Ditawarkan' (Offered)"
-			// But our enum might not have 'offered'. Let's check schema.
-			// Enum: 'draft', 'submitted', 'under_review', 'verified', 'accepted', 'rejected', 'waitlisted'
-			// We might need to add 'offered' or just jump to 'accepted' with a note?
-			// PRD says: "Sistem secara otomatis mempromosikan pendaftar... (Status: Offered)"
-			// Let's assume we use 'accepted' for simplicity or need to update enum.
-			// Given I can't easily change enum in prod without migration dance, 
-			// I will use 'accepted' but send a specific message.
-			
+			// Update Application Status
 			await tx
 				.update(applications)
 				.set({ 
@@ -95,10 +86,10 @@ export class WaitlistService {
 				})
 				.where(eq(applications.id, candidate.id));
 			
-			// Update detail status too for record
+			// Update Selection Detail Status
 			await tx
 				.update(selectionResultDetails)
-				.set({ status: 'promoted_from_waitlist' as any }) // Hack if enum allows string, or just leave it
+				.set({ status: 'accepted' }) 
 				.where(eq(selectionResultDetails.id, nextCandidateDetail.id));
 		});
 
@@ -116,7 +107,5 @@ Terima kasih.`;
 			
 			await sendWhatsappMessage(candidate.parentPhone, message);
 		}
-
-		console.log(`Promoted candidate ${candidate.childFullName} from waitlist`);
 	}
 }

@@ -1,9 +1,15 @@
 import { db } from '$lib/server/db';
-import { applications, feeStructures, invoices, paymentProofs, schoolProfiles } from '$lib/server/db/schema';
+import {
+	applications,
+	feeStructures,
+	invoices,
+	paymentProofs,
+	schoolProfiles
+} from '$lib/server/db/schema';
 import { requireAuth } from '$lib/server/auth/authorization';
 import { and, eq, desc } from 'drizzle-orm';
 import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
-import { generateInvoiceForApplication } from '$lib/server/domain/payment';
+import { generateInvoiceForApplication, submitPaymentProof } from '$lib/server/domain/payment';
 import { R2Storage } from '$lib/server/storage/r2';
 
 export async function load({ locals, params }: RequestEvent) {
@@ -14,6 +20,7 @@ export async function load({ locals, params }: RequestEvent) {
 		where: and(eq(applications.userId, auth.userId), eq(applications.tenantId, auth.tenantId)),
 		with: {
 			admissionPath: true,
+			user: true,
 			invoices: {
 				orderBy: [desc(invoices.createdAt)],
 				limit: 1
@@ -76,11 +83,7 @@ export const actions = {
 		if (!fee) return fail(400, { message: 'No registration fee required for this path' });
 
 		try {
-			const invoice = await generateInvoiceForApplication(
-				auth.tenantId,
-				application.id,
-				fee.id
-			);
+			const invoice = await generateInvoiceForApplication(auth.tenantId, application.id, fee.id);
 
 			// Redirect to Xendit Invoice
 			throw redirect(303, invoice.invoiceUrl);
@@ -120,13 +123,17 @@ export const actions = {
 		if (!fee) return fail(400, { message: 'Biaya tidak ditemukan' });
 
 		// 2. Create Invoice (Manual Type) if not exists
-		// Note: We create an invoice with VERIFYING status
 		let invoice = await db.query.invoices.findFirst({
-			where: and(
-				eq(invoices.applicationId, application.id),
-				eq(invoices.status, 'PENDING')
-			)
+			where: and(eq(invoices.applicationId, application.id), eq(invoices.status, 'PENDING'))
 		});
+
+		// Check for REJECTED/FAILED invoices we can retry on
+		if (!invoice) {
+			invoice = await db.query.invoices.findFirst({
+				where: and(eq(invoices.applicationId, application.id), eq(invoices.status, 'REJECTED')),
+				orderBy: [desc(invoices.createdAt)]
+			});
+		}
 
 		if (!invoice) {
 			const externalId = `MANUAL-${auth.tenantId.slice(0, 8)}-${Date.now()}`;
@@ -137,21 +144,15 @@ export const actions = {
 					applicationId: application.id,
 					externalId: externalId,
 					amount: fee.amount,
-					status: 'VERIFYING',
+					status: 'PENDING', // Start as PENDING, submitPaymentProof will move to VERIFYING
 					invoiceUrl: '#', // No Xendit URL for manual
 					expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days expiry
 				})
 				.returning();
 			invoice = newInvoice;
-		} else {
-			// Update existing pending invoice to verifying
-			await db
-				.update(invoices)
-				.set({ status: 'VERIFYING', updatedAt: new Date() })
-				.where(eq(invoices.id, invoice.id));
 		}
 
-		// 3. Save Proof
+		// 3. Upload Proof to R2
 		let imageUrl: string;
 
 		// @ts-ignore - Platform might be undefined in dev
@@ -171,14 +172,17 @@ export const actions = {
 			imageUrl = `data:${proofFile.type};base64,${base64}`;
 		}
 
-		await db.insert(paymentProofs).values({
-			tenantId: auth.tenantId,
-			invoiceId: invoice.id,
-			imageUrl: imageUrl,
-			notes: notes,
-			status: 'PENDING'
-		});
+		// 4. Submit Proof via Domain Logic
+		try {
+			await submitPaymentProof(auth.tenantId, invoice.id, imageUrl, notes);
+		} catch (e) {
+			console.error('Failed to submit payment proof:', e);
+			return fail(500, { message: 'Gagal menyimpan bukti pembayaran' });
+		}
 
-		return { success: true, message: 'Bukti transfer berhasil dikirim' };
+		return {
+			success: true,
+			message: 'Bukti transfer berhasil dikirim. Pembayaran sedang diverifikasi.'
+		};
 	}
 };

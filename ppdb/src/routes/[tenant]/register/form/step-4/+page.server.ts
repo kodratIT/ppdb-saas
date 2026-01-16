@@ -3,8 +3,8 @@ import { eq, and, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { applications, customFields, fieldOptions, users, sessions } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
-import { decrypt } from '$lib/server/utils/crypto';
 import { sendOTP, verifyOTP } from '$lib/server/whatsapp/providers/waha';
+import { processCustomFieldsForDisplay } from '$lib/server/utils/custom-fields';
 
 export async function load({ locals, params }: RequestEvent<{ tenant: string }>) {
 	const auth = await requireAuth(locals);
@@ -39,16 +39,13 @@ export async function load({ locals, params }: RequestEvent<{ tenant: string }>)
 	// Decrypt sensitive draft data
 	if (existingDraft?.customFieldValues) {
 		const values = JSON.parse(existingDraft.customFieldValues);
-		for (const field of allFields) {
-			if (field.isEncrypted && values[field.key]) {
-				try {
-					values[field.key] = decrypt(values[field.key]);
-				} catch (e) {
-					console.error(`Failed to decrypt field ${field.key}:`, e);
-				}
-			}
-		}
-		existingDraft.customFieldValues = JSON.stringify(values);
+		const decryptedValues = await processCustomFieldsForDisplay(
+			auth.tenantId,
+			existingDraft.admissionPathId,
+			values
+		);
+		// @ts-ignore
+		existingDraft.customFieldValues = JSON.stringify(decryptedValues);
 	}
 
 	return {

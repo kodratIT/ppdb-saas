@@ -34,7 +34,8 @@ export const applicationStatusEnum = pgEnum('application_status', [
 	'verified',
 	'accepted',
 	'rejected',
-	'waitlisted'
+	'waitlisted',
+	'withdrawn'
 ]);
 
 // Story 2.4: School Admin RBAC Assignment
@@ -668,6 +669,34 @@ export const paymentProofsRelations = relations(paymentProofs, ({ one }) => ({
 	}),
 	reviewer: one(users, {
 		fields: [paymentProofs.reviewedBy],
+		references: [users.id]
+	})
+}));
+
+// Epic 6.2: Broadcast Messaging
+export const broadcasts = pgTable('broadcasts', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	senderId: uuid('sender_id')
+		.references(() => users.id)
+		.notNull(),
+	targetSegment: text('target_segment').notNull(),
+	messageTemplate: text('message_template').notNull(),
+	sentCount: integer('sent_count').notNull(),
+	failedCount: integer('failed_count').notNull(),
+	failedRecipients: text('failed_recipients'), // JSON string of phone numbers
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const broadcastsRelations = relations(broadcasts, ({ one }) => ({
+	tenant: one(tenants, {
+		fields: [broadcasts.tenantId],
+		references: [tenants.id]
+	}),
+	sender: one(users, {
+		fields: [broadcasts.senderId],
 		references: [users.id]
 	})
 }));

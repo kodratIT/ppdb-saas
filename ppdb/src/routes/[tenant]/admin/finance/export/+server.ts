@@ -1,24 +1,15 @@
 import { db } from '$lib/server/db';
 import { invoices } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
-import { eq, desc, and, type SQL } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ locals, url }) => {
+export const GET: RequestHandler = async ({ locals }) => {
 	const auth = requireAuth(locals);
 	requireRole(auth, 'school_admin', 'super_admin', 'treasurer');
 
-	const statusFilter = url.searchParams.get('status') || 'all';
-
-	// Build where clause
-	let whereClause: SQL | undefined = eq(invoices.tenantId, auth.tenantId);
-	
-	if (statusFilter !== 'all') {
-		whereClause = and(whereClause, eq(invoices.status, statusFilter as any));
-	}
-
 	const invoicesList = await db.query.invoices.findMany({
-		where: whereClause,
+		where: eq(invoices.tenantId, auth.tenantId),
 		with: {
 			application: {
 				with: {
@@ -30,35 +21,33 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		orderBy: [desc(invoices.createdAt)]
 	});
 
-	// Generate CSV
+	// CSV Header
 	const headers = [
+		'Date',
 		'Invoice ID',
 		'Student Name',
 		'Parent Name',
 		'Parent Email',
 		'Amount',
 		'Status',
-		'Created At',
-		'Expiry Date',
-		'Payment Date',
-		'Payment Method'
+		'Payment Method',
+		'Transaction ID'
 	];
 
+	// CSV Rows
 	const rows = invoicesList.map((inv) => {
-		const paidTransaction = inv.transactions.find((t) => t.status === 'SUCCESS');
-		
+		const transaction = inv.transactions[0]; // Assuming one main transaction for now
 		return [
+			new Date(inv.createdAt).toISOString().split('T')[0], // YYYY-MM-DD
 			inv.externalId,
-			inv.application?.childFullName || '-',
-			inv.application?.parentFullName || inv.application?.user?.name || '-',
-			inv.application?.parentEmail || inv.application?.user?.email || '-',
-			inv.amount.toString(),
+			`"${inv.application.childFullName}"`, // Quote to handle commas
+			`"${inv.application.parentFullName || inv.application.user.name}"`,
+			inv.application.user.email,
+			inv.amount,
 			inv.status,
-			inv.createdAt.toISOString(),
-			inv.expiryDate.toISOString(),
-			paidTransaction ? paidTransaction.createdAt.toISOString() : '-',
-			paidTransaction ? paidTransaction.paymentMethod || 'MANUAL' : '-'
-		].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','); // Escape quotes
+			transaction?.paymentMethod || '-',
+			transaction?.externalId || '-'
+		].join(',');
 	});
 
 	const csvContent = [headers.join(','), ...rows].join('\n');
@@ -66,7 +55,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	return new Response(csvContent, {
 		headers: {
 			'Content-Type': 'text/csv',
-			'Content-Disposition': `attachment; filename="finance-report-${new Date().toISOString().split('T')[0]}.csv"`
+			'Content-Disposition': `attachment; filename="financial_report_${new Date().toISOString().split('T')[0]}.csv"`
 		}
 	});
 };

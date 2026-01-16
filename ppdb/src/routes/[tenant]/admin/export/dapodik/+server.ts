@@ -1,6 +1,7 @@
 import { db } from '$lib/server/db';
 import { applications, admissionPaths } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
+import { processCustomFieldsForDisplay } from '$lib/server/utils/custom-fields';
 import { eq, and } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 
@@ -15,7 +16,7 @@ function escapeCsv(field: any): string {
 }
 
 export const GET: RequestHandler = async ({ locals }) => {
-	const auth = requireAuth(locals);
+	const auth = await requireAuth(locals);
 	requireRole(auth, 'school_admin', 'super_admin');
 
 	// Fetch accepted applications
@@ -42,59 +43,57 @@ export const GET: RequestHandler = async ({ locals }) => {
 		'Jenis Kelamin (L/P)',
 		'Agama',
 		'Alamat Jalan',
-		'RT',
-		'RW',
-		'Nama Dusun',
-		'Desa/Kelurahan',
-		'Kecamatan',
+		'Kota/Kab',
+		'Provinsi',
 		'Kode Pos',
-		'Jenis Tinggal',
-		'Alat Transportasi',
 		'Telepon',
 		'HP',
 		'E-mail',
-		'Nama Ibu Kandung',
-		'Pekerjaan Ibu',
-		'Nama Ayah Kandung',
-		'Pekerjaan Ayah',
-		'Nama Wali',
-		'Pekerjaan Wali',
+		'Nama Orang Tua/Wali',
 		'Jalur Pendaftaran'
 	];
 
-	const rows = acceptedApps.map(app => {
-		// Map app data to Dapodik columns
-		// Note: Some fields might be missing in our schema or need mapping
-		
+	// Process rows asynchronously to handle decryption
+	const rows = await Promise.all(acceptedApps.map(async (app) => {
+		// Decrypt custom fields
+		let customValues: Record<string, any> = {};
+		if (app.customFieldValues) {
+			const rawValues = JSON.parse(app.customFieldValues);
+			customValues = await processCustomFieldsForDisplay(
+				auth.tenantId,
+				app.admissionPathId,
+				rawValues
+			);
+		}
+
+		// Helper to get custom field value by key (case-insensitive try)
+		const getCustom = (key: string) => {
+			// Direct match
+			if (customValues[key]) return customValues[key];
+			// Case insensitive match
+			const foundKey = Object.keys(customValues).find(k => k.toLowerCase() === key.toLowerCase());
+			return foundKey ? customValues[foundKey] : '';
+		};
+
 		return [
 			app.childFullName,
-			app.childNik || '', // Should be decrypted if encrypted, but for now assuming plain or handled elsewhere
-			app.childNisn || '',
-			app.childPob || '',
+			getCustom('nik') || getCustom('child_nik') || '',
+			getCustom('nisn') || getCustom('child_nisn') || '',
+			getCustom('pob') || getCustom('birth_place') || '',
 			app.childDob ? new Date(app.childDob).toISOString().split('T')[0] : '',
 			app.childGender === 'male' ? 'L' : 'P',
-			app.religion || '',
-			app.addressStreet || '',
-			app.addressRt || '',
-			app.addressRw || '',
-			app.addressHamlet || '',
-			app.addressVillage || '',
-			app.addressDistrict || '',
-			app.addressPostalCode || '',
-			'Bersama Orang Tua', // Default/Placeholder
-			'', // Transport
+			getCustom('religion') || getCustom('agama') || '',
+			app.address || '', // Schema has 'address'
+			app.city || '',    // Schema has 'city'
+			app.province || '', // Schema has 'province'
+			app.postalCode || '', // Schema has 'postalCode'
 			'', // Telp
 			app.parentPhone || '',
 			app.parentEmail || '',
-			app.motherName || '', // We have parentName, need to distinguish or add field
-			'', // Mother Job
-			app.fatherName || '', // We have parentName, need to distinguish or add field
-			'', // Father Job
-			'', // Guardian
-			'', // Guardian Job
+			app.parentFullName || '',
 			app.admissionPath?.name || ''
 		].map(escapeCsv).join(',');
-	});
+	}));
 
 	const csvContent = [headers.join(','), ...rows].join('\n');
 

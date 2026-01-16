@@ -3,12 +3,49 @@ import { eq, and, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { applications, customFields, fieldOptions } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
-import { decrypt } from '$lib/server/utils/crypto';
 import { step3Schema } from '$lib/schema/registration';
+import {
+	processCustomFieldsForSave,
+	processCustomFieldsForDisplay,
+	getCustomFieldsForStep
+} from '$lib/server/utils/custom-fields';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-	// ... existing load logic
+	const auth = await requireAuth(locals);
+	await requireRole(auth, 'parent');
+
+	const draft = await db.query.applications.findFirst({
+		where: and(
+			eq(applications.userId, auth.userId),
+			eq(applications.tenantId, auth.tenantId),
+			eq(applications.status, 'draft')
+		)
+	});
+
+	if (!draft) {
+		throw redirect(303, `/${params.tenant}/register/form/step-1`);
+	}
+
+	// Fetch fields for this step
+	const step3CustomFields = await getCustomFieldsForStep(auth.tenantId, draft.admissionPathId, 3);
+
+	let processedDraft = draft;
+	if (draft.customFieldValues) {
+		const values = JSON.parse(draft.customFieldValues);
+		const decryptedValues = await processCustomFieldsForDisplay(
+			auth.tenantId,
+			draft.admissionPathId,
+			values
+		);
+		// @ts-ignore
+		processedDraft = { ...draft, customFieldValues: decryptedValues };
+	}
+
+	return {
+		draft: processedDraft,
+		customFields: step3CustomFields
+	};
 };
 
 export const actions = {
@@ -32,33 +69,40 @@ export const actions = {
 
 		const { address, city, province, postalCode } = result.data;
 
-		// Custom fields from form
-		const customFieldValues: Record<string, any> = {};
-		formData.forEach((value, key) => {
+		// Get existing draft
+		const existingDraft = await db.query.applications.findFirst({
+			where: and(
+				eq(applications.userId, auth.userId),
+				eq(applications.tenantId, auth.tenantId),
+				eq(applications.status, 'draft')
+			)
+		});
+
+		if (!existingDraft) {
+			return fail(404, { error: 'Draft pendaftaran tidak ditemukan' });
+		}
+
+		// Handle Custom Fields (Encrypt if needed)
+		const customFieldInput: Record<string, any> = {};
+		Object.keys(values).forEach((key) => {
 			if (!['address', 'city', 'province', 'postalCode'].includes(key)) {
-				customFieldValues[key] = value;
+				customFieldInput[key] = values[key];
 			}
 		});
 
+		const encryptedCustomFields = await processCustomFieldsForSave(
+			auth.tenantId,
+			existingDraft.admissionPathId,
+			customFieldInput
+		);
+
 		try {
-			const existingDraft = await db.query.applications.findFirst({
-				where: and(
-					eq(applications.userId, auth.userId),
-					eq(applications.tenantId, auth.tenantId),
-					eq(applications.status, 'draft')
-				)
-			});
-
-			if (!existingDraft) {
-				return fail(404, { error: 'Draft pendaftaran tidak ditemukan' });
-			}
-
 			// Merge custom fields
 			const currentValues = existingDraft.customFieldValues
 				? JSON.parse(existingDraft.customFieldValues)
 				: {};
 
-			const updatedValues = { ...currentValues, ...customFieldValues };
+			const updatedValues = { ...currentValues, ...encryptedCustomFields };
 
 			const completedSteps = JSON.parse(existingDraft.completedSteps || '[]');
 			if (!completedSteps.includes(3)) completedSteps.push(3);

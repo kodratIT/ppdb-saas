@@ -3,7 +3,15 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Alert } from '$lib/components/ui/alert';
-	import { CheckCircle2, Clock, XCircle, CreditCard, Landmark, Upload, Download } from 'lucide-svelte';
+	import {
+		CheckCircle2,
+		Clock,
+		XCircle,
+		CreditCard,
+		Landmark,
+		Upload,
+		Download
+	} from 'lucide-svelte';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { generateInvoicePDF } from '$lib/utils/invoice';
@@ -22,7 +30,7 @@
 
 	function handleDownloadInvoice() {
 		if (!data.latestInvoice || !data.application) return;
-		
+
 		generateInvoicePDF({
 			invoiceNumber: data.latestInvoice.externalId,
 			date: new Date(data.latestInvoice.createdAt).toLocaleDateString('id-ID'),
@@ -73,16 +81,26 @@
 								<span class="flex items-center gap-1 text-green-600 font-bold text-sm">
 									<CheckCircle2 class="w-4 h-4" /> LUNAS
 								</span>
-								<Button variant="outline" size="sm" class="ml-4 h-8 gap-2" onclick={handleDownloadInvoice}>
+								<Button
+									variant="outline"
+									size="sm"
+									class="ml-4 h-8 gap-2"
+									onclick={handleDownloadInvoice}
+								>
 									<Download class="w-3 h-3" /> Invoice
 								</Button>
 							{:else if data.latestInvoice.status === 'PENDING'}
 								<span class="flex items-center gap-1 text-orange-600 font-bold text-sm">
 									<Clock class="w-4 h-4" /> MENUNGGU PEMBAYARAN
 								</span>
+							{:else if data.latestInvoice.status === 'VERIFYING'}
+								<span class="flex items-center gap-1 text-blue-600 font-bold text-sm">
+									<Clock class="w-4 h-4" /> SEDANG DIVERIFIKASI
+								</span>
 							{:else}
 								<span class="flex items-center gap-1 text-red-600 font-bold text-sm">
-									<XCircle class="w-4 h-4" /> {data.latestInvoice.status}
+									<XCircle class="w-4 h-4" />
+									{data.latestInvoice.status}
 								</span>
 							{/if}
 						</div>
@@ -97,14 +115,26 @@
 									Lanjutkan Pembayaran
 								</a>
 								<p class="text-xs text-center text-gray-500 mt-2">
-									Link akan kadaluarsa pada {new Date(data.latestInvoice.expiryDate).toLocaleString()}
+									Link akan kadaluarsa pada {new Date(
+										data.latestInvoice.expiryDate
+									).toLocaleString()}
 								</p>
 							</div>
+						{:else if data.latestInvoice.status === 'VERIFYING'}
+							<Alert class="bg-blue-50 border-blue-200 mt-2">
+								<Clock class="w-4 h-4 text-blue-500" />
+								<span>Pembayaran Anda sedang kami verifikasi. Mohon tunggu 1x24 jam.</span>
+							</Alert>
+						{:else if data.latestInvoice.status === 'REJECTED'}
+							<Alert class="bg-red-50 border-red-200 mt-2">
+								<XCircle class="w-4 h-4 text-red-500" />
+								<span>Pembayaran ditolak. Silakan upload ulang bukti pembayaran yang valid.</span>
+							</Alert>
 						{/if}
 					</div>
 				{/if}
 
-				{#if !data.latestInvoice || data.latestInvoice.status === 'EXPIRED' || data.latestInvoice.status === 'FAILED'}
+				{#if !data.latestInvoice || data.latestInvoice.status === 'EXPIRED' || data.latestInvoice.status === 'FAILED' || data.latestInvoice.status === 'REJECTED'}
 					<div class="space-y-4">
 						<form method="POST" action="?/pay" use:enhance>
 							<Button type="submit" class="w-full gap-2">

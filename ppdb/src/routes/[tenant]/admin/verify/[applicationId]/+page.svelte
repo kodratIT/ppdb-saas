@@ -100,9 +100,41 @@
 						</p>
 					</div>
 				</div>
-				<Badge variant={getStatusBadgeVariant(data.application.status)}>
-					{data.application.status}
-				</Badge>
+				<div class="flex items-center gap-4">
+					<Badge variant={getStatusBadgeVariant(data.application.status)}>
+						{data.application.status}
+					</Badge>
+					{#if data.application.status === 'accepted'}
+						<form
+							method="POST"
+							action="?/withdraw"
+							onsubmit={(e) => {
+								if (!confirm('Are you sure you want to withdraw this student? This action will open up a slot for waitlisted candidates.')) {
+									e.preventDefault();
+								}
+							}}
+						>
+							<Button variant="destructive" size="sm" type="submit">
+								Withdraw / Reject
+							</Button>
+						</form>
+					{/if}
+					{#if data.isSuperAdmin}
+						<form
+							method="POST"
+							action="?/delete_permanent"
+							onsubmit={(e) => {
+								if (!confirm('PERHATIAN: Anda akan menghapus data siswa ini secara PERMANEN (termasuk dokumen, nilai, invoice, dll). Data tidak bisa dikembalikan. Lanjutkan?')) {
+									e.preventDefault();
+								}
+							}}
+						>
+							<Button variant="destructive" size="sm" type="submit" class="bg-red-800 hover:bg-red-900">
+								Hapus Permanen (GDPR)
+							</Button>
+						</form>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</div>

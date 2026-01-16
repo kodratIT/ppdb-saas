@@ -15,6 +15,7 @@ import {
 	sendPaymentSuccessNotification,
 	sendPaymentFailedNotification
 } from './notifications';
+export * from './verification';
 
 /**
  * Generates an invoice for a specific application
@@ -44,7 +45,6 @@ export async function generateInvoiceForApplication(
 
 	const tenant = application.tenant; // We need tenant details for redirect URLs
 
-
 	const fee = await db.query.feeStructures.findFirst({
 		where: and(eq(feeStructures.id, feeStructureId), eq(feeStructures.tenantId, tenantId))
 	});
@@ -53,10 +53,7 @@ export async function generateInvoiceForApplication(
 
 	// 3. Check for existing PENDING invoice
 	const existingInvoice = await db.query.invoices.findFirst({
-		where: and(
-			eq(invoices.applicationId, applicationId),
-			eq(invoices.status, 'PENDING')
-		),
+		where: and(eq(invoices.applicationId, applicationId), eq(invoices.status, 'PENDING')),
 		orderBy: [desc(invoices.createdAt)]
 	});
 
@@ -68,7 +65,12 @@ export async function generateInvoiceForApplication(
 				// Resend notification for existing pending invoice? Maybe not to avoid spam.
 				// But user requested invoice generation, so maybe they lost the link.
 				// Let's send it again.
-				await sendInvoiceCreatedNotification(existingInvoice, tenant, application, application.user);
+				await sendInvoiceCreatedNotification(
+					existingInvoice,
+					tenant,
+					application,
+					application.user
+				);
 				return existingInvoice;
 			} else if (gatewayInvoice.status === 'EXPIRED') {
 				// Mark as expired in DB
@@ -92,11 +94,11 @@ export async function generateInvoiceForApplication(
 
 	// 4. Create New Invoice
 	const externalId = `INV-${tenantId.slice(0, 8)}-${applicationId.slice(0, 8)}-${Date.now()}`;
-	
+
 	const gatewayResponse = await createInvoice(secretKey, {
 		external_id: externalId,
 		amount: fee.amount,
-		payer_email: application.parentEmail || application.user.email,
+		payer_email: application.user.email,
 		description: `Registration Fee: ${application.childFullName} (${fee.name})`,
 		invoice_duration: 86400, // 24 hours
 		success_redirect_url: `https://${tenant.slug}.ppdb.id/dashboard?payment=success`,
@@ -161,19 +163,26 @@ export async function handlePaymentWebhook(payload: any) {
 				updatedAt: new Date()
 			})
 			.where(eq(invoices.id, invoice.id));
-		
+
 		// If Paid, Create Transaction Record & Update Application
 		if (newStatus === 'PAID') {
 			await db.insert(paymentTransactions).values({
+				tenantId: invoice.tenantId,
 				invoiceId: invoice.id,
 				amount: payload.amount,
 				paymentMethod: payload.payment_method || 'UNKNOWN',
 				status: 'SUCCESS',
 				paidAt: new Date(payload.paid_at || new Date()),
-				externalReference: id
+				externalId: id,
+				rawResponse: JSON.stringify(payload)
 			});
 
-			await sendPaymentSuccessNotification(invoice, invoice.tenant, invoice.application, invoice.application.user);
+			await sendPaymentSuccessNotification(
+				invoice,
+				invoice.tenant,
+				invoice.application,
+				invoice.application.user
+			);
 
 			// Update Application Status (if needed, e.g. move to 'submitted' or 'verified' depending on flow)
 			// For now, we assume payment is a requirement for submission or just a flag
@@ -182,7 +191,12 @@ export async function handlePaymentWebhook(payload: any) {
 			// It has 'submitted', 'verified'. Maybe we don't change app status enum, but just invoice status.
 			// Or maybe we map 'draft' -> 'submitted' if payment was the blocker.
 		} else if (newStatus === 'EXPIRED' || newStatus === 'FAILED') {
-			await sendPaymentFailedNotification(invoice, invoice.tenant, invoice.application, invoice.application.user);
+			await sendPaymentFailedNotification(
+				invoice,
+				invoice.tenant,
+				invoice.application,
+				invoice.application.user
+			);
 		}
 	}
 }

@@ -1,9 +1,9 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { applications, customFields } from '$lib/server/db/schema';
+import { applications } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { encrypt } from '$lib/server/utils/crypto';
+import { processCustomFieldsForSave } from '$lib/server/utils/custom-fields';
 
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	const { applicationId } = params;
@@ -55,19 +55,12 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 		);
 	}
 
-	// 3. PII Encryption
-	// Fetch all custom fields for this admission path to know which ones are encrypted
-	const pathFields = await db.query.customFields.findMany({
-		where: eq(customFields.admissionPathId, existingApp.admissionPathId)
-	});
-
-	const encryptedValues = { ...clientValues };
-	for (const field of pathFields) {
-		if (field.isEncrypted && encryptedValues[field.key]) {
-			// Encrypt the value if it exists in the draft update
-			encryptedValues[field.key] = encrypt(String(encryptedValues[field.key]));
-		}
-	}
+	// 3. PII Encryption using shared utility
+	const encryptedValues = await processCustomFieldsForSave(
+		tenantId,
+		existingApp.admissionPathId,
+		clientValues
+	);
 
 	// 4. Update Database
 	const nextVersion = existingApp.version + 1;

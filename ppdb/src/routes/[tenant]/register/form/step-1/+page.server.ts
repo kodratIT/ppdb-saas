@@ -3,12 +3,58 @@ import { eq, and, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { applications, admissionPaths, customFields, fieldOptions } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
-import { decrypt } from '$lib/server/utils/crypto';
 import { step1Schema } from '$lib/schema/registration';
+import {
+	processCustomFieldsForSave,
+	processCustomFieldsForDisplay,
+	getCustomFieldsForStep
+} from '$lib/server/utils/custom-fields';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-	// ... existing load logic
+	const auth = await requireAuth(locals);
+	await requireRole(auth, 'parent');
+
+	const activePaths = await db.query.admissionPaths.findMany({
+		where: and(eq(admissionPaths.tenantId, auth.tenantId), eq(admissionPaths.status, 'open'))
+	});
+
+	const draft = await db.query.applications.findFirst({
+		where: and(
+			eq(applications.userId, auth.userId),
+			eq(applications.tenantId, auth.tenantId),
+			eq(applications.status, 'draft')
+		)
+	});
+
+	let step1CustomFields: any[] = [];
+	let processedDraft = draft;
+
+	if (draft) {
+		// If draft exists, fetch fields for its path
+		step1CustomFields = await getCustomFieldsForStep(auth.tenantId, draft.admissionPathId, 1);
+
+		// Decrypt custom values
+		if (draft.customFieldValues) {
+			const values = JSON.parse(draft.customFieldValues);
+			const decryptedValues = await processCustomFieldsForDisplay(
+				auth.tenantId,
+				draft.admissionPathId,
+				values
+			);
+			// @ts-ignore
+			processedDraft = { ...draft, customFieldValues: decryptedValues };
+		}
+	} else if (activePaths.length === 1) {
+		// Pre-fetch fields if only one path is available
+		step1CustomFields = await getCustomFieldsForStep(auth.tenantId, activePaths[0].id, 1);
+	}
+
+	return {
+		admissionPaths: activePaths,
+		draft: processedDraft,
+		customFields: step1CustomFields
+	};
 };
 
 export const actions = {
@@ -44,6 +90,13 @@ export const actions = {
 			return fail(400, { error: 'Jalur pendaftaran tidak valid' });
 		}
 
+		// Handle Custom Fields (Encrypt if needed)
+		const encryptedCustomFields = await processCustomFieldsForSave(
+			auth.tenantId,
+			admissionPathId,
+			values
+		);
+
 		try {
 			const existingDraft = await db.query.applications.findFirst({
 				where: and(
@@ -53,19 +106,35 @@ export const actions = {
 				)
 			});
 
+			// Merge with existing custom values if any
+			let mergedCustomValues = encryptedCustomFields;
+			if (existingDraft && existingDraft.customFieldValues) {
+				const current = JSON.parse(existingDraft.customFieldValues);
+				mergedCustomValues = { ...current, ...encryptedCustomFields };
+			}
+
+			const completedSteps = existingDraft
+				? JSON.parse(existingDraft.completedSteps || '[]')
+				: [1];
+			if (!completedSteps.includes(1)) completedSteps.push(1);
+
 			const updateData = {
 				admissionPathId,
 				childFullName,
 				childNickname: childNickname || null,
 				childDob: new Date(childDob),
 				childGender,
+				customFieldValues: JSON.stringify(mergedCustomValues),
 				currentStep: 1,
-				completedSteps: JSON.stringify([1]),
+				completedSteps: JSON.stringify(completedSteps),
 				updatedAt: new Date()
 			};
 
 			if (existingDraft) {
-				await db.update(applications).set(updateData).where(eq(applications.id, existingDraft.id));
+				await db
+					.update(applications)
+					.set(updateData)
+					.where(eq(applications.id, existingDraft.id));
 			} else {
 				await db.insert(applications).values({
 					...updateData,

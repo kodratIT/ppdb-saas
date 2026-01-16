@@ -10,6 +10,7 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Button } from '$lib/components/ui/button';
 	import { Alert } from '$lib/components/ui/alert';
+	import { Badge } from '$lib/components/ui/badge';
 	import { Send, Users, AlertTriangle, CheckCircle2, History } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
