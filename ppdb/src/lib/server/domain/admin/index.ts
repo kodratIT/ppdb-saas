@@ -1,6 +1,7 @@
 import { db } from '$lib/server/db';
 import { tenants, auditLogs, users, invoices, applications } from '$lib/server/db/schema';
 import { sql, eq, count, and, gte, desc, getTableColumns, ilike, or, asc } from 'drizzle-orm';
+import { getCached, setCached, clearCache } from '$lib/server/cache';
 
 export async function createTenant(data: { name: string; slug: string }, actorId: string) {
 	const reserved = ['www', 'app', 'api', 'admin', 'super-admin'];
@@ -25,6 +26,9 @@ export async function createTenant(data: { name: string; slug: string }, actorId
 		details: JSON.stringify({ name: data.name, id: newTenant.id })
 	});
 
+	// Invalidate cache
+	clearCache('tenants:');
+
 	return newTenant;
 }
 
@@ -39,6 +43,11 @@ export async function listTenantsWithStats(
 	} = {}
 ) {
 	const { page = 1, limit = 20, search, status, sortBy = 'createdAt', sortOrder = 'desc' } = params;
+
+	// Check cache
+	const cacheKey = `tenants:list:${JSON.stringify({ page, limit, search, status, sortBy, sortOrder })}`;
+	const cachedData = getCached<any>(cacheKey);
+	if (cachedData) return cachedData;
 
 	const offset = (page - 1) * limit;
 
@@ -84,7 +93,7 @@ export async function listTenantsWithStats(
 		.limit(limit)
 		.offset(offset);
 
-	return {
+	const result = {
 		data: data.map((t) => ({
 			...t,
 			stats: {
@@ -96,6 +105,11 @@ export async function listTenantsWithStats(
 		page,
 		totalPages: Math.ceil(total / limit)
 	};
+
+	// Save to cache
+	setCached(cacheKey, result, 60); // Cache for 1 minute
+
+	return result;
 }
 
 export async function updateTenantStatus(
@@ -111,6 +125,9 @@ export async function updateTenantStatus(
 		target: `tenant:${tenantId}`,
 		details: JSON.stringify({ status })
 	});
+
+	// Invalidate cache
+	clearCache('tenants:');
 }
 
 export async function listTenants() {
