@@ -2,11 +2,11 @@ import type { Actions, PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { getDashboardStats } from '$lib/server/domain/admin';
 import { invalidateSession } from '$lib/server/auth/session';
+import { requireAuth, requireSuperAdmin } from '$lib/server/auth/authorization';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	if (!locals.session) {
-		throw redirect(302, '/sign-in');
-	}
+	const auth = await requireAuth(locals);
+	requireSuperAdmin(auth);
 
 	const stats = await getDashboardStats();
 	return { stats };

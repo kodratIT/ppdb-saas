@@ -1,11 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
-import { redirect, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { listTenantsWithStats, updateTenantStatus } from '$lib/server/domain/admin';
-import { requireAuth, requireRole } from '$lib/server/auth/authorization';
+import { requireAuth, requireSuperAdmin } from '$lib/server/auth/authorization';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const auth = await requireAuth(locals);
-	requireRole(auth, 'super_admin');
+	requireSuperAdmin(auth);
 
 	const tenants = await listTenantsWithStats();
 	return { tenants };
@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	toggleStatus: async ({ request, locals }) => {
 		const auth = await requireAuth(locals);
-		requireRole(auth, 'super_admin');
+		requireSuperAdmin(auth);
 
 		const formData = await request.formData();
 		const tenantId = formData.get('tenantId')?.toString();
