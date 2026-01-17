@@ -1,5 +1,5 @@
 import { type RequestEvent } from '@sveltejs/kit';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { applications, applicationScores, admissionPaths } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';

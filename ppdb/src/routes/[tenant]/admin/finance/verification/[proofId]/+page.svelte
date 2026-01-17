@@ -3,8 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { formatCurrency } from '$lib/utils';
 	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import {
@@ -17,7 +16,6 @@
 		DialogTrigger
 	} from '$lib/components/ui/dialog';
 	import { ArrowLeft, Check, X, ExternalLink, Download } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 
 	export let data;
 

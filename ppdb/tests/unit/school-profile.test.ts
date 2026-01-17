@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as schoolProfileDomain from '../../src/lib/server/domain/school-profile';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';

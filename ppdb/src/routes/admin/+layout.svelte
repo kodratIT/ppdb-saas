@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { page } from '$app/stores';
 	import Header from '$lib/components/admin/Header.svelte';
 
@@ -8,7 +9,9 @@
 
 <div class="flex min-h-screen bg-gray-50 dark:bg-gray-900">
 	<!-- Sidebar -->
-	<aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-full z-10 transition-colors duration-300">
+	<aside
+		class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-full z-10 transition-colors duration-300"
+	>
 		<!-- Sidebar Header -->
 		<div class="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
 			<span class="text-xl font-bold text-[#002C5F] dark:text-blue-400">PPDB SaaS Admin</span>
@@ -18,9 +21,7 @@
 		<nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
 			<a
 				href="/admin"
-				class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {isActive(
-					'/admin'
-				)
+				class="group flex items-center px-3 py-2 text-sm font-medium rounded-md {isActive('/admin')
 					? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
 					: 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'}"
 			>

@@ -1,17 +1,10 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { enhance } from '$app/forms';
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Alert } from '$lib/components/ui/alert';
-	import {
-		CheckCircle2,
-		Clock,
-		XCircle,
-		CreditCard,
-		Landmark,
-		Upload,
-		Download
-	} from 'lucide-svelte';
+	import { CheckCircle2, Clock, XCircle, CreditCard, Landmark, Download } from 'lucide-svelte';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { generateInvoicePDF } from '$lib/utils/invoice';

@@ -4,7 +4,6 @@ import { db } from '$lib/server/db';
 import {
 	applications,
 	applicationDocuments,
-	admissionPaths,
 	documentReviews,
 	invoices,
 	paymentTransactions,
@@ -49,7 +48,7 @@ export async function load({
 			application.admissionPathId,
 			values
 		);
-		// @ts-ignore
+		// @ts-expect-error - processedApplication includes decrypted custom fields which might not match exact schema types
 		processedApplication = { ...application, customFieldValues: JSON.stringify(decryptedValues) };
 	}
 
@@ -67,6 +66,7 @@ export async function load({
 
 	// Fetch review history for each document
 	const documentIds = documents.map((doc) => doc.id);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const reviewHistory: Record<string, any[]> = {};
 
 	for (const docId of documentIds) {
@@ -157,8 +157,10 @@ export const actions = {
 
 		await db.transaction(async (tx) => {
 			// 1. Delete Selection Results Details
-			await tx.delete(selectionResultDetails).where(eq(selectionResultDetails.applicationId, applicationId));
-			
+			await tx
+				.delete(selectionResultDetails)
+				.where(eq(selectionResultDetails.applicationId, applicationId));
+
 			// 2. Delete Application Scores
 			await tx.delete(applicationScores).where(eq(applicationScores.applicationId, applicationId));
 
@@ -176,7 +178,7 @@ export const actions = {
 				await tx.delete(paymentProofs).where(eq(paymentProofs.invoiceId, inv.id));
 				await tx.delete(paymentTransactions).where(eq(paymentTransactions.invoiceId, inv.id));
 			}
-			
+
 			// 5. Delete Invoices
 			await tx.delete(invoices).where(eq(invoices.applicationId, applicationId));
 
@@ -185,7 +187,7 @@ export const actions = {
 			// But let's be explicit if needed. Schema says:
 			// applicationId: uuid('application_id').references(() => applications.id, { onDelete: 'cascade' })
 			// So deleting application should clear documents and reviews.
-			
+
 			// 8. Delete Application
 			await tx.delete(applications).where(eq(applications.id, applicationId));
 		});

@@ -1,17 +1,6 @@
-import { expect, test, type BrowserContext } from '@playwright/test';
-import { testUsers, testAdmissionPaths, testFeeStructures, getSessionCookieName } from './fixtures';
-import {
-	signInAs,
-	signOut,
-	getSessionCookie,
-	waitForSessionCookie,
-	isAuthenticated,
-	expectErrorMessage,
-	expectSuccessMessage,
-	isElementVisible,
-	clickButton,
-	waitForPageLoad
-} from './helpers';
+import { expect, test } from '@playwright/test';
+import { testUsers } from './fixtures';
+import { signInAs, waitForSessionCookie, expectErrorMessage } from './helpers';
 
 test.describe('RBAC Permissions - Super Admin', () => {
 	test('super_admin can access all admin routes', async ({ page, context }) => {
@@ -301,7 +290,7 @@ test.describe('RBAC Permissions - Parent (WAHA User)', () => {
 		await expect(page.locator('h1')).toContainText('Application Dashboard');
 	});
 
-	test('parent cannot create admission paths', async ({ page, context }) => {
+	test('parent cannot create admission paths', async ({ page }) => {
 		// Authenticate with WAHA
 		await page.goto('/apply');
 		await page.fill('input[type="tel"]', testUsers.parent.phone);
@@ -316,7 +305,7 @@ test.describe('RBAC Permissions - Parent (WAHA User)', () => {
 		await expectErrorMessage(page, 'Unauthorized: Admin access required');
 	});
 
-	test('parent cannot access fee management', async ({ page, context }) => {
+	test('parent cannot access fee management', async ({ page }) => {
 		// Authenticate with WAHA
 		await page.goto('/apply');
 		await page.fill('input[type="tel"]', testUsers.parent.phone);

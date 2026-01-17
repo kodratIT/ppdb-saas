@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as formBuilderDomain from '../../../src/lib/server/domain/form-builder';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
@@ -71,7 +72,7 @@ describe('Form Builder Domain Logic', () => {
 			};
 
 			const mockCreatedField = { id: 'field-1', ...fieldData, tenantId, admissionPathId };
-			// @ts-ignore
+			// @ts-expect-error - Deleting property from mock object for testing
 			delete mockCreatedField.options;
 
 			vi.spyOn(mockDb, 'insert').mockReturnValue({
@@ -102,7 +103,7 @@ describe('Form Builder Domain Logic', () => {
 			};
 
 			const mockUpdatedField = { id: fieldId, ...updateData, tenantId };
-			// @ts-ignore
+			// @ts-expect-error - deleting property from mock object
 			delete mockUpdatedField.options;
 
 			vi.spyOn(mockDb, 'update').mockReturnValue({

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { error } from '@sveltejs/kit';
 
 const XENDIT_API_URL = 'https://api.xendit.co';

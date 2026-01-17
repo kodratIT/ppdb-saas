@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { applications, customFields, fieldOptions } from '$lib/server/db/schema';
+import { applications } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { step2Schema } from '$lib/schema/registration';
 import {
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			draft.admissionPathId,
 			values
 		);
-		// @ts-ignore
+		// @ts-expect-error - Type mismatch in customFieldValues during decryption
 		processedDraft = { ...draft, customFieldValues: decryptedValues };
 	}
 
@@ -84,6 +84,7 @@ export const actions = {
 
 		// Handle Custom Fields (Encrypt if needed)
 		// Filter out base fields first to avoid passing them as custom fields
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const customFieldInput: Record<string, any> = {};
 		Object.keys(values).forEach((key) => {
 			if (!['parentFullName', 'parentPhone', 'parentEmail'].includes(key)) {

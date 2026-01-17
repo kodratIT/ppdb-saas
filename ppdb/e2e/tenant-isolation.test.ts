@@ -1,12 +1,9 @@
-import { expect, test, type BrowserContext } from '@playwright/test';
-import { testUsers, testTenants, getSessionCookieName } from './fixtures';
+import { expect, test } from '@playwright/test';
+import { testUsers, testTenants } from './fixtures';
 import {
 	signInAs,
-	signOut,
 	getSessionCookie,
 	waitForSessionCookie,
-	isAuthenticated,
-	expectErrorMessage,
 	expectAuthorizationError,
 	navigateToTenant,
 	clearCookies
@@ -267,7 +264,7 @@ test.describe('Tenant Isolation - Subdomain Resolution', () => {
 });
 
 test.describe('Tenant Isolation - Data Security', () => {
-	test('tenant isolation prevents data leakage', async ({ page, context }) => {
+	test('tenant isolation prevents data leakage', async ({ page }) => {
 		// Sign in as school admin from tenant1
 		await navigateToTenant(page, testTenants.tenant1.subdomain, '/sign-in');
 

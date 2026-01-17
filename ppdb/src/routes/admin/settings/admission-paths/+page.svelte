@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import Input from '$lib/components/ui/input.svelte';
@@ -8,6 +9,7 @@
 	let { data }: { data: PageData } = $props();
 
 	let showCreateModal = $state(false);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let editingPath = $state<any>(null);
 	let showDeleteConfirm = $state<string | null>(null);
 
@@ -188,13 +190,7 @@
 				<div class="space-y-4">
 					<div>
 						<Label for="name" class="block text-gray-700 mb-1">Path Name *</Label>
-						<Input
-							type="text"
-							id="name"
-							name="name"
-							required
-							placeholder="e.g., Jalur Prestasi"
-						/>
+						<Input type="text" id="name" name="name" required placeholder="e.g., Jalur Prestasi" />
 					</div>
 
 					<div>
@@ -251,13 +247,7 @@
 				<div class="space-y-4">
 					<div>
 						<Label for="edit-name" class="block text-gray-700 mb-1">Path Name *</Label>
-						<Input
-							type="text"
-							id="edit-name"
-							name="name"
-							required
-							value={editingPath.name}
-						/>
+						<Input type="text" id="edit-name" name="name" required value={editingPath.name} />
 					</div>
 
 					<div>

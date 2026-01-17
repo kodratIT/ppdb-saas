@@ -1,6 +1,6 @@
 <script lang="ts">
 	interface Props {
-		application: any;
+		application: Record<string, unknown>;
 	}
 
 	let { application }: Props = $props();
@@ -70,13 +70,13 @@
 		</p>
 	</div>
 
-	{#each sections as section}
+	{#each sections as section (section.title)}
 		<div class="space-y-3">
 			<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider border-b pb-2">
 				{section.title}
 			</h3>
 			<dl class="grid grid-cols-1 gap-3">
-				{#each section.fields as field}
+				{#each section.fields as field (field.label)}
 					<div class="flex flex-col">
 						<dt class="text-xs text-gray-500 font-medium">{field.label}</dt>
 						<dd class="text-sm text-gray-900 mt-1 font-medium">
@@ -97,7 +97,7 @@
 					Informasi Tambahan
 				</h3>
 				<dl class="grid grid-cols-1 gap-3">
-					{#each Object.entries(customData) as [key, value]}
+					{#each Object.entries(customData) as [key, value] (key)}
 						<div class="flex flex-col">
 							<dt class="text-xs text-gray-500 font-medium capitalize">{key.replace(/_/g, ' ')}</dt>
 							<dd class="text-sm text-gray-900 mt-1 font-medium">

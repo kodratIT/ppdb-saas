@@ -1,7 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/svelte';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/svelte';
+import { describe, it, expect } from 'vitest';
 import DynamicField from '$lib/components/forms/dynamic/DynamicField.svelte';
-import { mount } from 'svelte';
 
 describe('DynamicField', () => {
 	const mockField = {

@@ -1,18 +1,12 @@
 import { db } from '$lib/server/db';
-import {
-	applications,
-	feeStructures,
-	invoices,
-	paymentProofs,
-	schoolProfiles
-} from '$lib/server/db/schema';
+import { applications, feeStructures, invoices, schoolProfiles } from '$lib/server/db/schema';
 import { requireAuth } from '$lib/server/auth/authorization';
 import { and, eq, desc } from 'drizzle-orm';
 import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { generateInvoiceForApplication, submitPaymentProof } from '$lib/server/domain/payment';
 import { R2Storage } from '$lib/server/storage/r2';
 
-export async function load({ locals, params }: RequestEvent) {
+export async function load({ locals }: RequestEvent) {
 	const auth = await requireAuth(locals);
 
 	// Get user's application
@@ -60,7 +54,7 @@ export async function load({ locals, params }: RequestEvent) {
 }
 
 export const actions = {
-	pay: async ({ locals, params }: RequestEvent) => {
+	pay: async ({ locals }: RequestEvent) => {
 		const auth = await requireAuth(locals);
 
 		// Get user's application
@@ -88,6 +82,7 @@ export const actions = {
 			// Redirect to Xendit Invoice
 			throw redirect(303, invoice.invoiceUrl);
 		} catch (err) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			if ((err as any).status === 303) throw err; // Re-throw redirect
 			console.error('Payment generation error:', err);
 			return fail(500, { message: 'Gagal membuat invoice pembayaran' });
@@ -155,7 +150,7 @@ export const actions = {
 		// 3. Upload Proof to R2
 		let imageUrl: string;
 
-		// @ts-ignore - Platform might be undefined in dev
+		// @ts-expect-error - Platform might be undefined in dev
 		if (platform?.env?.DOCUMENTS_BUCKET) {
 			const storage = new R2Storage(platform.env.DOCUMENTS_BUCKET);
 			const safeFilename = proofFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');

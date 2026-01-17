@@ -13,7 +13,7 @@ export async function POST({ request, locals, params }: RequestEvent) {
 	const auth = await requireAuth(locals);
 	requireRole(auth, 'verifier', 'school_admin');
 
-	const documentId = (params as any).documentId as string;
+	const documentId = (params as { documentId: string }).documentId;
 	const body = await request.json();
 	const { action, reason } = body;
 

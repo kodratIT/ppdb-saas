@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	/* eslint-disable @typescript-eslint/no-unused-vars */
 	import { dndzone, type DndEvent } from 'svelte-dnd-action';
 	import {
 		Type,
@@ -84,11 +86,11 @@
 	// svelte-dnd-action requires items to have a unique ID
 	let items = $state([...fieldTypes]);
 
-	function handleDndConsider(e: CustomEvent<DndEvent<any>>) {
+	function handleDndConsider(_: CustomEvent<DndEvent<any>>) {
 		// When dragging from palette, we don't want the palette to change
 	}
 
-	function handleDndFinalize(e: CustomEvent<DndEvent<any>>) {
+	function handleDndFinalize(_: CustomEvent<DndEvent<any>>) {
 		// Reset items to original list to keep palette static
 		items = [...fieldTypes];
 	}

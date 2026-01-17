@@ -2,7 +2,7 @@
 	import { cn } from '$lib/utils';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
-	interface Props extends HTMLInputAttributes {}
+	type Props = HTMLInputAttributes;
 
 	let { class: className, value = $bindable(), type = 'text', ...restProps }: Props = $props();
 </script>

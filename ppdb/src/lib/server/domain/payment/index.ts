@@ -1,13 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '$lib/server/db';
-import {
-	invoices,
-	paymentTransactions,
-	tenants,
-	applications,
-	feeStructures
-} from '$lib/server/db/schema';
+import { invoices, paymentTransactions, applications, feeStructures } from '$lib/server/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { createInvoice, getInvoice, type InvoiceResponse } from '$lib/server/gateway/xendit';
+import { createInvoice, getInvoice } from '$lib/server/gateway/xendit';
 import { env } from '$env/dynamic/private';
 import { error } from '@sveltejs/kit';
 import {

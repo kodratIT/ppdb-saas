@@ -4,8 +4,8 @@ import { sendOTP, verifyOTP } from '$lib/server/whatsapp/providers/waha';
 import { createSession } from '$lib/server/auth/session';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
-import { eq, gte, and } from 'drizzle-orm';
-import { otpCodes } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
+
 import { AuthError } from '$lib/server/auth/types';
 
 interface RateLimitEntry {
@@ -33,7 +33,8 @@ function checkRateLimit(phoneNumber: string): boolean {
 	return true;
 }
 
-async function cleanupRateLimit() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function _cleanupRateLimit() {
 	const now = Date.now();
 	const windowStart = now - 5 * 60 * 1000;
 

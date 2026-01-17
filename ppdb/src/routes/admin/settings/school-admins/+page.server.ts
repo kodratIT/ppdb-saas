@@ -1,15 +1,13 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/server/db';
 import * as schoolAdminsDomain from '$lib/server/domain/school-admins';
-import { eq } from 'drizzle-orm';
-import * as schema from '$lib/server/db/schema';
 import { requireAuth, requirePermission } from '$lib/server/auth/authorization';
 import { PERMISSIONS } from '$lib/server/auth/permissions';
 import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const { userId, tenantId } = requireAuth(locals);
+	const { tenantId } = requireAuth(locals);
 
 	const admins = await schoolAdminsDomain.listSchoolAdmins(db, tenantId);
 
@@ -54,6 +52,7 @@ export const actions: Actions = {
 		}
 
 		const validRoles = ['school_admin', 'verifier', 'treasurer'] as const;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!role || typeof role !== 'string' || !validRoles.includes(role as any)) {
 			return fail(400, { message: 'Invalid role' });
 		}
@@ -96,11 +95,13 @@ export const actions: Actions = {
 		}
 
 		const validRoles = ['school_admin', 'verifier', 'treasurer'] as const;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if (!role || typeof role !== 'string' || !validRoles.includes(role as any)) {
 			return fail(400, { message: 'Invalid role' });
 		}
 
 		try {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			await schoolAdminsDomain.assignRoleToUser(db, auth.tenantId, userIdParam, role as any);
 
 			await logSensitiveAction(auth.userId, 'assign_role', userIdParam, {

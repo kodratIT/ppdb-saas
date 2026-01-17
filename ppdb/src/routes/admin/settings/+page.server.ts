@@ -6,7 +6,7 @@ import { db } from '$lib/server/db';
 import { requireAuth } from '$lib/server/auth/authorization';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const { userId, tenantId } = requireAuth(locals);
+	const { tenantId } = requireAuth(locals);
 
 	const profile = await getSchoolProfileByTenantId(db, tenantId);
 
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	updateProfile: async ({ request, locals }) => {
-		const { userId, tenantId } = requireAuth(locals);
+		const { tenantId } = requireAuth(locals);
 
 		const formData = await request.formData();
 		const data = {

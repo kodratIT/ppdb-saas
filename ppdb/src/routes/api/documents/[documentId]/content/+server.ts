@@ -28,8 +28,7 @@ export async function GET({ params, locals, platform }: RequestEvent<{ documentI
 	const isOwner =
 		document.application.userId === auth.userId && document.tenantId === auth.tenantId;
 	const isStaff =
-		document.tenantId === auth.tenantId &&
-		['admin', 'verifier'].includes(auth.session.role || '');
+		document.tenantId === auth.tenantId && ['admin', 'verifier'].includes(auth.session.role || '');
 	const isSuperAdmin = auth.session.role === 'super_admin';
 
 	if (!isOwner && !isStaff && !isSuperAdmin) {

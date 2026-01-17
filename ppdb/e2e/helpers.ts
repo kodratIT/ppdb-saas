@@ -1,5 +1,5 @@
 import type { Page, BrowserContext } from '@playwright/test';
-import { testUsers, testSessions, getSessionCookieName, generateTestOTP } from './fixtures';
+import { getSessionCookieName, generateTestOTP } from './fixtures';
 import { expect } from '@playwright/test';
 
 /**
@@ -203,6 +203,7 @@ export async function isElementVisible(page: Page, selector: string): Promise<bo
 /**
  * Get audit logs via API (requires admin access)
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getAuditLogs(page: Page): Promise<any[]> {
 	// Navigate to audit logs page (admin only)
 	await page.goto('/admin/settings/audit-logs');

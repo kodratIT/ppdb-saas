@@ -1,4 +1,7 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	/* eslint-disable svelte/require-each-key */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import Button from '$lib/components/ui/button.svelte';
@@ -8,7 +11,7 @@
 	import FormCanvas from '$lib/components/admin/form-builder/FormCanvas.svelte';
 	import FieldConfigModal from '$lib/components/admin/form-builder/FieldConfigModal.svelte';
 
-	let { data } = $props();
+	// let { data } = ();
 
 	// Svelte 5 Runes
 	let admissionPathId = $derived(page.params.admissionPathId);

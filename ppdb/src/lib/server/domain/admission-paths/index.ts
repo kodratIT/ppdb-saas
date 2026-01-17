@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { eq, and } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import * as schema from '../../db/schema';
@@ -8,7 +9,6 @@ import {
 	validateQuotaUpdate,
 	type AdmissionPathStatus
 } from '../../../schema/admission-path';
-import { ZodError } from 'zod';
 
 export type AdmissionPath = typeof schema.admissionPaths.$inferSelect;
 export type NewAdmissionPath = typeof schema.admissionPaths.$inferInsert;

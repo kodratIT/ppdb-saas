@@ -4,7 +4,9 @@ import { vi } from 'vitest';
 // Mock DB globally
 vi.mock('$lib/server/db', () => {
 	// Create a mock builder that returns itself for chaining
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const createQueryBuilder = (result: any = []) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const builder: any = {};
 
 		// Chainable methods
@@ -18,6 +20,7 @@ vi.mock('$lib/server/db', () => {
 
 		// Terminating methods (promises)
 		builder.returning = vi.fn().mockResolvedValue(result);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		builder.then = (resolve: any, reject: any) => Promise.resolve(result).then(resolve, reject);
 		builder.execute = vi.fn().mockResolvedValue({ rows: [{ ok: 1 }] });
 
@@ -85,6 +88,7 @@ vi.mock('$lib/server/auth/audit-logger', () => ({
 
 // Mock WAHA Provider
 vi.mock('$lib/server/whatsapp/providers/waha', async (importOriginal) => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const actual: any = await importOriginal();
 	return {
 		...actual,

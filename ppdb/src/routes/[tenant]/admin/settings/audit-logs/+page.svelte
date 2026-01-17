@@ -60,7 +60,7 @@
 						</TableRow>
 					</thead>
 					<TableBody>
-						{#each data.logs as log}
+						{#each data.logs as log (log.id)}
 							<TableRow>
 								<TableCell class="font-mono text-xs whitespace-nowrap">
 									{formatDate(log.timestamp)}
@@ -78,7 +78,10 @@
 									{log.target}
 								</TableCell>
 								<TableCell>
-									<div class="max-w-[300px] truncate text-xs text-muted-foreground font-mono" title={JSON.stringify(log.details, null, 2)}>
+									<div
+										class="max-w-[300px] truncate text-xs text-muted-foreground font-mono"
+										title={JSON.stringify(log.details, null, 2)}
+									>
 										{JSON.stringify(log.details)}
 									</div>
 								</TableCell>
@@ -96,10 +99,13 @@
 		</CardContent>
 	</Card>
 
-	<div class="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+	<div
+		class="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800"
+	>
 		<ShieldAlert class="h-5 w-5" />
 		<p>
-			<strong>Security Note:</strong> These logs are immutable (read-only) and cannot be modified or deleted by any admin.
+			<strong>Security Note:</strong> These logs are immutable (read-only) and cannot be modified or deleted
+			by any admin.
 		</p>
 	</div>
 </div>

@@ -1,12 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import {
-	applications,
-	selectionResults,
-	selectionResultDetails
-} from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { applications, selectionResults, selectionResultDetails } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 import { getDraftRanking } from '$lib/server/ranking/ranking-service';
 
 export const POST: RequestHandler = async ({ params, request }) => {
@@ -63,10 +59,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			}
 
 			const cutoffScores = candidates.map((c) => c.score);
-			const cutoffAcceptedScore =
-				cutoffAccepted > 0 ? cutoffScores[cutoffAccepted - 1] || 0 : null;
-			const cutoffReservedScore =
-				cutoffReserved > 0 ? cutoffScores[cutoffReserved - 1] || 0 : null;
+			const cutoffAcceptedScore = cutoffAccepted > 0 ? cutoffScores[cutoffAccepted - 1] || 0 : null;
+			const cutoffReservedScore = cutoffReserved > 0 ? cutoffScores[cutoffReserved - 1] || 0 : null;
 
 			const [selectionResult] = await tx
 				.insert(selectionResults)
@@ -77,6 +71,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 					totalCandidates: candidates.length,
 					cutoffScoreAccepted: cutoffAcceptedScore,
 					cutoffScoreReserved: cutoffReservedScore
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any)
 				.returning();
 
@@ -95,6 +90,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 					applicationId: candidate.applicationId,
 					rank: candidate.rank,
 					status
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} as any);
 			}
 		});

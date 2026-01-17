@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui';
 	import { Label } from '$lib/components/ui';
 	import type { customFieldSchema } from '$lib/server/domain/form-builder.schema';
 	import type { z } from 'zod';

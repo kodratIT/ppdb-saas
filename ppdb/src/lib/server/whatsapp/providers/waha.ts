@@ -18,9 +18,9 @@ export async function sendWhatsappMessage(phoneNumber: string, message: string):
 	if (process.env.NODE_ENV === 'test') {
 		wahaBaseUrl = process.env.WAHA_BASE_URL || wahaBaseUrl;
 		wahaSession = process.env.WAHA_SESSION || wahaSession;
-        
-        if (process.env.WAHA_BASE_URL === '') wahaBaseUrl = '';
-        if (process.env.WAHA_SESSION === '') wahaSession = '';
+
+		if (process.env.WAHA_BASE_URL === '') wahaBaseUrl = '';
+		if (process.env.WAHA_SESSION === '') wahaSession = '';
 	}
 
 	if (!wahaBaseUrl || !wahaSession) {
@@ -34,7 +34,7 @@ export async function sendWhatsappMessage(phoneNumber: string, message: string):
 	let chatId = phoneNumber;
 	if (!chatId.includes('@c.us')) {
 		// Basic cleanup if needed, but assuming caller provides valid phone for now or we rely on existing validation
-		// For WAHA, usually needs country code. 
+		// For WAHA, usually needs country code.
 		if (chatId.startsWith('0')) {
 			chatId = '62' + chatId.slice(1);
 		}

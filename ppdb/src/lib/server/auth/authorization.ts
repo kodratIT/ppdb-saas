@@ -1,6 +1,6 @@
 import { redirect, error as svelteError } from '@sveltejs/kit';
 import type { Session } from './types';
-import { getPermissionsForRole, type Permission } from './permissions';
+import { getPermissionsForRole, type Permission, type UserRole } from './permissions';
 import { logAuthorizationFailure } from './audit-logger';
 
 export interface AuthContext {
@@ -53,7 +53,7 @@ export function requirePermission(auth: AuthContext, ...permissions: Permission[
 		throw svelteError(403, 'Unauthorized: Insufficient permissions');
 	}
 
-	const userPermissions = getPermissionsForRole(auth.session.role as any);
+	const userPermissions = getPermissionsForRole(auth.session.role as UserRole);
 
 	const hasPermission = permissions.some((perm) => userPermissions.includes(perm));
 
@@ -77,7 +77,7 @@ export function requireAllPermissions(auth: AuthContext, ...permissions: Permiss
 		throw svelteError(403, 'Unauthorized: Insufficient permissions');
 	}
 
-	const userPermissions = getPermissionsForRole(auth.session.role as any);
+	const userPermissions = getPermissionsForRole(auth.session.role as UserRole);
 
 	const hasAllPermissions = permissions.every((perm) => userPermissions.includes(perm));
 

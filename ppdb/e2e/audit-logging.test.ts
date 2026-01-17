@@ -1,10 +1,8 @@
-import { expect, test, type BrowserContext } from '@playwright/test';
-import { testUsers, testAuditLogs, getSessionCookieName } from './fixtures';
+import { expect, test } from '@playwright/test';
+import { testUsers, getSessionCookieName } from './fixtures';
 import {
 	signInAs,
-	getSessionCookie,
 	waitForSessionCookie,
-	isAuthenticated,
 	expectErrorMessage,
 	expectSuccessMessage,
 	getAuditLogs,
@@ -13,7 +11,7 @@ import {
 } from './helpers';
 
 test.describe('Audit Logging - Authorization Failures', () => {
-	test('invalid credentials create audit log', async ({ page, context }) => {
+	test('invalid credentials create audit log', async ({ page }) => {
 		// Navigate to sign-in
 		await page.goto('/sign-in');
 

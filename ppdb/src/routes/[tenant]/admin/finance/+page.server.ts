@@ -5,10 +5,7 @@ import { eq, desc } from 'drizzle-orm';
 import { fail, type Actions } from '@sveltejs/kit';
 import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 import type { PageServerLoad } from './$types';
-import {
-	sendPaymentSuccessNotification,
-	sendPaymentFailedNotification
-} from '$lib/server/domain/payment/notifications';
+import { sendPaymentSuccessNotification } from '$lib/server/domain/payment/notifications';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const auth = requireAuth(locals);

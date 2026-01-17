@@ -10,4 +10,3 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const tenants = await listTenants();
 	return { tenants };
 };
-

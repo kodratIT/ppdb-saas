@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { createFirebaseUser, authenticateFirebaseUser } from '$lib/server/auth/firebase';
+import { authenticateFirebaseUser } from '$lib/server/auth/firebase';
 import { createSession } from '$lib/server/auth/session';
 import { AuthError } from '$lib/server/auth/types';
 import { db } from '$lib/server/db';
@@ -73,7 +73,7 @@ export const actions: Actions = {
 
 			// Redirect based on role
 			const role = session.role || 'parent';
-			
+
 			if (role === 'super_admin') {
 				throw redirect(302, '/admin');
 			}

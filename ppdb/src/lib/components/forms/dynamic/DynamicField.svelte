@@ -11,7 +11,7 @@
 		error
 	}: {
 		field: CustomField;
-		value: any;
+		value: unknown;
 		error?: string;
 	} = $props();
 

@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import admin from 'firebase-admin';
 import { env } from '$env/dynamic/private';
-import type { DecodedIdToken } from 'firebase-admin/auth';
 import { AuthError, type FirebaseCustomClaims, type FirebaseUser } from './types';
 
 let firebaseApp: admin.app.App | null = null;

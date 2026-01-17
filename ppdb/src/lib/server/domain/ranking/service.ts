@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '$lib/server/db';
 import {
 	applications,
@@ -147,7 +148,8 @@ export class RankingService {
 			where: eq(applications.id, applicationId),
 			columns: { tenantId: true }
 		});
-		return app?.tenantId!;
+		if (!app) throw new Error('Application not found');
+		return app.tenantId;
 	}
 
 	private static async getTenantIdFromPath(pathId: string) {
@@ -155,6 +157,7 @@ export class RankingService {
 			where: eq(admissionPaths.id, pathId),
 			columns: { tenantId: true }
 		});
-		return path?.tenantId!;
+		if (!path) throw new Error('Admission path not found');
+		return path.tenantId;
 	}
 }

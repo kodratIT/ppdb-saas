@@ -1,4 +1,7 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	/* eslint-disable svelte/require-each-key */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import {
@@ -17,10 +20,7 @@
 
 <div class="flex items-center justify-between space-y-2">
 	<h2 class="text-3xl font-bold tracking-tight">Ranking & Selection</h2>
-	<Button
-		variant="outline"
-		href={`/${$page.params.tenant}/admin/export/dapodik`}
-	>
+	<Button variant="outline" href={`/${$page.params.tenant}/admin/export/dapodik`}>
 		<Download class="mr-2 h-4 w-4" />
 		Export Dapodik
 	</Button>

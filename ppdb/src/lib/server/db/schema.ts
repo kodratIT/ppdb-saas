@@ -140,11 +140,11 @@ export const schoolProfiles = pgTable('school_profiles', {
 		.unique(), // One profile per tenant
 	// Core fields (MVP)
 	name: text('name').notNull(),
-    npsn: text('npsn'), // Nomor Pokok Sekolah Nasional
-    schoolLevel: text('school_level'), // SD, SMP, SMA, SMK, etc.
-    accreditation: text('accreditation'), // A, B, C, Unggul, etc.
+	npsn: text('npsn'), // Nomor Pokok Sekolah Nasional
+	schoolLevel: text('school_level'), // SD, SMP, SMA, SMK, etc.
+	accreditation: text('accreditation'), // A, B, C, Unggul, etc.
 	description: text('description'),
-    website: text('website'),
+	website: text('website'),
 	contactEmail: text('contact_email'),
 	contactPhone: text('contact_phone'),
 	logoUrl: text('logo_url'),
@@ -152,12 +152,12 @@ export const schoolProfiles = pgTable('school_profiles', {
 	bannerUrl: text('banner_url'),
 	primaryColor: text('primary_color'),
 	secondaryColor: text('secondary_color'),
-    // Address Details
+	// Address Details
 	address: text('address'),
-    province: text('province'),
-    city: text('city'),
-    district: text('district'),
-    postalCode: text('postal_code'),
+	province: text('province'),
+	city: text('city'),
+	district: text('district'),
+	postalCode: text('postal_code'),
 	// Epic 5: Manual Payment Bank Info
 	bankName: text('bank_name'),
 	bankAccountName: text('bank_account_name'),
@@ -698,5 +698,40 @@ export const broadcastsRelations = relations(broadcasts, ({ one }) => ({
 	sender: one(users, {
 		fields: [broadcasts.senderId],
 		references: [users.id]
+	})
+}));
+
+export const otpCodes = pgTable('otp_codes', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	sessionId: text('session_id').notNull().unique(),
+	phoneNumber: text('phone_number').notNull(),
+	code: text('code').notNull(),
+	expiresAt: timestamp('expires_at').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Sessions table for authentication
+export const sessions = pgTable('sessions', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	tenantId: uuid('tenant_id')
+		.notNull()
+		.references(() => tenants.id),
+	authType: text('auth_type').notNull().$type<'firebase' | 'waha'>(),
+	authIdentifier: text('auth_identifier').notNull(),
+	expiresAt: timestamp('expires_at').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id]
+	}),
+	tenant: one(tenants, {
+		fields: [sessions.tenantId],
+		references: [tenants.id]
 	})
 }));

@@ -56,7 +56,10 @@
 	}
 </script>
 
-<div class="verification-actions bg-white border-t border-gray-200 p-4">
+<div
+	class="verification-actions bg-white border-t border-gray-200 p-4"
+	data-document-id={documentId}
+>
 	{#if currentStatus === 'verified'}
 		<div class="flex items-center justify-center gap-2 text-green-600">
 			<CheckCircle2 class="w-5 h-5" />

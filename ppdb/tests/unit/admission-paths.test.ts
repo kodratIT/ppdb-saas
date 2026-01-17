@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as admissionPathsDomain from '../../src/lib/server/domain/admission-paths';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';

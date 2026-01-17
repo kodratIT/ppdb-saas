@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-unused-vars */
 	import { createEventDispatcher, onMount } from 'svelte';
 
 	let {
@@ -106,7 +107,7 @@
 </script>
 
 <div class="flex gap-2 justify-center">
-	{#each Array(length) as _, i}
+	{#each Array(length) as _, i (i)}
 		<input
 			bind:this={inputs[i]}
 			type="text"

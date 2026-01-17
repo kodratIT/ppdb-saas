@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createTenant, listTenants } from '../../src/lib/server/domain/admin';
 import { db } from '../../src/lib/server/db';

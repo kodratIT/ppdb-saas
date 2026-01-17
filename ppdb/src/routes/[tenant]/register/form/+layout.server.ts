@@ -4,7 +4,7 @@ import { applications } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals, params }) => {
+export const load: LayoutServerLoad = async ({ locals }) => {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 

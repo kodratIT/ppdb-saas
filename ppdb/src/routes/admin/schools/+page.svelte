@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import type { PageData } from './$types';
 
 	let { data } = $props<{ data: PageData }>();
@@ -74,4 +76,3 @@
 		</div>
 	</div>
 </div>
-

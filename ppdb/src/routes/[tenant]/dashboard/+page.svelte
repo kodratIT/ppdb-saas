@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { goto } from '$app/navigation';
 	import Card from '$lib/components/ui/card.svelte';
 	import Button from '$lib/components/ui/button.svelte';
@@ -168,8 +170,16 @@
 				<div class="space-y-4">
 					{#each data.applications as app (app.id)}
 						{@const appAny = app as any}
-						{@const statusInfo = statusIcons[appAny.status as keyof typeof statusIcons] || statusIcons.draft}
-						<div class="border rounded-lg p-4 hover:border-blue-300 transition-colors">
+						{@const statusInfo =
+							statusIcons[appAny.status as keyof typeof statusIcons] || statusIcons.draft}
+						<div
+							class="border rounded-lg p-4 hover:border-blue-300 transition-colors cursor-pointer"
+							role="button"
+							tabindex="0"
+							onclick={() => goto(`/${data.tenantSlug}/register/status/${app.id}`)}
+							onkeydown={(e) =>
+								e.key === 'Enter' && goto(`/${data.tenantSlug}/register/status/${app.id}`)}
+						>
 							<div class="flex items-start justify-between gap-4 mb-3">
 								<div class="flex items-center gap-3">
 									<div class="p-2 bg-gray-100 rounded-lg">
@@ -208,7 +218,8 @@
 										<span class="font-bold text-sm">SELAMAT! Anda Diterima</span>
 									</div>
 									<p class="text-sm text-green-700">
-										Selamat! Anda dinyatakan lolos seleksi. Silakan cek menu pembayaran/daftar ulang.
+										Selamat! Anda dinyatakan lolos seleksi. Silakan cek menu pembayaran/daftar
+										ulang.
 									</p>
 								</div>
 							{:else if app.status === 'waitlisted'}
@@ -218,7 +229,8 @@
 										<span class="font-bold text-sm">Daftar Cadangan (Reserved)</span>
 									</div>
 									<p class="text-sm text-yellow-700">
-										Anda berada dalam daftar cadangan. Kami akan menghubungi Anda jika kuota tersedia.
+										Anda berada dalam daftar cadangan. Kami akan menghubungi Anda jika kuota
+										tersedia.
 									</p>
 								</div>
 							{:else if app.status === 'rejected'}
@@ -285,19 +297,31 @@
 			<p>
 				{data.tenant?.name} • Powered by PPDB SaaS V2
 			</p>
-			
-			<form method="POST" action="?/deleteAccount" use:enhance={() => {
-				return async ({ result }) => {
-					if (result.type === 'success') {
-						goto(`/${data.tenantSlug}`);
-					}
-				}
-			}}>
-				<button type="submit" class="text-xs text-red-400 hover:text-red-600 underline" onclick={(e) => {
-					if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-						e.preventDefault();
-					}
-				}}>
+
+			<form
+				method="POST"
+				action="?/deleteAccount"
+				use:enhance={() => {
+					return async ({ result }) => {
+						if (result.type === 'success') {
+							goto(`/${data.tenantSlug}`);
+						}
+					};
+				}}
+			>
+				<button
+					type="submit"
+					class="text-xs text-red-400 hover:text-red-600 underline"
+					onclick={(e) => {
+						if (
+							!confirm(
+								'Are you sure you want to delete your account? This action cannot be undone.'
+							)
+						) {
+							e.preventDefault();
+						}
+					}}
+				>
 					Delete My Account
 				</button>
 			</form>

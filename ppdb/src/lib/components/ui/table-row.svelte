@@ -2,9 +2,10 @@
 	import { cn } from '$lib/utils';
 	import type { HTMLAttributes } from 'svelte/elements';
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 	interface Props extends HTMLAttributes<HTMLTableRowElement> {}
 
-	let { class: className, ...restProps }: Props = $props();
+	let { class: className, children, ...restProps }: Props = $props();
 </script>
 
 <tr
@@ -13,4 +14,6 @@
 		className
 	)}
 	{...restProps}
-/>
+>
+	{@render children?.()}
+</tr>

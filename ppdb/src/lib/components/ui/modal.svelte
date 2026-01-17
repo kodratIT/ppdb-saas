@@ -16,7 +16,7 @@
 		onClose?: () => void;
 		variant?: 'default' | 'destructive' | 'success';
 		class?: string;
-		children?: any;
+		children?: unknown;
 		actions?: {
 			confirm?: ActionButton;
 			cancel?: ActionButton;

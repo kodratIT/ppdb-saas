@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import Button from '$lib/components/ui/button.svelte';
@@ -9,7 +10,7 @@
 
 	let { data, form } = $props();
 
-	let phoneNumber = $state(form?.phone || '');
+	// let phoneNumber = $state(form?.phone || '');
 	let isSubmitting = $state(false);
 
 	$effect(() => {

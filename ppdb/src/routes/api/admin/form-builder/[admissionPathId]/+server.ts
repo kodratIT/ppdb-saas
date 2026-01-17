@@ -36,6 +36,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		throw error(400, {
 			message: 'Validation failed',
 			errors: result.error.flatten()
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} as any);
 	}
 
@@ -60,8 +61,9 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			sanitizedData
 		);
 		return json(field, { status: 201 });
-	} catch (e: any) {
-		throw error(500, e.message || 'Failed to create field');
+	} catch (e: unknown) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		throw error(500, (e as any).message || 'Failed to create field');
 	}
 };
 
@@ -85,7 +87,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			fields
 		);
 		return json(updatedFields);
-	} catch (e: any) {
-		throw error(500, e.message || 'Failed to batch update fields');
+	} catch (e: unknown) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		throw error(500, (e as any).message || 'Failed to batch update fields');
 	}
 };

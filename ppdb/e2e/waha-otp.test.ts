@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { testUsers, getSessionCookieName, generateTestOTP } from './fixtures';
 import {
 	requestOTP,

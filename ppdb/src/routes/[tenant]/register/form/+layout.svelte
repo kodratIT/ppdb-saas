@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-unused-vars */
+	/* eslint-disable svelte/require-each-key */
 	import { page } from '$app/state';
 	import Progress from '$lib/components/ui/progress.svelte';
 	import { fade } from 'svelte/transition';

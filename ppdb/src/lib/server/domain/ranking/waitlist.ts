@@ -1,5 +1,10 @@
 import { db } from '$lib/server/db';
-import { applications, admissionPaths, selectionResultDetails, selectionResults } from '$lib/server/db/schema';
+import {
+	applications,
+	admissionPaths,
+	selectionResultDetails,
+	selectionResults
+} from '$lib/server/db/schema';
 import { eq, and, asc, desc } from 'drizzle-orm';
 import { sendWhatsappMessage } from '$lib/server/whatsapp/providers/waha';
 
@@ -9,7 +14,7 @@ export class WaitlistService {
 	 */
 	static async processVacancy(tenantId: string, admissionPathId: string) {
 		console.log(`Processing vacancy for path ${admissionPathId}`);
-		
+
 		const path = await db.query.admissionPaths.findFirst({
 			where: eq(admissionPaths.id, admissionPathId)
 		});
@@ -18,10 +23,7 @@ export class WaitlistService {
 		// 1. Check Vacancy
 		const acceptedCount = await db.$count(
 			applications,
-			and(
-				eq(applications.admissionPathId, admissionPathId),
-				eq(applications.status, 'accepted')
-			)
+			and(eq(applications.admissionPathId, admissionPathId), eq(applications.status, 'accepted'))
 		);
 
 		console.log(`Quota: ${path.quota}, Accepted: ${acceptedCount}`);
@@ -62,34 +64,36 @@ export class WaitlistService {
 			console.log('No waitlisted candidates found');
 			return;
 		}
-		
+
 		const candidate = nextCandidateDetail.application;
 
 		if (candidate.status !== 'waitlisted') {
 			console.log(`Candidate ${candidate.id} has rank but status is ${candidate.status}, skipping`);
-			// In a real system we might loop to find the next one. 
+			// In a real system we might loop to find the next one.
 			// For MVP, we stop or could recursively call processVacancy again?
 			// Let's just return for safety to avoid infinite loops.
-			return; 
+			return;
 		}
 
-		console.log(`Promoting candidate: ${candidate.childFullName} (Rank ${nextCandidateDetail.rank})`);
+		console.log(
+			`Promoting candidate: ${candidate.childFullName} (Rank ${nextCandidateDetail.rank})`
+		);
 
 		// 3. Promote Candidate
 		await db.transaction(async (tx) => {
 			// Update Application Status
 			await tx
 				.update(applications)
-				.set({ 
+				.set({
 					status: 'accepted',
 					updatedAt: new Date()
 				})
 				.where(eq(applications.id, candidate.id));
-			
+
 			// Update Selection Detail Status
 			await tx
 				.update(selectionResultDetails)
-				.set({ status: 'accepted' }) 
+				.set({ status: 'accepted' })
 				.where(eq(selectionResultDetails.id, nextCandidateDetail.id));
 		});
 
@@ -104,7 +108,7 @@ Kabar gembira! Karena adanya pengunduran diri, ananda *${candidate.childFullName
 Silakan segera login ke dashboard untuk melakukan daftar ulang dan pembayaran.
 
 Terima kasih.`;
-			
+
 			await sendWhatsappMessage(candidate.parentPhone, message);
 		}
 	}

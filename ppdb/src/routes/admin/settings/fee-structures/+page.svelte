@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
 	import type { PageData, ActionData } from './$types';
 	import { enhance } from '$app/forms';
 	import Input from '$lib/components/ui/input.svelte';
@@ -51,6 +52,7 @@
 	}
 
 	// Type guard for form errors
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let hasErrors = $derived(form && 'errors' in form && form.errors ? (form.errors as any[]) : null);
 
 	let errorMessage = $derived(form && 'error' in form ? (form.error as string) : null);

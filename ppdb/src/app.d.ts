@@ -53,7 +53,7 @@ declare global {
 				DOCUMENTS_BUCKET: R2Bucket;
 			};
 			context: {
-				waitUntil(promise: Promise<any>): void;
+				waitUntil(promise: Promise<unknown>): void;
 			};
 			caches: CacheStorage & { default: Cache };
 		}

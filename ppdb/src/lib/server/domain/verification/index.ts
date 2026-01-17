@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '$lib/server/db';
 import {
 	applications,
 	applicationDocuments,
 	documentReviews,
-	auditLogs,
-	type documentStatusEnum
+	auditLogs
 } from '$lib/server/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 

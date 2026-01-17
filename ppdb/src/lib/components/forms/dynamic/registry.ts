@@ -6,7 +6,7 @@ import CheckboxField from './fields/CheckboxField.svelte';
 import FileField from './fields/FileField.svelte';
 import TextAreaField from './fields/TextAreaField.svelte';
 
-export const fieldRegistry: Record<string, Component<any>> = {
+export const fieldRegistry: Record<string, Component<Record<string, unknown>>> = {
 	text: TextField,
 	email: TextField,
 	tel: TextField,

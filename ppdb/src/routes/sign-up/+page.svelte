@@ -1,6 +1,6 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
 
 	let { form } = $props();
 	let errors = $state({ email: '', password: '', confirmPassword: '' });

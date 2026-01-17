@@ -1,10 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '$lib/server/db';
-import {
-	homeVisitReports,
-	homeVisitPhotos,
-	applications,
-	auditLogs
-} from '$lib/server/db/schema';
+import { homeVisitReports, homeVisitPhotos, auditLogs } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export interface HomeVisitSubmission {

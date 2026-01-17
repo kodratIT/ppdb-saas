@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '$lib/server/db';
 import { customFields, fieldOptions } from '$lib/server/db/schema';
 import { eq, and, asc } from 'drizzle-orm';

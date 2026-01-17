@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { applications, customFields, fieldOptions } from '$lib/server/db/schema';
+import { applications } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { step3Schema } from '$lib/schema/registration';
 import {
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			draft.admissionPathId,
 			values
 		);
-		// @ts-ignore
+		// @ts-expect-error - processedDraft includes decrypted custom fields which might not match exact schema types
 		processedDraft = { ...draft, customFieldValues: decryptedValues };
 	}
 
@@ -83,6 +83,7 @@ export const actions = {
 		}
 
 		// Handle Custom Fields (Encrypt if needed)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const customFieldInput: Record<string, any> = {};
 		Object.keys(values).forEach((key) => {
 			if (!['address', 'city', 'province', 'postalCode'].includes(key)) {

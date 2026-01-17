@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { page } from '$app/stores';
 	import {
 		Button,

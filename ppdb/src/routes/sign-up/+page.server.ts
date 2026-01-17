@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import { fail, redirect, error } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { createFirebaseUser } from '$lib/server/auth/firebase';
 import { createSession } from '$lib/server/auth/session';
 import { db } from '$lib/server/db';

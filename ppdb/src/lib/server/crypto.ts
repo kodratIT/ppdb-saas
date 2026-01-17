@@ -2,7 +2,6 @@ import { env } from '$env/dynamic/private';
 import { error } from '@sveltejs/kit';
 
 const ALGORITHM = 'AES-GCM';
-const KEY_LENGTH = 256;
 
 // Helper to get crypto key from env
 async function getKey(): Promise<CryptoKey> {

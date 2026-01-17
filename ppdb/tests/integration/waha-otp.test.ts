@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as wahaModule from '$lib/server/whatsapp/providers/waha';
 import { AuthError, type WAHAOTPResponse } from '$lib/server/auth/types';
@@ -42,11 +43,11 @@ describe('WAHA Provider', () => {
 			const originalEnv = process.env;
 
 			// Force WAHA config variables to be undefined in the implementation
-            vi.stubEnv('WAHA_BASE_URL', '');
-            vi.stubEnv('WAHA_SESSION', '');
-            vi.stubEnv('NODE_ENV', 'test');
-            
-            // Also need to mock $env/dynamic/private because that's what the module imports
+			vi.stubEnv('WAHA_BASE_URL', '');
+			vi.stubEnv('WAHA_SESSION', '');
+			vi.stubEnv('NODE_ENV', 'test');
+
+			// Also need to mock $env/dynamic/private because that's what the module imports
 			vi.mock('$env/dynamic/private', () => ({
 				env: {
 					WAHA_BASE_URL: '',
@@ -54,14 +55,14 @@ describe('WAHA Provider', () => {
 				}
 			}));
 
-            // Force reload of the module to pick up new env values if they are read at top level
-            // But they are not, they are read inside the function OR via dynamic import. 
-            // The issue is likely the mock of $env/dynamic/private is not taking effect because it was already imported.
-            
+			// Force reload of the module to pick up new env values if they are read at top level
+			// But they are not, they are read inside the function OR via dynamic import.
+			// The issue is likely the mock of $env/dynamic/private is not taking effect because it was already imported.
+
 			// Reload module to get fresh env
 			vi.resetModules();
 			const wahaModuleReloaded = await import('$lib/server/whatsapp/providers/waha');
-            const { AuthError: ReloadedAuthError } = await import('$lib/server/auth/types');
+			const { AuthError: ReloadedAuthError } = await import('$lib/server/auth/types');
 
 			await expect(wahaModuleReloaded.sendOTP('08123456789')).rejects.toThrow(ReloadedAuthError);
 

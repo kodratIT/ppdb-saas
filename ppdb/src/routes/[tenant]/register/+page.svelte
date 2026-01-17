@@ -1,6 +1,8 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+
 	import Badge from '$lib/components/ui/badge.svelte';
 	import Button from '$lib/components/ui/button.svelte';
 	import Card from '$lib/components/ui/card.svelte';

@@ -1,14 +1,7 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
 	import { page } from '$app/stores';
-	import { formatCurrency } from '$lib/utils';
-	import {
-		Table,
-		TableBody,
-		TableCell,
-		TableHead,
-		TableHeader,
-		TableRow
-	} from '$lib/components/ui/table';
+	import { Table, TableBody, TableCell, TableHead, TableRow } from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Card,
@@ -18,11 +11,19 @@
 		CardDescription
 	} from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { ArrowLeft, CheckCircle2, Clock, XCircle } from 'lucide-svelte';
+	import { ArrowLeft, CheckCircle2 } from 'lucide-svelte';
 
 	export let data;
 
 	$: tenant = $page.params.tenant;
+
+	function formatCurrency(amount: number) {
+		return new Intl.NumberFormat('id-ID', {
+			style: 'currency',
+			currency: 'IDR',
+			minimumFractionDigits: 0
+		}).format(amount);
+	}
 </script>
 
 <div class="flex flex-col gap-6 p-6">
@@ -63,7 +64,7 @@
 				</div>
 			{:else}
 				<Table>
-					<TableHeader>
+					<thead>
 						<TableRow>
 							<TableHead>Date</TableHead>
 							<TableHead>Student</TableHead>
@@ -71,7 +72,7 @@
 							<TableHead>Parent</TableHead>
 							<TableHead class="text-right">Action</TableHead>
 						</TableRow>
-					</TableHeader>
+					</thead>
 					<TableBody>
 						{#each data.proofs as proof}
 							<TableRow>

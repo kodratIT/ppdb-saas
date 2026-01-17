@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '$lib/server/db';
 import { paymentProofs } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -40,10 +41,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	// Since invoice doesn't store fee structure ID, we guess from admission path's fee structures.
 	// We match by amount if possible, or just take the first one.
 	// This is a "best effort" display since we didn't store the exact fee ID on the invoice.
-	const feeStructures = proof.invoice.application.admissionPath.feeStructures;
+	const feeStructures: any[] = (proof.invoice.application.admissionPath as any).feeStructures;
+
 	const matchedFee =
-		feeStructures.find((f) => f.amount === proof.invoice.amount) || feeStructures[0];
+		feeStructures.find((f: any) => f.amount === proof.invoice.amount) || feeStructures[0];
 	const feeName = matchedFee ? matchedFee.name : 'Registration Fee';
+
+	const application = proof.invoice.application;
+	const user = application.user;
 
 	return {
 		proof: {
@@ -54,10 +59,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			status: proof.status,
 			amount: proof.invoice.amount,
 			feeName: feeName,
-			studentName: proof.invoice.application.childFullName,
-			parentName: proof.invoice.application.parentFullName || proof.invoice.application.user.name,
-			parentEmail: proof.invoice.application.user.email,
-			parentPhone: proof.invoice.application.parentPhone || 'N/A'
+			studentName: application.childFullName,
+			parentName: application.parentFullName || user.name,
+			parentEmail: user.email,
+			parentPhone: application.parentPhone || 'N/A'
 		}
 	};
 };

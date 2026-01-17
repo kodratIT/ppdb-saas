@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { withTenant } from '../../src/lib/server/db/tenant';
 import { db } from '../../src/lib/server/db';
-import { sql } from 'drizzle-orm';
 
 // Mock the db module
 vi.mock('../../src/lib/server/db', () => ({
@@ -19,12 +19,12 @@ describe('withTenant', () => {
 		const tenantId = '123e4567-e89b-12d3-a456-426614174000';
 		const mockResult = 'success';
 		const mockCallback = vi.fn().mockResolvedValue(mockResult);
-		
+
 		// Mock transaction implementation
 		const mockTx = {
 			execute: vi.fn()
 		};
-		
+
 		(db.transaction as any).mockImplementation(async (cb: any) => {
 			return cb(mockTx);
 		});

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	/* eslint-disable svelte/no-navigation-without-resolve */
+
 	import Card from '$lib/components/ui/card.svelte';
 	import Alert from '$lib/components/ui/alert.svelte';
 	import OTPInput from '$lib/components/forms/OTPInput.svelte';
@@ -12,23 +13,10 @@
 	let phoneNumber = $state(data.draft?.parentPhone || '');
 	let otpCode = $state('');
 	let sendingOTP = $state(false);
-	let verifyingOTP = $state(false);
-	let otpSent = $state(false);
+	// let verifyingOTP = $state(false);
+	// let otpSent = $state(false);
 	let countdown = $state(0);
 	let countdownInterval: number | null = null;
-
-	const fieldsByStep = $derived.by(() => {
-		const grouped: Record<number, any[]> = { 1: [], 2: [], 3: [] };
-		data.customFields.forEach((f: any) => {
-			if (f.step <= 3) {
-				if (!grouped[f.step]) grouped[f.step] = [];
-				grouped[f.step].push(f);
-			}
-		});
-		return grouped;
-	});
-
-	const customValues = $derived(data.draft?.customFieldValues ? JSON.parse(data.draft.customFieldValues) : {});
 
 	async function handleSendOTP(event: SubmitEvent) {
 		event.preventDefault();
@@ -249,7 +237,9 @@
 {:else if currentStep === 'otp'}
 	<Card class="p-8 text-center">
 		<div class="mb-6">
-			<div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+			<div
+				class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"
+			>
 				<MessageSquare class="w-8 h-8 text-green-600" />
 			</div>
 			<h1 class="text-2xl font-bold text-gray-900 mb-2">Verifikasi WhatsApp</h1>
@@ -258,10 +248,7 @@
 			</p>
 		</div>
 
-		<OTPInput
-			bind:value={otpCode}
-			oncomplete={handleOTPComplete}
-		/>
+		<OTPInput bind:value={otpCode} oncomplete={handleOTPComplete} />
 
 		<div class="mt-6">
 			{#if countdown > 0}
@@ -289,22 +276,24 @@
 			Kembali ke Ringkasan
 		</button>
 
-		<p class="text-xs text-gray-400 text-center mt-4">
-			Kode OTP berlaku selama 5 menit
-		</p>
+		<p class="text-xs text-gray-400 text-center mt-4">Kode OTP berlaku selama 5 menit</p>
 	</Card>
 {:else if currentStep === 'verified'}
-	<div class="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center py-12 px-4">
+	<div
+		class="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center py-12 px-4"
+	>
 		<div class="max-w-md w-full">
 			<!-- Success Card -->
-			<div class="bg-white rounded-2xl shadow-2xl p-8 text-center transform transition-all duration-500 animate-in">
-				<div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+			<div
+				class="bg-white rounded-2xl shadow-2xl p-8 text-center transform transition-all duration-500 animate-in"
+			>
+				<div
+					class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6"
+				>
 					<CheckCircle class="w-10 h-10 text-green-600" />
 				</div>
 
-				<h1 class="text-3xl font-bold text-gray-900 mb-4">
-					Pendaftaran Berhasil!
-				</h1>
+				<h1 class="text-3xl font-bold text-gray-900 mb-4">Pendaftaran Berhasil!</h1>
 
 				<div class="bg-blue-50 rounded-xl p-6 mb-6 border-2 border-blue-200">
 					<p class="text-sm text-gray-600 mb-2">Nomor Pendaftaran Anda:</p>
@@ -339,8 +328,8 @@
 						<div>
 							<h3 class="font-semibold text-gray-900">Langkah Berikutnya</h3>
 							<p class="text-sm text-gray-600">
-								Tim verifikasi akan menghubungi Anda untuk verifikasi dokumen.
-								Status pendaftaran dapat dicek melalui dashboard.
+								Tim verifikasi akan menghubungi Anda untuk verifikasi dokumen. Status pendaftaran
+								dapat dicek melalui dashboard.
 							</p>
 						</div>
 					</div>

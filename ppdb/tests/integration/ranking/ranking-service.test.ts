@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { db } from '$lib/server/db';
 import {
@@ -198,7 +199,9 @@ describe('Ranking Service', () => {
 
 			expect(ranking.some((r) => r.name === 'Unverified Child')).toBe(false);
 
-			await db.delete(applicationScores).where(eq(applicationScores.applicationId, unverifiedApp.id));
+			await db
+				.delete(applicationScores)
+				.where(eq(applicationScores.applicationId, unverifiedApp.id));
 			await db.delete(applications).where(eq(applications.id, unverifiedApp.id));
 		});
 
@@ -227,7 +230,9 @@ describe('Ranking Service', () => {
 
 			expect(ranking.some((r) => r.name === 'Non Finalized Child')).toBe(false);
 
-			await db.delete(applicationScores).where(eq(applicationScores.applicationId, nonFinalizedApp.id));
+			await db
+				.delete(applicationScores)
+				.where(eq(applicationScores.applicationId, nonFinalizedApp.id));
 			await db.delete(applications).where(eq(applications.id, nonFinalizedApp.id));
 		});
 	});

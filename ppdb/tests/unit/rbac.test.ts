@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { hasPermission, getPermissionsForRole, PERMISSIONS } from '$lib/server/auth/permissions';
-import type { UserRole } from '$lib/server/auth/permissions';
 
 describe('permissions', () => {
 	describe('PERMISSIONS constant', () => {

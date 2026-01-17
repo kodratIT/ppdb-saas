@@ -55,4 +55,3 @@ export async function GET({ params, locals, platform }: RequestEvent<{ proofId: 
 		headers
 	});
 }
-

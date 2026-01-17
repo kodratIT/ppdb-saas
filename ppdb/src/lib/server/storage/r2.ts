@@ -4,7 +4,11 @@ import { error } from '@sveltejs/kit';
 export class R2Storage {
 	constructor(private bucket: R2Bucket) {}
 
-	async upload(key: string, file: File | Blob | Buffer | Uint8Array, options?: R2PutOptions): Promise<void> {
+	async upload(
+		key: string,
+		file: File | Blob | Buffer | Uint8Array,
+		options?: R2PutOptions
+	): Promise<void> {
 		try {
 			await this.bucket.put(key, file, options);
 		} catch (e) {

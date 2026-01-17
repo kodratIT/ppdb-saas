@@ -24,9 +24,9 @@ function formatDate(date: Date) {
 	});
 }
 
-function getPhoneNumber(application: Application, user: User): string | null {
+function getPhoneNumber(application: Application): string | null {
 	// Prioritize application contact info
-	// Note: users table might not have phoneNumber explicitly defined in type if not in schema, 
+	// Note: users table might not have phoneNumber explicitly defined in type if not in schema,
 	// but for WAHA users it's their identity.
 	// For now we rely on application.parentPhone
 	return application.parentPhone || null;
@@ -38,7 +38,7 @@ export async function sendInvoiceCreatedNotification(
 	application: Application,
 	user: User
 ) {
-	const phone = getPhoneNumber(application, user);
+	const phone = getPhoneNumber(application);
 	if (!phone) {
 		console.warn(`No phone number found for invoice ${invoice.externalId}, skipping notification`);
 		return;
@@ -69,7 +69,7 @@ export async function sendPaymentSuccessNotification(
 	application: Application,
 	user: User
 ) {
-	const phone = getPhoneNumber(application, user);
+	const phone = getPhoneNumber(application);
 	if (!phone) {
 		console.warn(`No phone number found for invoice ${invoice.externalId}, skipping notification`);
 		return;
@@ -97,7 +97,7 @@ export async function sendPaymentFailedNotification(
 	application: Application,
 	user: User
 ) {
-	const phone = getPhoneNumber(application, user);
+	const phone = getPhoneNumber(application);
 	if (!phone) {
 		console.warn(`No phone number found for invoice ${invoice.externalId}, skipping notification`);
 		return;

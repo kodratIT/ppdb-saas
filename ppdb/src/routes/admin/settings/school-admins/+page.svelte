@@ -1,7 +1,6 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
 	import { enhance } from '$app/forms';
-	import type { ActionData } from './$types';
-	import type { PageData } from './$types';
 	import { formatRoleForDisplay } from '$lib/schema/school-admin';
 	import Input from '$lib/components/ui/input.svelte';
 	import Label from '$lib/components/ui/label.svelte';

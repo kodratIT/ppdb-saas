@@ -16,7 +16,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	let body;
 	try {
 		body = await request.json();
-	} catch (_) {
+	} catch {
 		throw error(400, 'Invalid JSON body');
 	}
 

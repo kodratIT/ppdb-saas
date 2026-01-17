@@ -9,7 +9,12 @@ import { R2Storage } from '$lib/server/storage/r2';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export async function POST({ request, locals, params, platform }: RequestEvent<{ applicationId: string }>) {
+export async function POST({
+	request,
+	locals,
+	params,
+	platform
+}: RequestEvent<{ applicationId: string }>) {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 
@@ -82,6 +87,7 @@ export async function POST({ request, locals, params, platform }: RequestEvent<{
 			.values({
 				applicationId,
 				tenantId: auth.tenantId,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				documentType: documentType as any,
 				fileName: file.name,
 				fileSize: file.size,
@@ -135,7 +141,12 @@ export async function GET({ locals, params }: RequestEvent<{ applicationId: stri
 }
 
 // Delete a document
-export async function DELETE({ request, locals, params, platform }: RequestEvent<{ applicationId: string }>) {
+export async function DELETE({
+	request,
+	locals,
+	params,
+	platform
+}: RequestEvent<{ applicationId: string }>) {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 
@@ -170,10 +181,7 @@ export async function DELETE({ request, locals, params, platform }: RequestEvent
 
 	if (document) {
 		// Delete from R2 if applicable
-		if (
-			document.encryptedUrl.startsWith('r2:') &&
-			platform?.env?.DOCUMENTS_BUCKET
-		) {
+		if (document.encryptedUrl.startsWith('r2:') && platform?.env?.DOCUMENTS_BUCKET) {
 			const key = document.encryptedUrl.substring(3);
 			const storage = new R2Storage(platform.env.DOCUMENTS_BUCKET);
 			await storage.delete(key);

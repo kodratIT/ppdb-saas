@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { db } from '$lib/server/db';
 import {
@@ -15,7 +16,7 @@ describe('Ranking API Endpoints - Integration Tests', () => {
 	let testTenantId: string;
 	let testUserId: string;
 	let testAdmissionPathId: string;
-	let testApplicationIds: string[] = [];
+	const testApplicationIds: string[] = [];
 
 	beforeAll(async () => {
 		// Create test tenant
@@ -150,9 +151,7 @@ describe('Ranking API Endpoints - Integration Tests', () => {
 
 	describe('POST /api/admin/ranking/[pathId]/finalize', () => {
 		it('finalizes ranking with correct status assignment', async () => {
-			const { POST } = await import(
-				'../../src/routes/api/admin/ranking/[pathId]/finalize/+server'
-			);
+			const { POST } = await import('../../src/routes/api/admin/ranking/[pathId]/finalize/+server');
 
 			const mockRequest = {
 				json: async () => ({
@@ -207,9 +206,7 @@ describe('Ranking API Endpoints - Integration Tests', () => {
 		});
 
 		it('validates quota inputs (non-negative)', async () => {
-			const { POST } = await import(
-				'../../src/routes/api/admin/ranking/[pathId]/finalize/+server'
-			);
+			const { POST } = await import('../../src/routes/api/admin/ranking/[pathId]/finalize/+server');
 
 			const mockRequest = {
 				json: async () => ({
@@ -226,9 +223,7 @@ describe('Ranking API Endpoints - Integration Tests', () => {
 		});
 
 		it('returns 404 for non-existent path', async () => {
-			const { POST } = await import(
-				'../../src/routes/api/admin/ranking/[pathId]/finalize/+server'
-			);
+			const { POST } = await import('../../src/routes/api/admin/ranking/[pathId]/finalize/+server');
 
 			const fakeId = '00000000-0000-0000-0000-000000000000';
 			const mockRequest = {

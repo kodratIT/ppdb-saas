@@ -176,7 +176,8 @@ export const testFeeStructures = {
  * Extended test fixture with user fixtures
  */
 export const test = base.extend<{ loginAsUser: typeof testUsers.super_admin }>({
-	loginAsUser: async ({ page }, use) => {
+	// eslint-disable-next-line no-empty-pattern
+	loginAsUser: async ({}, use) => {
 		// Default implementation - can be overridden in tests
 		await use(testUsers.super_admin);
 	}

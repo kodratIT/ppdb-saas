@@ -10,7 +10,7 @@ export const registrationSchema = z.object({
 	}),
 	childGender: z.enum(['male', 'female'], {
 		error: 'Jenis kelamin harus dipilih'
-	} as any),
+	} as { error: string }),
 
 	// Step 2: Data Orang Tua
 	parentFullName: z.string().min(3, 'Nama orang tua minimal 3 karakter').max(100),

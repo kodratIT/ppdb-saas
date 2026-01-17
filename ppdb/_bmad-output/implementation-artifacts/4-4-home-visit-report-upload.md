@@ -44,7 +44,9 @@ so that the committee has evidence for decision making.
 ## Dev Agent Record
 
 ### Agent Model Used
+
 Gemini-3-Flash-Preview
 
 ### Completion Notes List
+
 - [2026-01-14] Created story document based on brainstorming.

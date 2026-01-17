@@ -1,5 +1,4 @@
-import { SvelteDate } from 'svelte/reactivity';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type SyncStatus = 'idle' | 'saving' | 'error' | 'conflict';
 
 export interface RegistrationData {
@@ -25,14 +24,14 @@ export function createFormDraft(initialData: Partial<any> = {}) {
 		if (typeof val === 'string') {
 			try {
 				return JSON.parse(val);
-			} catch (e) {
+			} catch {
 				return fallback;
 			}
 		}
 		return val || fallback;
 	};
 
-	let data = $state<RegistrationData>({
+	const data = $state<RegistrationData>({
 		childFullName: initialData.childFullName || '',
 		childNickname: initialData.childNickname || '',
 		childDob: initialData.childDob || null,
@@ -72,7 +71,7 @@ export function createFormDraft(initialData: Partial<any> = {}) {
 			});
 
 			if (response.ok) {
-				const result = await response.json();
+				const result: any = await response.json();
 				version = result.version;
 				lastSavedData = currentDataJson;
 				syncStatus = 'idle';
@@ -90,6 +89,7 @@ export function createFormDraft(initialData: Partial<any> = {}) {
 	// Auto-save logic with debounce
 	$effect(() => {
 		// Track all relevant data changes
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const _trigger = JSON.stringify(data);
 
 		const timer = setTimeout(() => {

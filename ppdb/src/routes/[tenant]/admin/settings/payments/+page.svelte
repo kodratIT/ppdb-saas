@@ -36,8 +36,8 @@
 					<span>System Payment Gateway is configured and active.</span>
 				</Alert>
 				<p class="text-sm text-gray-600">
-					Your school can accept online payments via the global payment gateway.
-					Funds will be routed according to the system configuration.
+					Your school can accept online payments via the global payment gateway. Funds will be
+					routed according to the system configuration.
 				</p>
 			{:else}
 				<Alert variant="destructive" class="mb-6 flex items-center gap-2">
@@ -45,7 +45,8 @@
 					<span>System Payment Gateway is NOT configured.</span>
 				</Alert>
 				<p class="text-sm text-gray-600">
-					Online payments are currently disabled. Please contact the System Administrator to enable payments.
+					Online payments are currently disabled. Please contact the System Administrator to enable
+					payments.
 				</p>
 			{/if}
 		</Card.Content>
@@ -59,8 +60,8 @@
 				Manual Transfer Settings
 			</Card.Title>
 			<Card.Description>
-				Configure bank account details for manual transfer verification.
-				These details will be shown to parents who choose manual transfer.
+				Configure bank account details for manual transfer verification. These details will be shown
+				to parents who choose manual transfer.
 			</Card.Description>
 		</Card.Header>
 		<Card.Content>

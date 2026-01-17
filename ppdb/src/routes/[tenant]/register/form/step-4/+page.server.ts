@@ -1,7 +1,7 @@
 import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { eq, and, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { applications, customFields, fieldOptions, users, sessions } from '$lib/server/db/schema';
+import { applications, customFields, fieldOptions, users } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { sendOTP, verifyOTP } from '$lib/server/whatsapp/providers/waha';
 import { processCustomFieldsForDisplay } from '$lib/server/utils/custom-fields';
@@ -44,7 +44,7 @@ export async function load({ locals, params }: RequestEvent<{ tenant: string }>)
 			existingDraft.admissionPathId,
 			values
 		);
-		// @ts-ignore
+		// @ts-expect-error - existingDraft structure is modified to include JSON stringified customFieldValues
 		existingDraft.customFieldValues = JSON.stringify(decryptedValues);
 	}
 
@@ -56,7 +56,7 @@ export async function load({ locals, params }: RequestEvent<{ tenant: string }>)
 }
 
 export const actions = {
-	sendOTP: async ({ request, locals, params }: RequestEvent<{ tenant: string }>) => {
+	sendOTP: async ({ request, locals }: RequestEvent<{ tenant: string }>) => {
 		const auth = await requireAuth(locals);
 		await requireRole(auth, 'parent');
 
@@ -70,13 +70,14 @@ export const actions = {
 		try {
 			const result = await sendOTP(phoneNumber);
 			return { success: true, sessionId: result.sessionId, phoneNumber };
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Failed to send OTP:', error);
-			return fail(500, { error: error.message || 'Gagal mengirim kode OTP' });
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return fail(500, { error: (error as any).message || 'Gagal mengirim kode OTP' });
 		}
 	},
 
-	submitApplication: async ({ request, locals, params }: RequestEvent<{ tenant: string }>) => {
+	submitApplication: async ({ request, locals }: RequestEvent<{ tenant: string }>) => {
 		const auth = await requireAuth(locals);
 		await requireRole(auth, 'parent');
 

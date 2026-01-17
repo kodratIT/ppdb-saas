@@ -1,17 +1,13 @@
-import { expect, test, type BrowserContext } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { testUsers, testSessions, getSessionCookieName } from './fixtures';
 import {
 	signInAs,
 	signOut,
 	getSessionCookie,
 	waitForSessionCookie,
-	isAuthenticated,
 	expectErrorMessage,
-	expectSuccessMessage,
 	setSessionCookie,
-	clearCookies,
-	waitForPageLoad,
-	isElementVisible
+	isAuthenticated
 } from './helpers';
 
 test.describe('Session Management - Firebase Sessions', () => {
@@ -57,7 +53,7 @@ test.describe('Session Management - Firebase Sessions', () => {
 		await signInAs(page, testUsers.school_admin_tenant1.email, 'test-password-123');
 
 		// Get initial session
-		let sessionCookie = await getSessionCookie(context);
+		const sessionCookie = await getSessionCookie(context);
 		expect(sessionCookie).toBeDefined();
 
 		// Navigate to page
@@ -167,7 +163,7 @@ test.describe('Session Management - WAHA Sessions', () => {
 		await page.click('button:has-text("Verify OTP")');
 
 		// Get initial session
-		let sessionCookie = await getSessionCookie(context);
+		const sessionCookie = await getSessionCookie(context);
 		expect(sessionCookie).toBeDefined();
 
 		// Navigate to application dashboard
@@ -214,7 +210,7 @@ test.describe('Session Management - WAHA Sessions', () => {
 });
 
 test.describe('Session Management - Cross-Auth Type', () => {
-	test('Firebase session does not grant WAHA application access', async ({ page, context }) => {
+	test('Firebase session does not grant WAHA application access', async ({ page }) => {
 		// Sign in with Firebase (admin)
 		await signInAs(page, testUsers.school_admin_tenant1.email, 'test-password-123');
 
@@ -225,7 +221,7 @@ test.describe('Session Management - Cross-Auth Type', () => {
 		// (This depends on auth policy - for now, assume it's allowed)
 	});
 
-	test('WAHA session does not grant admin access', async ({ page, context }) => {
+	test('WAHA session does not grant admin access', async ({ page }) => {
 		// Authenticate with WAHA (parent)
 		await page.goto('/apply');
 		await page.fill('input[type="tel"]', testUsers.parent.phone);

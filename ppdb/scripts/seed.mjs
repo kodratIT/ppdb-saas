@@ -27,10 +27,10 @@ async function ensureTenantContext(client, tenantId) {
 
 async function getOrCreateAdminUser(client, tenantId) {
 	const email = 'admin@demo-school.test';
-	const existing = await client.query(
-		'select id from users where email = $1 and tenant_id = $2',
-		[email, tenantId]
-	);
+	const existing = await client.query('select id from users where email = $1 and tenant_id = $2', [
+		email,
+		tenantId
+	]);
 	if (existing.rows.length > 0) {
 		return existing.rows[0].id;
 	}

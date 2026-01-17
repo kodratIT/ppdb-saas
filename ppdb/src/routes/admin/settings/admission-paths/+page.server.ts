@@ -4,12 +4,12 @@ import { db } from '$lib/server/db';
 import * as admissionPathsDomain from '$lib/server/domain/admission-paths';
 import { admissionPathCreateSchema, admissionPathUpdateSchema } from '$lib/schema/admission-path';
 import { ZodError } from 'zod';
-import { requireAuth, requireRole, requirePermission } from '$lib/server/auth/authorization';
+import { requireAuth, requirePermission } from '$lib/server/auth/authorization';
 import { PERMISSIONS } from '$lib/server/auth/permissions';
 import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const { userId, tenantId } = requireAuth(locals);
+	const { tenantId } = requireAuth(locals);
 
 	try {
 		const paths = await admissionPathsDomain.listAdmissionPaths(db, tenantId);
@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
 	create: async ({ request, locals }) => {
-		const { userId, tenantId } = requireAuth(locals);
+		const { tenantId } = requireAuth(locals);
 
 		try {
 			const formData = await request.formData();
@@ -67,7 +67,7 @@ export const actions: Actions = {
 	},
 
 	update: async ({ request, locals }) => {
-		const { userId, tenantId } = requireAuth(locals);
+		const { tenantId } = requireAuth(locals);
 
 		try {
 			const formData = await request.formData();
@@ -117,7 +117,7 @@ export const actions: Actions = {
 	},
 
 	delete: async ({ request, locals }) => {
-		const { userId, tenantId } = requireAuth(locals);
+		const { tenantId } = requireAuth(locals);
 
 		try {
 			const formData = await request.formData();

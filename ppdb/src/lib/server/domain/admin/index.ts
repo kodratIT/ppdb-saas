@@ -49,17 +49,17 @@ export async function getDashboardStats() {
 	// 3. Total Invoices/Transactions (Paid)
 	// Assuming invoices table exists based on previous context, even if not fully visible in recent snippet.
 	// If invoices table doesn't exist in schema import, I should check schema again.
-    // Based on schema read, invoices exists.
+	// Based on schema read, invoices exists.
 	const [transactionsCount] = await db
 		.select({ count: count() })
 		.from(invoices)
 		.where(eq(invoices.status, 'PAID'));
-    
-    // 4. Total Revenue (Sum of PAID invoices)
-    const [revenueResult] = await db
-        .select({ total: sql<number>`sum(${invoices.amount})` })
-        .from(invoices)
-        .where(eq(invoices.status, 'PAID'));
+
+	// 4. Total Revenue (Sum of PAID invoices)
+	const [revenueResult] = await db
+		.select({ total: sql<number>`sum(${invoices.amount})` })
+		.from(invoices)
+		.where(eq(invoices.status, 'PAID'));
 
 	return {
 		tenants: {
@@ -72,7 +72,7 @@ export async function getDashboardStats() {
 		},
 		financial: {
 			totalTransactions: transactionsCount.count,
-            totalRevenue: revenueResult.total || 0
+			totalRevenue: revenueResult.total || 0
 		}
 	};
 }

@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { sendOTP, verifyOTP, generateOTP } from '$lib/server/whatsapp/providers/waha';
 import { db } from '$lib/server/db';
 import { otpCodes } from '$lib/server/db/schema';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { AuthError } from '$lib/server/auth/types';
 
 describe('OTP Database Storage', () => {

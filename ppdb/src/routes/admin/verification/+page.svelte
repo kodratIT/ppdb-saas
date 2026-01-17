@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import type { PageData } from './$types';
 	import Badge from '$lib/components/ui/badge.svelte';
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { page } from '$app/stores';
 	import {
 		LayoutDashboard,
@@ -14,9 +15,9 @@
 	import { Button } from '$lib/components/ui/button';
 	// Replaced Sheet with custom implementation since component is missing
 	// import { Sheet, SheetContent, SheetTrigger } from '$lib/components/ui/sheet';
-    import { fly } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 
-	let { data, children } = $props();
+	let { children } = $props();
 
 	const sidebarItems = [
 		{
@@ -69,12 +70,14 @@
 		}
 	];
 
-	let isSidebarOpen = false;
+	let isSidebarOpen = $state(false);
 </script>
 
 <div class="min-h-screen bg-gray-50 flex flex-col md:flex-row">
 	<!-- Mobile Header -->
-	<header class="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50">
+	<header
+		class="md:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-50"
+	>
 		<span class="font-bold text-lg text-[#002C5F]">School Admin</span>
 		<Button variant="ghost" size="icon" onclick={() => (isSidebarOpen = !isSidebarOpen)}>
 			<Menu class="h-6 w-6" />
@@ -104,14 +107,12 @@
 						Main
 					</div>
 					<ul class="space-y-1 px-2 mb-6">
-						{#each sidebarItems as item}
+						{#each sidebarItems as item (item.title)}
 							<li>
 								<a
 									href={item.href}
 									class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-										{$page.url.pathname === item.href
-										? 'bg-blue-50 text-blue-700'
-										: 'text-gray-700 hover:bg-gray-100'}"
+										{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 									onclick={() => (isSidebarOpen = false)}
 								>
 									<item.icon class="h-5 w-5" />
@@ -125,14 +126,12 @@
 						Settings
 					</div>
 					<ul class="space-y-1 px-2">
-						{#each settingsItems as item}
+						{#each settingsItems as item (item.title)}
 							<li>
 								<a
 									href={item.href}
 									class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-										{$page.url.pathname === item.href
-										? 'bg-blue-50 text-blue-700'
-										: 'text-gray-700 hover:bg-gray-100'}"
+										{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 									onclick={() => (isSidebarOpen = false)}
 								>
 									<item.icon class="h-5 w-5" />
@@ -163,18 +162,14 @@
 			<span class="text-xl font-bold text-[#002C5F]">PPDB Admin</span>
 		</div>
 		<nav class="flex-1 overflow-y-auto py-4">
-			<div class="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-				Main
-			</div>
+			<div class="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Main</div>
 			<ul class="space-y-1 px-2 mb-6">
-				{#each sidebarItems as item}
+				{#each sidebarItems as item (item.title)}
 					<li>
 						<a
 							href={item.href}
 							class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-								{$page.url.pathname === item.href
-								? 'bg-blue-50 text-blue-700'
-								: 'text-gray-700 hover:bg-gray-100'}"
+								{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 						>
 							<item.icon class="h-5 w-5" />
 							{item.title}
@@ -187,14 +182,12 @@
 				Settings
 			</div>
 			<ul class="space-y-1 px-2">
-				{#each settingsItems as item}
+				{#each settingsItems as item (item.title)}
 					<li>
 						<a
 							href={item.href}
 							class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-								{$page.url.pathname === item.href
-								? 'bg-blue-50 text-blue-700'
-								: 'text-gray-700 hover:bg-gray-100'}"
+								{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 						>
 							<item.icon class="h-5 w-5" />
 							{item.title}

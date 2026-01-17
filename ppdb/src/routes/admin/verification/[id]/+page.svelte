@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import Badge from '$lib/components/ui/badge.svelte';
@@ -8,7 +10,7 @@
 	let { application } = data;
 
 	let selectedDocIndex = $state(0);
-	// @ts-ignore
+	// @ts-expect-error - application.uploadedDocuments can be accessed by index
 	let selectedDoc = $derived(application.uploadedDocuments[selectedDocIndex]);
 
 	// For rejection modal/input

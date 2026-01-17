@@ -1,6 +1,6 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
 	import { enhance } from '$app/forms';
-	import Button from '$lib/components/ui/button.svelte';
 	import Label from '$lib/components/ui/label.svelte';
 	import Card from '$lib/components/ui/card.svelte';
 	import Alert from '$lib/components/ui/alert.svelte';

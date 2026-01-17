@@ -1,4 +1,6 @@
 <script lang="ts">
+	/* eslint-disable @typescript-eslint/no-explicit-any */
+	/* eslint-disable svelte/require-each-key */
 	import {
 		Card,
 		CardContent,
@@ -11,7 +13,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Alert } from '$lib/components/ui/alert';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Send, Users, AlertTriangle, CheckCircle2, History } from 'lucide-svelte';
+	import { Send, AlertTriangle, CheckCircle2, History } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
 	export let data;
@@ -24,14 +26,19 @@
 
 	// Simple preview computation
 	$: previewMessage = messageTemplate || '(No message content)';
-	
+
 	function getSegmentLabel(segment: string) {
 		switch (segment) {
-			case 'all': return 'All Parents';
-			case 'pending_payment': return 'Pending Payment';
-			case 'verified': return 'Verified Documents';
-			case 'accepted': return 'Accepted Students';
-			default: return segment;
+			case 'all':
+				return 'All Parents';
+			case 'pending_payment':
+				return 'Pending Payment';
+			case 'verified':
+				return 'Verified Documents';
+			case 'accepted':
+				return 'Accepted Students';
+			default:
+				return segment;
 		}
 	}
 
@@ -108,7 +115,9 @@
 
 					<Button type="submit" class="w-full" disabled={sending || !messageTemplate}>
 						{#if sending}
-							<div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+							<div
+								class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+							></div>
 							Sending...
 						{:else}
 							<Send class="mr-2 h-4 w-4" />
@@ -126,7 +135,8 @@
 								<p class="text-green-700">
 									{lastResult.message}
 									{#if lastResult.remaining > 0}
-										<br /><strong>Note:</strong> {lastResult.remaining} recipients remaining. Please send again to continue batch.
+										<br /><strong>Note:</strong>
+										{lastResult.remaining} recipients remaining. Please send again to continue batch.
 									{/if}
 								</p>
 							</div>
@@ -143,7 +153,9 @@
 					<CardTitle class="text-sm font-medium">Message Preview</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 min-h-[100px] whitespace-pre-wrap text-sm">
+					<div
+						class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 min-h-[100px] whitespace-pre-wrap text-sm"
+					>
 						{previewMessage}
 					</div>
 					<div class="mt-4 flex items-center text-xs text-muted-foreground gap-2">

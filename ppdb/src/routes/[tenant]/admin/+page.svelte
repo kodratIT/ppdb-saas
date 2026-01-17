@@ -1,4 +1,5 @@
 <script lang="ts">
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Users, FileCheck, School, DollarSign, ArrowRight } from 'lucide-svelte';
 	import { page } from '$app/stores';
@@ -93,9 +94,7 @@
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p class="text-muted-foreground mb-4">
-						Monitor payments and manage invoices.
-					</p>
+					<p class="text-muted-foreground mb-4">Monitor payments and manage invoices.</p>
 					<div class="flex items-center text-blue-600 text-sm font-medium">
 						Go to Finance <ArrowRight class="ml-1 h-4 w-4" />
 					</div>

@@ -1,6 +1,7 @@
 # Task List: Update Permission Checking Helpers
 
 ## Relevant Files
+
 - `src/lib/server/auth/permissions.ts` - Permission definitions and role mapping
 - `src/lib/server/auth/audit-logger.ts` - Audit logging implementation
 - `src/lib/server/auth/authorization.ts` - Authorization helpers

@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { testUsers, getSessionCookieName } from './fixtures';
 import {
 	signInAs,
@@ -8,7 +8,6 @@ import {
 	waitForSessionCookie,
 	isAuthenticated,
 	expectErrorMessage,
-	expectSuccessMessage,
 	waitForPageLoad
 } from './helpers';
 
@@ -120,7 +119,7 @@ test.describe('Firebase Sign-In Flow - Complete', () => {
 		await expect(page).toHaveURL('/sign-in');
 	});
 
-	test('sign-out from admin dashboard works correctly', async ({ page, context }) => {
+	test('sign-out from admin dashboard works correctly', async ({ page }) => {
 		// Sign in and navigate to admin dashboard
 		await signInAs(page, testUsers.school_admin_tenant1.email, 'test-password-123');
 		await expect(page).toHaveURL('/admin');
@@ -138,10 +137,7 @@ test.describe('Firebase Sign-In Flow - Complete', () => {
 });
 
 test.describe('Firebase Sign-Up Flow - Complete', () => {
-	test('happy path: sign-up, create Firebase user, create database user', async ({
-		page,
-		context
-	}) => {
+	test('happy path: sign-up, create Firebase user, create database user', async ({ page }) => {
 		// Navigate to sign-up page
 		await page.goto('/sign-up');
 		await waitForPageLoad(page);

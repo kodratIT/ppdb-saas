@@ -19,9 +19,12 @@
 	import Button from '$lib/components/ui/button.svelte';
 	import Badge from '$lib/components/ui/badge.svelte';
 
-	let { fields = $bindable([]), onedit }: { fields: any[]; onedit: (f: any) => void } = $props();
+	let {
+		fields = $bindable([]),
+		onedit
+	}: { fields: Record<string, unknown>[]; onedit: (f: Record<string, unknown>) => void } = $props();
 
-	const iconMap: Record<string, any> = {
+	const iconMap: Record<string, unknown> = {
 		text: Type,
 		textarea: AlignLeft,
 		number: Hash,
@@ -34,15 +37,15 @@
 		file: FileUp
 	};
 
-	function handleDndConsider(e: CustomEvent<DndEvent<any>>) {
+	function handleDndConsider(e: CustomEvent<DndEvent<Record<string, unknown>>>) {
 		fields = e.detail.items;
 	}
 
-	function handleDndFinalize(e: CustomEvent<DndEvent<any>>) {
+	function handleDndFinalize(e: CustomEvent<DndEvent<Record<string, unknown>>>) {
 		const { items } = e.detail;
 
 		// If the item came from the palette, we need to transform it into a field object
-		const newItems = items.map((item: any, index: number) => {
+		const newItems = items.map((item: Record<string, unknown>, index: number) => {
 			if (item.id.toString().startsWith('palette-')) {
 				const id = Math.random().toString(36).substring(2, 11);
 				return {

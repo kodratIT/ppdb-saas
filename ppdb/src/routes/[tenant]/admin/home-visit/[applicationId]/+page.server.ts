@@ -14,10 +14,7 @@ export async function load({ params, locals }: RequestEvent) {
 	if (!applicationId) throw error(400, 'Application ID is required');
 
 	const application = await db.query.applications.findFirst({
-		where: and(
-			eq(applications.id, applicationId),
-			eq(applications.tenantId, auth.tenantId)
-		)
+		where: and(eq(applications.id, applicationId), eq(applications.tenantId, auth.tenantId))
 	});
 
 	if (!application) throw error(404, 'Application not found');
@@ -40,7 +37,7 @@ export const actions = {
 		if (!applicationId) return fail(400, { message: 'Application ID is required' });
 
 		const formData = await request.formData();
-		
+
 		const roof = formData.get('roof') as string;
 		const floor = formData.get('floor') as string;
 		const walls = formData.get('walls') as string;

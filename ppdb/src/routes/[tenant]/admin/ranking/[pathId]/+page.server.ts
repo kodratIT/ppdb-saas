@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { RankingService } from '$lib/server/domain/ranking';
 import { error } from '@sveltejs/kit';

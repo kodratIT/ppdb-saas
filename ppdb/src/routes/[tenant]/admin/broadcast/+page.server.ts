@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
-import { users, invoices, applications, broadcasts } from '$lib/server/db/schema';
+import { invoices, applications, broadcasts } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
-import { eq, and, desc, inArray, sql } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { sendWhatsappMessage } from '$lib/server/whatsapp/providers/waha';
@@ -37,23 +37,17 @@ export const actions: Actions = {
 
 		// 1. Determine Audience
 		let recipientPhones: string[] = [];
-		let recipients = [];
 
 		try {
 			if (targetSegment === 'all') {
 				// All parents
-				const allUsers = await db.query.users.findMany({
-					where: and(eq(users.tenantId, auth.tenantId), eq(users.role, 'parent'))
-				});
 				// Filter users who have phone number (implied from email/auth or application)
 				// For WAHA, we need phone numbers. Assuming user email is not phone.
 				// We should join with applications to get phone numbers.
 				const apps = await db.query.applications.findMany({
 					where: eq(applications.tenantId, auth.tenantId)
 				});
-				recipientPhones = apps
-					.map((a) => a.parentPhone)
-					.filter((p): p is string => !!p);
+				recipientPhones = apps.map((a) => a.parentPhone).filter((p): p is string => !!p);
 			} else if (targetSegment === 'pending_payment') {
 				// Parents with UNPAID invoices
 				const pendingInvoices = await db.query.invoices.findMany({
@@ -65,24 +59,14 @@ export const actions: Actions = {
 					.filter((p): p is string => !!p);
 			} else if (targetSegment === 'verified') {
 				const verifiedApps = await db.query.applications.findMany({
-					where: and(
-						eq(applications.tenantId, auth.tenantId),
-						eq(applications.status, 'verified')
-					)
+					where: and(eq(applications.tenantId, auth.tenantId), eq(applications.status, 'verified'))
 				});
-				recipientPhones = verifiedApps
-					.map((a) => a.parentPhone)
-					.filter((p): p is string => !!p);
+				recipientPhones = verifiedApps.map((a) => a.parentPhone).filter((p): p is string => !!p);
 			} else if (targetSegment === 'accepted') {
 				const acceptedApps = await db.query.applications.findMany({
-					where: and(
-						eq(applications.tenantId, auth.tenantId),
-						eq(applications.status, 'accepted')
-					)
+					where: and(eq(applications.tenantId, auth.tenantId), eq(applications.status, 'accepted'))
 				});
-				recipientPhones = acceptedApps
-					.map((a) => a.parentPhone)
-					.filter((p): p is string => !!p);
+				recipientPhones = acceptedApps.map((a) => a.parentPhone).filter((p): p is string => !!p);
 			}
 
 			// Remove duplicates
@@ -95,7 +79,7 @@ export const actions: Actions = {
 			// 2. Batch Sending (Manual limit for safety)
 			const BATCH_LIMIT = 50; // Conservative limit
 			const batch = recipientPhones.slice(0, BATCH_LIMIT);
-			
+
 			let sentCount = 0;
 			let failedCount = 0;
 			const failedRecipients: string[] = [];
@@ -115,7 +99,7 @@ export const actions: Actions = {
 							failedCount++;
 							failedRecipients.push(phone);
 						}
-					} catch (e) {
+					} catch {
 						failedCount++;
 						failedRecipients.push(phone);
 					}
@@ -138,7 +122,6 @@ export const actions: Actions = {
 				message: `Broadcast sent to ${sentCount} recipients. (${failedCount} failed)`,
 				remaining: Math.max(0, recipientPhones.length - BATCH_LIMIT)
 			};
-
 		} catch (error) {
 			console.error('Broadcast error:', error);
 			return fail(500, { message: 'Failed to process broadcast' });

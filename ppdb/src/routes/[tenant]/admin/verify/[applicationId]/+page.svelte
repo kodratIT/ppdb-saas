@@ -1,6 +1,7 @@
 <script lang="ts">
+	/* eslint-disable svelte/require-each-key */
+	/* eslint-disable svelte/no-navigation-without-resolve */
 	import { goto, invalidateAll } from '$app/navigation';
-	import { page } from '$app/stores';
 	import Card from '$lib/components/ui/card.svelte';
 	import Button from '$lib/components/ui/button.svelte';
 	import Badge from '$lib/components/ui/badge.svelte';
@@ -109,14 +110,16 @@
 							method="POST"
 							action="?/withdraw"
 							onsubmit={(e) => {
-								if (!confirm('Are you sure you want to withdraw this student? This action will open up a slot for waitlisted candidates.')) {
+								if (
+									!confirm(
+										'Are you sure you want to withdraw this student? This action will open up a slot for waitlisted candidates.'
+									)
+								) {
 									e.preventDefault();
 								}
 							}}
 						>
-							<Button variant="destructive" size="sm" type="submit">
-								Withdraw / Reject
-							</Button>
+							<Button variant="destructive" size="sm" type="submit">Withdraw / Reject</Button>
 						</form>
 					{/if}
 					{#if data.isSuperAdmin}
@@ -124,12 +127,21 @@
 							method="POST"
 							action="?/delete_permanent"
 							onsubmit={(e) => {
-								if (!confirm('PERHATIAN: Anda akan menghapus data siswa ini secara PERMANEN (termasuk dokumen, nilai, invoice, dll). Data tidak bisa dikembalikan. Lanjutkan?')) {
+								if (
+									!confirm(
+										'PERHATIAN: Anda akan menghapus data siswa ini secara PERMANEN (termasuk dokumen, nilai, invoice, dll). Data tidak bisa dikembalikan. Lanjutkan?'
+									)
+								) {
 									e.preventDefault();
 								}
 							}}
 						>
-							<Button variant="destructive" size="sm" type="submit" class="bg-red-800 hover:bg-red-900">
+							<Button
+								variant="destructive"
+								size="sm"
+								type="submit"
+								class="bg-red-800 hover:bg-red-900"
+							>
 								Hapus Permanen (GDPR)
 							</Button>
 						</form>
@@ -209,8 +221,14 @@
 						<Card class="p-6">
 							<div class="flex items-center justify-between mb-6">
 								<h3 class="text-lg font-bold">Laporan Kunjungan Rumah</h3>
-								<Badge variant={data.homeVisitReport.recommendation === 'recommended' ? 'default' : 'destructive'}>
-									{data.homeVisitReport.recommendation === 'recommended' ? 'Direkomendasikan' : 'Tidak Direkomendasikan'}
+								<Badge
+									variant={data.homeVisitReport.recommendation === 'recommended'
+										? 'default'
+										: 'destructive'}
+								>
+									{data.homeVisitReport.recommendation === 'recommended'
+										? 'Direkomendasikan'
+										: 'Tidak Direkomendasikan'}
 								</Badge>
 							</div>
 
@@ -227,7 +245,11 @@
 									<div class="col-span-2 space-y-1">
 										<p class="text-gray-500">Lokasi GPS</p>
 										<p class="font-medium text-blue-600">
-											<a href="https://www.google.com/maps/search/?api=1&query={data.homeVisitReport.gpsLocation}" target="_blank">
+											<a
+												href="https://www.google.com/maps/search/?api=1&query={data.homeVisitReport
+													.gpsLocation}"
+												target="_blank"
+											>
 												{data.homeVisitReport.gpsLocation} (Lihat di Peta)
 											</a>
 										</p>
@@ -241,16 +263,21 @@
 									<div class="bg-gray-50 p-3 rounded-lg text-sm grid grid-cols-2 gap-2">
 										{#if data.homeVisitReport.surveyData}
 											{@const survey = JSON.parse(data.homeVisitReport.surveyData)}
-											<p class="text-gray-500">Atap:</p> <p>{survey.roof || '-'}</p>
-											<p class="text-gray-500">Lantai:</p> <p>{survey.floor || '-'}</p>
-											<p class="text-gray-500">Dinding:</p> <p>{survey.walls || '-'}</p>
+											<p class="text-gray-500">Atap:</p>
+											<p>{survey.roof || '-'}</p>
+											<p class="text-gray-500">Lantai:</p>
+											<p>{survey.floor || '-'}</p>
+											<p class="text-gray-500">Dinding:</p>
+											<p>{survey.walls || '-'}</p>
 										{/if}
 									</div>
 								</div>
 
 								<div>
 									<h4 class="text-sm font-semibold text-gray-700 mb-2">Catatan Petugas</h4>
-									<p class="text-sm bg-gray-50 p-3 rounded-lg">{data.homeVisitReport.summary || '-'}</p>
+									<p class="text-sm bg-gray-50 p-3 rounded-lg">
+										{data.homeVisitReport.summary || '-'}
+									</p>
 								</div>
 							</div>
 
@@ -261,7 +288,11 @@
 										{#each data.homeVisitReport.photos as photo}
 											<div class="space-y-1">
 												<div class="aspect-video rounded-lg overflow-hidden border">
-													<img src={photo.photoUrl} alt={photo.caption} class="w-full h-full object-cover" />
+													<img
+														src={photo.photoUrl}
+														alt={photo.caption}
+														class="w-full h-full object-cover"
+													/>
 												</div>
 												{#if photo.caption}
 													<p class="text-xs text-center text-gray-500">{photo.caption}</p>

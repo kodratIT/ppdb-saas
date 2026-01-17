@@ -11,7 +11,7 @@ import { PERMISSIONS } from '$lib/server/auth/permissions';
 import { logSensitiveAction } from '$lib/server/auth/audit-logger';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const { userId, tenantId } = requireAuth(locals);
+	const { tenantId } = requireAuth(locals);
 
 	try {
 		const admissionPaths = await db

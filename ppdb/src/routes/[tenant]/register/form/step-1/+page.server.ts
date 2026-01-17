@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { applications, admissionPaths, customFields, fieldOptions } from '$lib/server/db/schema';
+import { applications, admissionPaths } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { step1Schema } from '$lib/schema/registration';
 import {
@@ -11,7 +11,7 @@ import {
 } from '$lib/server/utils/custom-fields';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+export const load: PageServerLoad = async ({ locals }) => {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 
@@ -27,6 +27,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		)
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let step1CustomFields: any[] = [];
 	let processedDraft = draft;
 
@@ -42,7 +43,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				draft.admissionPathId,
 				values
 			);
-			// @ts-ignore
+			// @ts-expect-error - processedDraft includes decrypted custom fields which might not match exact schema types
 			processedDraft = { ...draft, customFieldValues: decryptedValues };
 		}
 	} else if (activePaths.length === 1) {
@@ -113,9 +114,7 @@ export const actions = {
 				mergedCustomValues = { ...current, ...encryptedCustomFields };
 			}
 
-			const completedSteps = existingDraft
-				? JSON.parse(existingDraft.completedSteps || '[]')
-				: [1];
+			const completedSteps = existingDraft ? JSON.parse(existingDraft.completedSteps || '[]') : [1];
 			if (!completedSteps.includes(1)) completedSteps.push(1);
 
 			const updateData = {
@@ -131,10 +130,7 @@ export const actions = {
 			};
 
 			if (existingDraft) {
-				await db
-					.update(applications)
-					.set(updateData)
-					.where(eq(applications.id, existingDraft.id));
+				await db.update(applications).set(updateData).where(eq(applications.id, existingDraft.id));
 			} else {
 				await db.insert(applications).values({
 					...updateData,

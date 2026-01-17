@@ -39,7 +39,7 @@
 		<option value="" disabled selected={!value}>
 			{field.placeholder || 'Pilih opsi...'}
 		</option>
-		{#each field.options ?? [] as option}
+		{#each field.options ?? [] as option (option.value)}
 			<option value={option.value}>{option.label}</option>
 		{/each}
 	</Select>

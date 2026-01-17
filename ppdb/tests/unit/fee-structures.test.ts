@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as feeStructuresDomain from '../../src/lib/server/domain/fee-structures';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';

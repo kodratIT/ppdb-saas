@@ -1,4 +1,4 @@
-import { redirect, type RequestEvent } from '@sveltejs/kit';
+import { type RequestEvent } from '@sveltejs/kit';
 import { eq, and, or, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { applications, applicationDocuments, admissionPaths } from '$lib/server/db/schema';
