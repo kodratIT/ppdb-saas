@@ -1,16 +1,10 @@
 <script lang="ts">
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-		CardDescription
-	} from '$lib/components/ui/card';
+	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Table, TableBody, TableCell, TableHead, TableRow } from '$lib/components/ui/table';
 	import { History, ShieldAlert } from 'lucide-svelte';
 
-	export let data;
+	let { data } = $props();
 
 	function formatDate(date: Date) {
 		return new Date(date).toLocaleDateString('id-ID', {
@@ -37,18 +31,18 @@
 		<p class="text-muted-foreground">Immutable history of system activities.</p>
 	</div>
 
-	<Card>
-		<CardHeader>
-			<CardTitle class="flex items-center gap-2">
+	<Card.Root>
+		<Card.Header>
+			<Card.Title class="flex items-center gap-2">
 				<History class="h-5 w-5" />
 				Activity History
-			</CardTitle>
-			<CardDescription>
+			</Card.Title>
+			<Card.Description>
 				Showing latest 100 actions performed by users in this tenant.
-			</CardDescription>
-		</CardHeader>
-		<CardContent>
-			<div class="rounded-md border">
+			</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<div class="rounded-md border overflow-hidden">
 				<Table>
 					<thead>
 						<TableRow>
@@ -88,7 +82,7 @@
 							</TableRow>
 						{:else}
 							<TableRow>
-								<TableCell colspan="5" class="text-center py-8 text-muted-foreground">
+								<TableCell colspan={5} class="text-center py-8 text-muted-foreground">
 									No logs found.
 								</TableCell>
 							</TableRow>
@@ -96,8 +90,8 @@
 					</TableBody>
 				</Table>
 			</div>
-		</CardContent>
-	</Card>
+		</Card.Content>
+	</Card.Root>
 
 	<div
 		class="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800"

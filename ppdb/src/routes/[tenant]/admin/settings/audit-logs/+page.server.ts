@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			action: auditLogs.action,
 			target: auditLogs.target,
 			details: auditLogs.details,
-			timestamp: auditLogs.timestamp,
+			timestamp: auditLogs.createdAt,
 			actorName: users.name,
 			actorEmail: users.email,
 			actorRole: users.role
@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.from(auditLogs)
 		.innerJoin(users, eq(auditLogs.actorId, users.id))
 		.where(eq(users.tenantId, auth.tenantId)) // Only show logs for users in this tenant
-		.orderBy(desc(auditLogs.timestamp))
+		.orderBy(desc(auditLogs.createdAt))
 		.limit(100);
 
 	return {

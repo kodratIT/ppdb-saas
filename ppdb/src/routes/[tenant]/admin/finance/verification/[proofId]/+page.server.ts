@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	const { proofId } = params;
 
-	const proof = await db.query.paymentProofs.findFirst({
+	const proof = (await db.query.paymentProofs.findFirst({
 		where: and(eq(paymentProofs.id, proofId), eq(paymentProofs.tenantId, auth.tenantId)),
 		with: {
 			invoice: {
@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				}
 			}
 		}
-	});
+	})) as any;
 
 	if (!proof) {
 		throw error(404, 'Proof not found');

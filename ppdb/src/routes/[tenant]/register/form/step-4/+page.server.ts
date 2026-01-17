@@ -1,7 +1,7 @@
 import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
 import { eq, and, asc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { applications, customFields, fieldOptions, users } from '$lib/server/db/schema';
+import { applications, customFields, fieldOptions, users, sessions } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
 import { sendOTP, verifyOTP } from '$lib/server/whatsapp/providers/waha';
 import { processCustomFieldsForDisplay } from '$lib/server/utils/custom-fields';
@@ -44,7 +44,6 @@ export async function load({ locals, params }: RequestEvent<{ tenant: string }>)
 			existingDraft.admissionPathId,
 			values
 		);
-		// @ts-expect-error - existingDraft structure is modified to include JSON stringified customFieldValues
 		existingDraft.customFieldValues = JSON.stringify(decryptedValues);
 	}
 
@@ -77,7 +76,7 @@ export const actions = {
 		}
 	},
 
-	submitApplication: async ({ request, locals }: RequestEvent<{ tenant: string }>) => {
+	submitApplication: async ({ request, locals, params }: RequestEvent<{ tenant: string }>) => {
 		const auth = await requireAuth(locals);
 		await requireRole(auth, 'parent');
 

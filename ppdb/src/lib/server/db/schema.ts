@@ -9,7 +9,8 @@ import {
 	uniqueIndex,
 	boolean,
 	numeric,
-	varchar
+	varchar,
+	jsonb
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -162,6 +163,7 @@ export const schoolProfiles = pgTable('school_profiles', {
 	bankName: text('bank_name'),
 	bankAccountName: text('bank_account_name'),
 	bankAccountNumber: text('bank_account_number'),
+	landingPageConfig: jsonb('landing_page_config'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
@@ -190,11 +192,12 @@ export const admissionPaths = pgTable('admission_paths', {
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
-export const admissionPathsRelations = relations(admissionPaths, ({ one }) => ({
+export const admissionPathsRelations = relations(admissionPaths, ({ one, many }) => ({
 	tenant: one(tenants, {
 		fields: [admissionPaths.tenantId],
 		references: [tenants.id]
-	})
+	}),
+	feeStructures: many(feeStructures)
 }));
 
 // Story 2.3: Fee Structure & Payment Timing
@@ -308,6 +311,19 @@ export const applications = pgTable('applications', {
 	// Parent information
 	parentFullName: text('parent_full_name'),
 	parentPhone: text('parent_phone'),
+	parentEmail: text('parent_email'),
+
+	// Address
+	address: text('address'),
+	city: text('city'),
+
+	// Step tracking
+	currentStep: integer('current_step').default(1).notNull(),
+	completedSteps: text('completed_steps').default('[]').notNull(), // JSON array
+	submittedAt: timestamp('submitted_at'),
+
+	// Epic 4.3: Ranking - Distance in meters for Zonasi
+	distanceM: integer('distance_m'),
 
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
@@ -362,6 +378,10 @@ export const applicationDocumentsRelations = relations(applicationDocuments, ({ 
 	tenant: one(tenants, {
 		fields: [applicationDocuments.tenantId],
 		references: [tenants.id]
+	}),
+	verifier: one(users, {
+		fields: [applicationDocuments.verifiedBy],
+		references: [users.id]
 	}),
 	reviews: many(documentReviews)
 }));
@@ -472,12 +492,13 @@ export const selectionResults = pgTable('selection_results', {
 	admissionPathId: uuid('admission_path_id')
 		.references(() => admissionPaths.id)
 		.notNull(),
-	batchId: text('batch_id').notNull(), // e.g., "2024-06-01-batch-1"
+	batchId: text('batch_id').default('BATCH-1').notNull(), // Default added
 	publishedAt: timestamp('published_at').defaultNow().notNull(),
 	totalCandidates: integer('total_candidates').notNull(),
-	acceptedCount: integer('accepted_count').notNull(),
-	reservedCount: integer('reserved_count').notNull(),
-	rejectedCount: integer('rejected_count').notNull(),
+	quotaAccepted: integer('quota_accepted').notNull(),
+	quotaReserved: integer('quota_reserved').notNull(),
+	finalizedBy: uuid('finalized_by').references(() => users.id),
+	finalizedAt: timestamp('finalized_at'),
 	createdAt: timestamp('created_at').defaultNow().notNull()
 });
 

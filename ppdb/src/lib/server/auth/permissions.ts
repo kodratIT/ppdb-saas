@@ -139,6 +139,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 		PERMISSIONS.SCORE_FINALIZE
 	],
 
+	field_officer: [PERMISSIONS.APPLICATIONS_READ, PERMISSIONS.REPORTS_READ],
+
 	parent: [PERMISSIONS.REPORTS_READ]
 };
 

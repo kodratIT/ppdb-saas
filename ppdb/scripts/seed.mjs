@@ -8,6 +8,19 @@ if (!databaseUrl) {
 
 const pool = new Pool({ connectionString: databaseUrl });
 
+async function getOrCreateCentralTenant(client) {
+	const slug = 'admin'; // Central tenant slug
+	const existing = await client.query('select id from tenants where slug = $1', [slug]);
+	if (existing.rows.length > 0) {
+		return existing.rows[0].id;
+	}
+	const result = await client.query(
+		'insert into tenants (name, slug) values ($1, $2) returning id',
+		['PPDB-SAAS CENTRAL', slug]
+	);
+	return result.rows[0].id;
+}
+
 async function getOrCreateTenant(client) {
 	const slug = 'demo-school';
 	const existing = await client.query('select id from tenants where slug = $1', [slug]);
@@ -41,7 +54,7 @@ async function getOrCreateAdminUser(client, tenantId) {
 	return result.rows[0].id;
 }
 
-async function ensureSchoolProfile(client, tenantId) {
+async function ensureSchoolProfile(client, tenantId, schoolName = 'Demo School') {
 	const existing = await client.query('select id from school_profiles where tenant_id = $1', [
 		tenantId
 	]);
@@ -50,7 +63,7 @@ async function ensureSchoolProfile(client, tenantId) {
 	}
 	const result = await client.query(
 		'insert into school_profiles (tenant_id, name) values ($1, $2) returning id',
-		[tenantId, 'Demo School']
+		[tenantId, schoolName]
 	);
 	return result.rows[0].id;
 }
@@ -121,24 +134,30 @@ async function main() {
 	try {
 		await client.query('begin');
 
-		const tenantId = await getOrCreateTenant(client);
-		await ensureTenantContext(client, tenantId);
+		// 1. Ensure Central Tenant exists and seed Super Admin there
+		const centralTenantId = await getOrCreateCentralTenant(client);
+		await ensureTenantContext(client, centralTenantId);
+		const superAdminUserId = await ensureSuperAdminUser(client, centralTenantId);
+		await ensureSchoolProfile(client, centralTenantId, 'PPDB-SAAS CENTRAL');
 
-		const adminUserId = await getOrCreateAdminUser(client, tenantId);
-		const superAdminUserId = await ensureSuperAdminUser(client, tenantId);
-		const schoolProfileId = await ensureSchoolProfile(client, tenantId);
-		const admissionPathId = await getOrCreateAdmissionPath(client, tenantId);
-		const feeStructureId = await ensureFeeStructure(client, tenantId, admissionPathId);
+		// 2. Ensure Demo Tenant exists for testing
+		const demoTenantId = await getOrCreateTenant(client);
+		await ensureTenantContext(client, demoTenantId);
+		const adminUserId = await getOrCreateAdminUser(client, demoTenantId);
+		const schoolProfileId = await ensureSchoolProfile(client, demoTenantId);
+		const admissionPathId = await getOrCreateAdmissionPath(client, demoTenantId);
+		const feeStructureId = await ensureFeeStructure(client, demoTenantId, admissionPathId);
 
 		await client.query('commit');
 
 		console.log('Seed complete');
-		console.log('Tenant ID:', tenantId);
-		console.log('Admin user ID:', adminUserId);
-		console.log('Super admin user ID:', superAdminUserId);
-		console.log('School profile ID:', schoolProfileId);
-		console.log('Admission path ID:', admissionPathId);
-		console.log('Fee structure ID:', feeStructureId);
+		console.log('Central Tenant ID:', centralTenantId);
+		console.log('Super admin user ID (in Central):', superAdminUserId);
+		console.log('Demo Tenant ID:', demoTenantId);
+		console.log('Demo Admin user ID:', adminUserId);
+		console.log('Demo School profile ID:', schoolProfileId);
+		console.log('Demo Admission path ID:', admissionPathId);
+		console.log('Demo Fee structure ID:', feeStructureId);
 	} catch (err) {
 		await client.query('rollback');
 		console.error('Seed failed:', err);

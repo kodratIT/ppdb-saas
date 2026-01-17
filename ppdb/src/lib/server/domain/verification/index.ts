@@ -21,7 +21,7 @@ export async function getVerificationQueue(tenantId: string) {
 		with: {
 			user: true,
 			admissionPath: true,
-			uploadedDocuments: true
+			documents: true
 		},
 		orderBy: [desc(applications.submittedAt)]
 	});
@@ -36,7 +36,7 @@ export async function getApplicationForVerification(applicationId: string) {
 		with: {
 			user: true,
 			admissionPath: true,
-			uploadedDocuments: {
+			documents: {
 				with: {
 					verifier: true
 				}

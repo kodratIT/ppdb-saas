@@ -10,6 +10,8 @@
 		onclick?: (e: MouseEvent) => void;
 		type?: 'button' | 'submit' | 'reset';
 		disabled?: boolean;
+		href?: string;
+		[key: string]: any;
 	}
 
 	let {
@@ -20,6 +22,7 @@
 		onclick,
 		type = 'button',
 		disabled,
+		href,
 		...restProps
 	}: Props = $props();
 
@@ -38,21 +41,31 @@
 		lg: 'h-11 rounded-md px-8',
 		icon: 'h-10 w-10'
 	};
+
+	const baseClasses =
+		'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 </script>
 
-<button
-	class={cn(
-		'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-		variantClasses[variant],
-		sizeClasses[size],
-		className
-	)}
-	{onclick}
-	{type}
-	{disabled}
-	{...restProps}
->
-	{#if children}
-		{@render children()}
-	{/if}
-</button>
+{#if href}
+	<a
+		{href}
+		class={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)}
+		{...restProps}
+	>
+		{#if children}
+			{@render children()}
+		{/if}
+	</a>
+{:else}
+	<button
+		class={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)}
+		{onclick}
+		{type}
+		{disabled}
+		{...restProps}
+	>
+		{#if children}
+			{@render children()}
+		{/if}
+	</button>
+{/if}

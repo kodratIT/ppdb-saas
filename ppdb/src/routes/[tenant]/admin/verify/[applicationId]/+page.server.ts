@@ -25,7 +25,8 @@ export async function load({
 	const auth = await requireAuth(locals);
 	requireRole(auth, 'verifier', 'school_admin');
 
-	const { applicationId } = params;
+	const applicationId = params.applicationId;
+	if (!applicationId) throw svelteError(400, 'Application ID is required');
 
 	// Fetch application with admission path
 	const application = await db.query.applications.findFirst({
@@ -40,16 +41,19 @@ export async function load({
 	}
 
 	// Decrypt custom fields if present
-	let processedApplication = application;
+	let processedApplication: any = application;
 	if (application.customFieldValues) {
-		const values = JSON.parse(application.customFieldValues);
-		const decryptedValues = await processCustomFieldsForDisplay(
-			auth.tenantId,
-			application.admissionPathId,
-			values
-		);
-		// @ts-expect-error - processedApplication includes decrypted custom fields which might not match exact schema types
-		processedApplication = { ...application, customFieldValues: JSON.stringify(decryptedValues) };
+		try {
+			const values = JSON.parse(application.customFieldValues);
+			const decryptedValues = await processCustomFieldsForDisplay(
+				auth.tenantId,
+				application.admissionPathId,
+				values
+			);
+			processedApplication = { ...application, customFieldValues: JSON.stringify(decryptedValues) };
+		} catch (e) {
+			console.error('Failed to decrypt custom fields:', e);
+		}
 	}
 
 	// Fetch home visit report
@@ -61,12 +65,11 @@ export async function load({
 			eq(applicationDocuments.applicationId, applicationId),
 			eq(applicationDocuments.tenantId, auth.tenantId)
 		),
-		orderBy: [applicationDocuments.uploadedAt]
+		orderBy: [applicationDocuments.createdAt]
 	});
 
 	// Fetch review history for each document
 	const documentIds = documents.map((doc) => doc.id);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const reviewHistory: Record<string, any[]> = {};
 
 	for (const docId of documentIds) {
@@ -103,9 +106,10 @@ export async function load({
 export const actions = {
 	withdraw: async ({ params, locals }: RequestEvent) => {
 		const auth = await requireAuth(locals);
-		requireRole(auth, 'school_admin', 'super_admin'); // Only admins can withdraw
+		requireRole(auth, 'school_admin', 'super_admin');
 
-		const { applicationId } = params;
+		const applicationId = params.applicationId;
+		if (!applicationId) return fail(400, { message: 'Application ID is required' });
 
 		const application = await db.query.applications.findFirst({
 			where: and(eq(applications.id, applicationId), eq(applications.tenantId, auth.tenantId))
@@ -117,7 +121,6 @@ export const actions = {
 			return fail(400, { message: 'Only accepted applications can be withdrawn' });
 		}
 
-		// Update Status to Withdrawn
 		await db
 			.update(applications)
 			.set({
@@ -130,8 +133,6 @@ export const actions = {
 			reason: 'Manual withdrawal by admin'
 		});
 
-		// Trigger Waitlist Service
-		// Fire and forget or await? Better await to ensure consistency for now.
 		await WaitlistService.processVacancy(auth.tenantId, application.admissionPathId);
 
 		return { success: true };
@@ -139,37 +140,26 @@ export const actions = {
 
 	delete_permanent: async ({ params, locals }: RequestEvent) => {
 		const auth = await requireAuth(locals);
-		requireRole(auth, 'super_admin'); // Only super_admin can delete permanently
+		requireRole(auth, 'super_admin');
 
-		const { applicationId } = params;
+		const applicationId = params.applicationId;
+		if (!applicationId) return fail(400, { message: 'Application ID is required' });
 
-		// Verify existence
 		const application = await db.query.applications.findFirst({
 			where: and(eq(applications.id, applicationId), eq(applications.tenantId, auth.tenantId))
 		});
 
 		if (!application) return fail(404, { message: 'Application not found' });
 
-		// Perform Cascade Deletion Manually (if not set in DB) or Rely on DB
-		// Since we want to be safe and explicit, let's delete related records in order.
-		// Note: Many relations have ON DELETE CASCADE in schema, but some might not.
-		// Safe order: Child -> Parent
-
 		await db.transaction(async (tx) => {
-			// 1. Delete Selection Results Details
 			await tx
 				.delete(selectionResultDetails)
 				.where(eq(selectionResultDetails.applicationId, applicationId));
 
-			// 2. Delete Application Scores
 			await tx.delete(applicationScores).where(eq(applicationScores.applicationId, applicationId));
 
-			// 3. Delete Home Visit Reports (and Photos via Cascade if configured, otherwise manually)
-			// Assuming Cascade on Photos -> Report
 			await tx.delete(homeVisitReports).where(eq(homeVisitReports.applicationId, applicationId));
 
-			// 4. Delete Payment Proofs
-			// Need to find invoices first
 			const appInvoices = await tx.query.invoices.findMany({
 				where: eq(invoices.applicationId, applicationId),
 				columns: { id: true }
@@ -179,24 +169,15 @@ export const actions = {
 				await tx.delete(paymentTransactions).where(eq(paymentTransactions.invoiceId, inv.id));
 			}
 
-			// 5. Delete Invoices
 			await tx.delete(invoices).where(eq(invoices.applicationId, applicationId));
-
-			// 6. Delete Document Reviews (Cascade from Documents)
-			// 7. Delete Application Documents (Cascade from Application)
-			// But let's be explicit if needed. Schema says:
-			// applicationId: uuid('application_id').references(() => applications.id, { onDelete: 'cascade' })
-			// So deleting application should clear documents and reviews.
-
-			// 8. Delete Application
 			await tx.delete(applications).where(eq(applications.id, applicationId));
 		});
 
 		await logSensitiveAction(auth.userId, 'delete_permanent_application', applicationId, {
-			studentName: application.childFullName,
+			studentName: application.childFullName || 'N/A',
 			reason: 'Right to Erasure / GDPR Request'
 		});
 
-		throw redirect(302, `/${auth.tenantId}/admin/verify`);
+		throw redirect(302, `/${params.tenant}/admin/verify`);
 	}
 };

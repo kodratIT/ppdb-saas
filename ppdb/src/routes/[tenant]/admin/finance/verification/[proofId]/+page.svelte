@@ -2,28 +2,20 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import { formatCurrency } from '$lib/utils';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import Button from '$lib/components/ui/button.svelte';
+	import * as Card from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import {
-		Dialog,
-		DialogContent,
-		DialogDescription,
-		DialogFooter,
-		DialogHeader,
-		DialogTitle,
-		DialogTrigger
-	} from '$lib/components/ui/dialog';
+	import * as Dialog from '$lib/components/ui/dialog';
 	import { ArrowLeft, Check, X, ExternalLink, Download } from 'lucide-svelte';
 
-	export let data;
+	let { data } = $props();
 
-	$: tenant = $page.params.tenant;
+	const tenant = $derived($page.params.tenant);
 
-	let rejectReason = '';
-	let isRejectDialogOpen = false;
-	let isSubmitting = false;
+	let rejectReason = $state('');
+	let isRejectDialogOpen = $state(false);
+	let isSubmitting = $state(false);
 </script>
 
 <div class="mx-auto max-w-4xl p-6">
@@ -40,15 +32,14 @@
 
 	<div class="grid gap-6 md:grid-cols-2">
 		<!-- Proof Image Preview -->
-		<Card class="md:col-span-1">
-			<CardHeader>
-				<CardTitle>Transfer Proof</CardTitle>
-			</CardHeader>
-			<CardContent>
+		<Card.Root class="md:col-span-1">
+			<Card.Header>
+				<Card.Title>Transfer Proof</Card.Title>
+			</Card.Header>
+			<Card.Content>
 				<div
 					class="bg-muted flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-md border"
 				>
-					<!-- Validating if fileUrl is an image or other file type -->
 					{#if data.proof.fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i)}
 						<img
 							src={data.proof.fileUrl}
@@ -69,17 +60,17 @@
 						<ExternalLink class="mr-2 h-4 w-4" /> Open Original
 					</Button>
 				</div>
-			</CardContent>
-		</Card>
+			</Card.Content>
+		</Card.Root>
 
 		<!-- Details & Actions -->
 		<div class="flex flex-col gap-6">
 			<!-- Details Card -->
-			<Card>
-				<CardHeader>
-					<CardTitle>Payment Details</CardTitle>
-				</CardHeader>
-				<CardContent class="grid gap-4">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Payment Details</Card.Title>
+				</Card.Header>
+				<Card.Content class="grid gap-4">
 					<div class="grid grid-cols-2 gap-2 text-sm">
 						<span class="text-muted-foreground">Student Name:</span>
 						<span class="font-medium text-right">{data.proof.studentName}</span>
@@ -114,15 +105,15 @@
 							{data.proof.notes}
 						</div>
 					{/if}
-				</CardContent>
-			</Card>
+				</Card.Content>
+			</Card.Root>
 
 			<!-- Action Card -->
-			<Card class="border-primary/20 shadow-sm">
-				<CardHeader>
-					<CardTitle>Verification</CardTitle>
-				</CardHeader>
-				<CardContent>
+			<Card.Root class="border-primary/20 shadow-sm">
+				<Card.Header>
+					<Card.Title>Verification</Card.Title>
+				</Card.Header>
+				<Card.Content>
 					<div class="flex flex-col gap-3">
 						<form
 							method="POST"
@@ -144,26 +135,20 @@
 							</Button>
 						</form>
 
-						<Dialog bind:open={isRejectDialogOpen}>
-							<DialogTrigger asChild let:builder>
-								<Button
-									builders={[builder]}
-									variant="destructive"
-									size="lg"
-									class="w-full"
-									disabled={isSubmitting}
-								>
+						<Dialog.Root bind:open={isRejectDialogOpen}>
+							<Dialog.Trigger>
+								<Button variant="destructive" size="lg" class="w-full" disabled={isSubmitting}>
 									<X class="mr-2 h-4 w-4" /> Reject Payment
 								</Button>
-							</DialogTrigger>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>Reject Payment Proof</DialogTitle>
-									<DialogDescription>
+							</Dialog.Trigger>
+							<Dialog.Content>
+								<Dialog.Header>
+									<Dialog.Title>Reject Payment Proof</Dialog.Title>
+									<Dialog.Description>
 										Please provide a reason for rejection. This will be sent to the parent so they
 										can correct it.
-									</DialogDescription>
-								</DialogHeader>
+									</Dialog.Description>
+								</Dialog.Header>
 								<form
 									method="POST"
 									action="?/reject"
@@ -178,7 +163,7 @@
 								>
 									<div class="grid gap-4 py-4">
 										<div class="grid gap-2">
-											<Label htmlFor="reason">Reason for Rejection</Label>
+											<Label for="reason">Reason for Rejection</Label>
 											<Textarea
 												id="reason"
 												name="reason"
@@ -188,11 +173,11 @@
 											/>
 										</div>
 									</div>
-									<DialogFooter>
+									<Dialog.Footer>
 										<Button
 											type="button"
 											variant="outline"
-											on:click={() => (isRejectDialogOpen = false)}
+											onclick={() => (isRejectDialogOpen = false)}
 										>
 											Cancel
 										</Button>
@@ -203,13 +188,13 @@
 										>
 											Reject Payment
 										</Button>
-									</DialogFooter>
+									</Dialog.Footer>
 								</form>
-							</DialogContent>
-						</Dialog>
+							</Dialog.Content>
+						</Dialog.Root>
 					</div>
-				</CardContent>
-			</Card>
+				</Card.Content>
+			</Card.Root>
 		</div>
 	</div>
 </div>

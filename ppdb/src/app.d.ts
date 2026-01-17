@@ -17,17 +17,7 @@ declare global {
 				tenantId: string;
 				authType: 'firebase' | 'waha';
 				authIdentifier: string;
-				expiresAt: Date;
-				createdAt: Date;
 				role?: string;
-			};
-			session?: {
-				id: string;
-				userId: string;
-				tenantId: string;
-				authType: 'firebase' | 'waha';
-				authIdentifier: string;
-				role: string;
 				expiresAt: Date;
 				createdAt: Date;
 			};
@@ -49,13 +39,13 @@ declare global {
 		}
 		interface Platform {
 			env: {
-				TENANTS_KV: KVNamespace;
-				DOCUMENTS_BUCKET: R2Bucket;
+				TENANTS_KV: any; // KVNamespace
+				DOCUMENTS_BUCKET: any; // R2Bucket
 			};
 			context: {
 				waitUntil(promise: Promise<unknown>): void;
 			};
-			caches: CacheStorage & { default: Cache };
+			caches: any; // CacheStorage & { default: Cache };
 		}
 	}
 }

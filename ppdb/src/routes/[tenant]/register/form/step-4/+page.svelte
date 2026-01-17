@@ -8,13 +8,15 @@
 
 	let { data, form } = $props();
 
-	let currentStep = 'summary'; // 'summary' | 'otp' | 'verified'
+	const customValues = $derived(JSON.parse(data.draft?.customFieldValues || '{}'));
+
+	let currentStep = $state('summary'); // 'summary' | 'otp' | 'verified'
 	let sessionId = $state<string | null>(null);
 	let phoneNumber = $state(data.draft?.parentPhone || '');
 	let otpCode = $state('');
 	let sendingOTP = $state(false);
-	// let verifyingOTP = $state(false);
-	// let otpSent = $state(false);
+	let verifyingOTP = $state(false);
+	let otpSent = $state(false);
 	let countdown = $state(0);
 	let countdownInterval: number | null = null;
 
@@ -31,7 +33,7 @@
 				body: formData
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as any;
 
 			if (result.success) {
 				sessionId = result.sessionId;
@@ -72,7 +74,7 @@
 			if (response.ok) {
 				currentStep = 'verified';
 			} else {
-				const result = await response.json();
+				const result = (await response.json()) as any;
 				alert(result.error || 'Kode OTP tidak valid');
 				otpCode = '';
 			}
@@ -167,7 +169,7 @@
 					<span class="text-gray-500">WhatsApp:</span>
 					<span class="font-medium">{data.draft.parentPhone}</span>
 					<span class="text-gray-500">Email:</span>
-					<span class="font-medium">{data.draft.parentEmail || '-'}</span>
+					<span class="font-medium">{customValues.parent_email || '-'}</span>
 				</div>
 			</section>
 
@@ -175,10 +177,10 @@
 			<section>
 				<h3 class="text-lg font-semibold border-b pb-2 mb-4">Alamat</h3>
 				<div class="text-sm">
-					<p class="font-medium">{data.draft.address}</p>
+					<p class="font-medium">{customValues.address || '-'}</p>
 					<p class="text-gray-600">
-						{data.draft.city}, {data.draft.province}
-						{data.draft.postalCode || ''}
+						{customValues.city || ''}, {customValues.province || ''}
+						{customValues.postalCode || ''}
 					</p>
 				</div>
 			</section>

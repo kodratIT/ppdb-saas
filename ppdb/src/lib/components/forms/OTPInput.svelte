@@ -6,15 +6,15 @@
 		length = 6,
 		value = $bindable(''),
 		disabled = false,
-		error = false
+		error = false,
+		oncomplete
 	}: {
 		length?: number;
 		value?: string;
 		disabled?: boolean;
 		error?: boolean;
+		oncomplete?: (code: string) => void;
 	} = $props();
-
-	const dispatch = createEventDispatcher();
 
 	let inputs = $state<HTMLInputElement[]>([]);
 	let digits = $state<string[]>(Array(length).fill(''));
@@ -33,7 +33,7 @@
 		if (newValue !== value) {
 			value = newValue;
 			if (newValue.length === length) {
-				dispatch('complete', newValue);
+				oncomplete?.(newValue);
 			}
 		}
 	});

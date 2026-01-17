@@ -23,9 +23,32 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	const reserved = ['www', 'app', 'api', 'admin', 'super-admin'];
+	const reserved = [
+		'www',
+		'app',
+		'api',
+		'admin',
+		'super-admin',
+		'sign-in',
+		'sign-up',
+		'test-css',
+		'dashboard'
+	];
 	if (reserved.includes(subdomain)) {
 		subdomain = '';
+	}
+
+	// Try path-based resolution if no subdomain
+	if (!subdomain) {
+		const pathParts = event.url.pathname.split('/');
+		if (pathParts.length > 1 && pathParts[1] && !reserved.includes(pathParts[1])) {
+			// Basic check: if it looks like a slug (not a static asset or common route)
+			const possibleSlug = pathParts[1];
+			const staticAssets = ['favicon.ico', 'robots.txt', 'images', 'fonts', 'api'];
+			if (!staticAssets.includes(possibleSlug)) {
+				subdomain = possibleSlug;
+			}
+		}
 	}
 
 	if (subdomain) {

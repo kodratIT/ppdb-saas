@@ -40,7 +40,7 @@ export class RankingService {
 				id: applications.id,
 				name: applications.childFullName,
 				dob: applications.childDob,
-				distance: applications.distance_m,
+				distance: applications.distanceM,
 				status: applications.status,
 				score: applicationScores.score
 			})
@@ -48,8 +48,9 @@ export class RankingService {
 			.leftJoin(applicationScores, eq(applications.id, applicationScores.applicationId))
 			.where(and(eq(applications.admissionPathId, pathId), eq(applications.status, 'verified')))
 			.orderBy(
-				desc(applicationScores.score),
-				asc(applications.distance_m) // Closer is better
+				desc(applicationScores.score), // Primary: higher score
+				asc(applications.distanceM), // Secondary: shorter distance
+				asc(applications.childDob) // Tertiary: older (earlier dob)
 			);
 
 		// 3. Process candidates
@@ -136,6 +137,7 @@ export class RankingService {
 				selectionResultId: result.id,
 				applicationId: candidate.id,
 				rank: candidate.rank,
+				totalScore: candidate.score.toString(),
 				status: candidate.estimatedStatus
 			});
 		}
