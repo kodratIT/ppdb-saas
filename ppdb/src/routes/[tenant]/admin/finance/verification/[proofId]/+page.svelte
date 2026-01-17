@@ -6,7 +6,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import * as Dialog from '$lib/components/ui/dialog';
+	import * as Dialog from '$lib/components/ui/dialog/index';
 	import { ArrowLeft, Check, X, ExternalLink, Download } from 'lucide-svelte';
 
 	let { data } = $props();

@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { tenants, schoolProfiles } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { getGlobalBranding } from '$lib/server/domain/admin/branding';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const tenant = await db.query.tenants.findFirst({
@@ -17,8 +18,11 @@ export const load: PageServerLoad = async ({ params }) => {
 		where: eq(schoolProfiles.tenantId, tenant.id)
 	});
 
+	const branding = await getGlobalBranding();
+
 	return {
 		tenant,
-		profile
+		profile,
+		branding
 	};
 };

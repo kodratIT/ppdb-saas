@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
-import { tenants, auditLogs, users, invoices } from '$lib/server/db/schema';
-import { sql, eq, count } from 'drizzle-orm';
+import { tenants, auditLogs, users, invoices, applications } from '$lib/server/db/schema';
+import { sql, eq, count, and } from 'drizzle-orm';
 
 export async function createTenant(data: { name: string; slug: string }, actorId: string) {
 	const reserved = ['www', 'app', 'api', 'admin', 'super-admin'];
@@ -18,17 +18,59 @@ export async function createTenant(data: { name: string; slug: string }, actorId
 		.returning();
 
 	// Create Audit Log
-	await db
-		.insert(auditLogs)
-		.values({
-			actorId,
-			action: 'create_tenant',
-			target: `tenant:${data.slug}`,
-			details: JSON.stringify({ name: data.name, id: newTenant.id })
-		})
-		.returning();
+	await db.insert(auditLogs).values({
+		actorId,
+		action: 'create_tenant',
+		target: `tenant:${data.slug}`,
+		details: JSON.stringify({ name: data.name, id: newTenant.id })
+	});
 
 	return newTenant;
+}
+
+export async function listTenantsWithStats() {
+	// Fetch all tenants
+	const allTenants = await db.select().from(tenants);
+
+	// Enrich with stats
+	const enrichedTenants = await Promise.all(
+		allTenants.map(async (tenant) => {
+			const [appCount] = await db
+				.select({ count: count() })
+				.from(applications)
+				.where(eq(applications.tenantId, tenant.id));
+
+			const [paidInvoices] = await db
+				.select({ count: count() })
+				.from(invoices)
+				.where(and(eq(invoices.tenantId, tenant.id), eq(invoices.status, 'PAID')));
+
+			return {
+				...tenant,
+				stats: {
+					applications: appCount.count,
+					paidInvoices: paidInvoices.count
+				}
+			};
+		})
+	);
+
+	return enrichedTenants;
+}
+
+export async function updateTenantStatus(
+	tenantId: string,
+	status: 'active' | 'inactive',
+	actorId: string
+) {
+	await db.update(tenants).set({ status, updatedAt: new Date() }).where(eq(tenants.id, tenantId));
+
+	await db.insert(auditLogs).values({
+		actorId,
+		action: 'update_tenant_status',
+		target: `tenant:${tenantId}`,
+		details: JSON.stringify({ status })
+	});
 }
 
 export async function listTenants() {
@@ -47,9 +89,6 @@ export async function getDashboardStats() {
 		.where(eq(users.role, 'parent'));
 
 	// 3. Total Invoices/Transactions (Paid)
-	// Assuming invoices table exists based on previous context, even if not fully visible in recent snippet.
-	// If invoices table doesn't exist in schema import, I should check schema again.
-	// Based on schema read, invoices exists.
 	const [transactionsCount] = await db
 		.select({ count: count() })
 		.from(invoices)

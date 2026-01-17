@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 
-	export let school: any;
-	export let tenant: any;
+	let { school, tenant, branding } = $props();
 
 	const steps = [
 		{ title: 'Registrasi Akun', desc: 'Daftar menggunakan nomor WhatsApp aktif.' },
@@ -17,8 +16,8 @@
 	<div class="bg-[#002C5F] text-white py-2 px-4 md:px-8 text-sm flex justify-between items-center">
 		<span>Penerimaan Peserta Didik Baru (PPDB) Online</span>
 		<div class="hidden md:flex gap-4">
-			<a href="/faq" class="hover:underline">Bantuan</a>
-			<a href="/contact" class="hover:underline">Kontak Kami</a>
+			<a href="/faq" class="hover:underline text-xs">Bantuan</a>
+			<a href="/contact" class="hover:underline text-xs">Kontak Kami</a>
 		</div>
 	</div>
 
@@ -38,12 +37,12 @@
 		<div class="flex gap-4">
 			<a
 				href="/sign-in"
-				class="px-4 py-2 text-[#002C5F] font-semibold hover:bg-gray-50 rounded transition-colors"
+				class="px-4 py-2 text-[#002C5F] font-semibold hover:bg-gray-50 rounded transition-colors text-sm self-center"
 				>Masuk</a
 			>
 			<a
 				href="/{tenant?.slug}/register"
-				class="bg-[#002C5F] text-white px-6 py-2 rounded font-semibold hover:bg-[#001A3A] transition-colors shadow-md"
+				class="bg-[#002C5F] text-white px-6 py-2 rounded font-semibold hover:bg-[#001A3A] transition-colors shadow-md text-sm"
 			>
 				Daftar Sekarang
 			</a>
@@ -80,7 +79,7 @@
 				<div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20">
 					<div class="bg-white rounded-lg p-6 shadow-2xl">
 						<h3 class="text-[#002C5F] font-bold text-xl mb-4 border-b pb-2">Informasi Penting</h3>
-						<ul class="text-gray-700 space-y-3">
+						<ul class="text-gray-700 space-y-3 text-sm">
 							<li class="flex items-start gap-2">
 								<span class="text-blue-600 font-bold">•</span>
 								Pastikan data yang diinput sesuai KK & Ijazah.
@@ -119,7 +118,7 @@
 						</div>
 						<div class="relative z-10">
 							<h4 class="font-bold text-xl text-[#002C5F] mb-3">{step.title}</h4>
-							<p class="text-gray-600 leading-relaxed">{step.desc}</p>
+							<p class="text-gray-600 text-sm leading-relaxed">{step.desc}</p>
 						</div>
 					</div>
 				{/each}
@@ -127,61 +126,59 @@
 		</div>
 	</section>
 
-	<!-- Info Section -->
-	<section class="py-20 px-4 md:px-8">
-		<div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-12 text-center">
-			<div>
-				<div
-					class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl"
-				>
-					✓
-				</div>
-				<h4 class="font-bold text-lg mb-2 text-[#002C5F]">Transparansi Data</h4>
-				<p class="text-gray-500">
-					Hasil seleksi dapat dipantau secara langsung dan terbuka oleh publik.
-				</p>
-			</div>
-			<div>
-				<div
-					class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl"
-				>
-					🔒
-				</div>
-				<h4 class="font-bold text-lg mb-2 text-[#002C5F]">Keamanan Data</h4>
-				<p class="text-gray-500">Data pendaftar tersimpan dengan enkripsi standar industri.</p>
-			</div>
-			<div>
-				<div
-					class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl"
-				>
-					📱
-				</div>
-				<h4 class="font-bold text-lg mb-2 text-[#002C5F]">Akses Mudah</h4>
-				<p class="text-gray-500">
-					Pendaftaran dapat dilakukan dari mana saja melalui perangkat seluler.
-				</p>
-			</div>
-		</div>
-	</section>
-
 	<!-- Footer -->
 	<footer class="bg-[#001A3A] text-white py-12 px-4 md:px-8">
-		<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-			<div>
-				<div class="flex items-center gap-3 mb-4">
-					{#if school.logoUrl}
-						<img src={school.logoUrl} alt="Logo" class="h-10 w-10 brightness-0 invert" />
-					{/if}
-					<span class="font-bold text-xl uppercase tracking-tighter">{school.name}</span>
+		<div class="max-w-7xl mx-auto">
+			<div
+				class="flex flex-col md:flex-row justify-between items-start gap-12 pb-12 border-b border-white/10 mb-8"
+			>
+				<div>
+					<div class="flex items-center gap-3 mb-4">
+						{#if school.logoUrl}
+							<img src={school.logoUrl} alt="Logo" class="h-10 w-10 brightness-0 invert" />
+						{/if}
+						<span class="font-bold text-xl uppercase tracking-tighter">{school.name}</span>
+					</div>
+					<p class="text-blue-300 opacity-60 text-sm italic max-w-md">
+						Portal pendaftaran resmi sekolah yang dikelola secara profesional untuk menjamin
+						transparansi data.
+					</p>
 				</div>
-				<p class="text-blue-300 opacity-60 text-sm italic">
-					© 2026 Portal PPDB Terintegrasi. Dikembangkan secara profesional.
-				</p>
+				<div class="flex gap-12 text-sm">
+					<div>
+						<h5 class="font-bold mb-4 uppercase tracking-widest text-xs text-blue-400">Navigasi</h5>
+						<ul class="space-y-2 opacity-80">
+							<li><a href="#" class="hover:text-white transition-colors">Beranda</a></li>
+							<li><a href="#" class="hover:text-white transition-colors">Alur</a></li>
+							<li><a href="#" class="hover:text-white transition-colors">Bantuan</a></li>
+						</ul>
+					</div>
+					<div>
+						<h5 class="font-bold mb-4 uppercase tracking-widest text-xs text-blue-400">Legal</h5>
+						<ul class="space-y-2 opacity-80">
+							<li><a href="#" class="hover:text-white transition-colors">Privasi</a></li>
+							<li><a href="#" class="hover:text-white transition-colors">Syarat</a></li>
+						</ul>
+					</div>
+				</div>
 			</div>
-			<div class="flex gap-8 text-sm">
-				<a href="#" class="text-blue-200 hover:text-white transition-colors">Kebijakan Privasi</a>
-				<a href="#" class="text-blue-200 hover:text-white transition-colors">Syarat & Ketentuan</a>
-				<a href="#" class="text-blue-200 hover:text-white transition-colors">Panduan User</a>
+			<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+				<p class="text-blue-300 opacity-60 text-xs italic">
+					© 2026 {school.name}. Seluruh hak cipta dilindungi.
+				</p>
+				<div
+					class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all group"
+				>
+					<span class="text-[10px] font-bold uppercase tracking-widest text-blue-200"
+						>System by</span
+					>
+					<span class="font-black text-xs uppercase tracking-tighter italic text-white"
+						>{branding?.brandName || 'PPDB-SAAS'}</span
+					>
+					{#if branding?.logoUrl}
+						<img src={branding.logoUrl} alt="System Logo" class="h-4 w-4 object-contain" />
+					{/if}
+				</div>
 			</div>
 		</div>
 	</footer>

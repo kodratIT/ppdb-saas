@@ -2,8 +2,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import DoodleLayer from './DoodleLayer.svelte';
 
-	export let school: any;
-	export let tenant: any;
+	let { school, tenant, branding } = $props();
 
 	const bentoItems = [
 		{
@@ -67,7 +66,7 @@
 			<span class="text-stroke-3">SAT-SET TERUS!</span>
 		</h1>
 		<p class="text-xl md:text-2xl font-bold max-w-2xl mx-auto mb-10">
-			{school.description || 'Portal pendaftaran siswa baru masa kini.'}
+			{school.description}
 		</p>
 		<div class="flex flex-wrap justify-center gap-6">
 			<a
@@ -98,19 +97,27 @@
 	>
 		<div>
 			<h4 class="text-4xl font-black uppercase mb-4 italic">No Cap. No Bureaucracy.</h4>
-			<p class="font-bold opacity-70">© 2026 {school.name} x PPDB-SAAS. All rights reserved.</p>
+			<p class="font-bold opacity-70 mb-2">© 2026 {school.name}. All rights reserved.</p>
+			<div
+				class="flex items-center gap-2 pt-4 border-t border-black/10 mt-4 opacity-50 grayscale hover:opacity-100 transition-all"
+			>
+				<span class="text-[10px] font-black uppercase tracking-widest">Powered by</span>
+				<div class="bg-black text-white px-2 py-0.5 text-[10px] font-black italic">
+					{branding?.brandName || 'PPDB-SAAS'}
+				</div>
+			</div>
 		</div>
 		<div class="flex gap-10">
 			<div>
-				<p class="font-black uppercase mb-2">Socials</p>
-				<ul class="font-bold">
+				<p class="font-black uppercase mb-2 text-xs">Socials</p>
+				<ul class="font-bold text-sm">
 					<li><a href="#" class="hover:underline">Instagram</a></li>
 					<li><a href="#" class="hover:underline">TikTok</a></li>
 				</ul>
 			</div>
 			<div>
-				<p class="font-black uppercase mb-2">Help</p>
-				<ul class="font-bold">
+				<p class="font-black uppercase mb-2 text-xs">Help</p>
+				<ul class="font-bold text-sm">
 					<li><a href="#" class="hover:underline">WhatsApp CS</a></li>
 					<li><a href="#" class="hover:underline">FAQ</a></li>
 				</ul>

@@ -9,6 +9,8 @@
 	const tenant = $derived(data?.tenant);
 	// @ts-ignore
 	const profile = $derived(data?.profile);
+	// @ts-ignore
+	const branding = $derived(data?.branding);
 
 	// Get theme from landingPageConfig or default to 'formal'
 	const config = $derived((profile?.landingPageConfig as any) || {});
@@ -28,7 +30,7 @@
 </svelte:head>
 
 {#if activeTheme === 'gen-z'}
-	<GenZTheme school={schoolData} {tenant} />
+	<GenZTheme school={schoolData} {tenant} {branding} />
 {:else}
-	<FormalTheme school={schoolData} {tenant} />
+	<FormalTheme school={schoolData} {tenant} {branding} />
 {/if}
