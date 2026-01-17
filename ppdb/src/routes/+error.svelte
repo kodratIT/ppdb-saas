@@ -4,22 +4,21 @@
 	import { ShieldAlert, ArrowLeft, Home, Lock } from 'lucide-svelte';
 
 	const status = $derived($page.status);
-	const message = $derived($page.error?.message || 'Something went wrong');
 
 	const errorDetails: Record<number, { title: string; desc: string; icon: any }> = {
 		403: {
-			title: 'Akses Terbatas',
-			desc: 'Maaf, Anda tidak memiliki izin untuk mengakses area ini. Halaman ini dikhususkan untuk Administrator Sistem tingkat tinggi.',
+			title: 'Akses Ditolak',
+			desc: 'Anda tidak memiliki otoritas untuk mengakses sumber daya ini. Silakan hubungi administrator jika Anda merasa ini adalah kesalahan.',
 			icon: Lock
 		},
 		404: {
-			title: 'Halaman Tidak Ditemukan',
-			desc: 'Maaf, alamat yang Anda tuju tidak tersedia atau telah dipindahkan ke lokasi lain.',
+			title: 'Halaman Tidak Tersedia',
+			desc: 'Maaf, halaman yang Anda cari tidak dapat ditemukan atau telah berpindah alamat.',
 			icon: ShieldAlert
 		},
 		500: {
-			title: 'Gangguan Sistem',
-			desc: 'Terjadi kesalahan internal pada server kami. Tim teknis telah diberitahu mengenai masalah ini.',
+			title: 'Kendala Teknis',
+			desc: 'Terjadi kesalahan pada sistem kami. Mohon mencoba beberapa saat lagi.',
 			icon: ShieldAlert
 		}
 	};
@@ -27,7 +26,7 @@
 	const currentError = $derived(
 		errorDetails[status] || {
 			title: 'Terjadi Kesalahan',
-			desc: message,
+			desc: 'Permintaan Anda tidak dapat diproses saat ini.',
 			icon: ShieldAlert
 		}
 	);
