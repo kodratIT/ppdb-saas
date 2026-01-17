@@ -4,7 +4,8 @@
 	import StatsCard from '$lib/components/admin/StatsCard.svelte';
 	import RecentTenantsTable from '$lib/components/admin/RecentTenantsTable.svelte';
 	import { formatCurrency } from '$lib/utils';
-	import { TrendingUp, Users, CreditCard, DollarSign, School, Activity } from 'lucide-svelte';
+	import Button from '$lib/components/ui/button.svelte';
+	import { TrendingUp, Users, CreditCard, DollarSign, School } from 'lucide-svelte';
 
 	let { data } = $props<{ data: PageData }>();
 

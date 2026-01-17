@@ -97,8 +97,9 @@ export const actions: Actions = {
 				return fail(error.statusCode, { error: error.message });
 			}
 			
-			console.error('Sign-in error:', error);
-			return fail(500, { error: 'An error occurred during sign-in' });
+			console.error('Sign-in error details:', error);
+			// @ts-expect-error - Error type unknown
+			return fail(500, { error: `Error: ${error.message || 'Unknown error'}` });
 		}
 	}
 };
