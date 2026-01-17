@@ -9,7 +9,14 @@ import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.session) {
-		throw redirect(302, '/admin');
+		if (locals.session.role === 'super_admin') {
+			throw redirect(302, '/admin');
+		}
+		const slug = locals.tenant?.slug;
+		if (slug) {
+			throw redirect(302, `/${slug}/admin`);
+		}
+		throw redirect(302, '/');
 	}
 
 	return {};
@@ -29,14 +36,6 @@ export const actions: Actions = {
 			return fail(400, { error: 'Password is required' });
 		}
 
-		if (!email.includes('@')) {
-			return fail(400, { error: 'Invalid email format' });
-		}
-
-		if (password.length < 6) {
-			return fail(400, { error: 'Password must be at least 6 characters' });
-		}
-
 		try {
 			const firebaseUser = await authenticateFirebaseUser(email, password);
 
@@ -52,36 +51,32 @@ export const actions: Actions = {
 
 			const user = existingUsers[0];
 
-			// If we're on the root domain, only super_admins can log in
-			// and they get associated with the 'admin' tenant.
+			// GLOBAL OVERRIDE: Super Admin must ALWAYS use the 'admin' tenant
 			let targetTenantId = locals.tenantId;
+			let isCentralAdmin = user.role === 'super_admin';
 
-			if (!targetTenantId) {
-				if (user.role === 'super_admin') {
-					// Fetch central admin tenant ID
-					const centralTenant = await db.query.tenants.findFirst({
-						where: eq(tenants.slug, 'admin')
-					});
-					if (!centralTenant) {
-						return fail(500, { error: 'System configuration error: central tenant not found' });
-					}
-					targetTenantId = centralTenant.id;
-				} else {
-					return fail(403, {
-						error:
-							'Pendaftaran sekolah atau login admin sekolah harus melalui URL sekolah masing-masing.'
-					});
+			if (isCentralAdmin) {
+				const centralTenant = await db.query.tenants.findFirst({
+					where: eq(tenants.slug, 'admin')
+				});
+				if (!centralTenant) {
+					return fail(500, { error: 'System error: central tenant not found' });
 				}
+				targetTenantId = centralTenant.id;
 			} else {
-				// Verify user belongs to this tenant or is super_admin
-				if (user.tenantId !== targetTenantId && user.role !== 'super_admin') {
+				// Regular users must be in a tenant context
+				if (!targetTenantId) {
+					return fail(403, { error: 'Silakan masuk melalui URL sekolah Anda.' });
+				}
+				// Regular users must belong to the current tenant
+				if (user.tenantId !== targetTenantId) {
 					return fail(403, { error: 'Akun Anda tidak terdaftar di sekolah ini.' });
 				}
 			}
 
 			const session = await createSession({
 				userId: user.id,
-				tenantId: targetTenantId,
+				tenantId: targetTenantId as string,
 				authType: 'firebase',
 				authIdentifier: firebaseUser.uid
 			});
@@ -94,48 +89,26 @@ export const actions: Actions = {
 				maxAge: 30 * 24 * 60 * 60 // 30 days
 			});
 
-			// Redirect based on role
-			const role = user.role;
-
-			if (role === 'super_admin') {
+			// REDIRECT LOGIC
+			if (isCentralAdmin) {
 				throw redirect(302, '/admin');
 			}
 
 			const slug = locals.tenant?.slug;
-			if (!slug) {
-				// If we have no slug in locals but have a tenantId from user
-				const tenant = await db.query.tenants.findFirst({
-					where: eq(tenants.id, user.tenantId)
-				});
-				if (tenant) {
-					if (['school_admin', 'verifier', 'treasurer', 'interviewer'].includes(role)) {
-						throw redirect(302, `/${tenant.slug}/admin`);
-					} else {
-						throw redirect(302, `/${tenant.slug}/dashboard`);
-					}
-				}
-				throw redirect(302, '/');
-			}
-
-			if (['school_admin', 'verifier', 'treasurer', 'interviewer'].includes(role)) {
+			if (['school_admin', 'verifier', 'treasurer', 'interviewer'].includes(user.role || '')) {
 				throw redirect(302, `/${slug}/admin`);
 			} else {
-				// Parent
 				throw redirect(302, `/${slug}/dashboard`);
 			}
 		} catch (error) {
 			if (isRedirect(error)) throw error;
 
 			if (error instanceof AuthError) {
-				if (error.statusCode === 401) {
-					return fail(error.statusCode, { error: 'Authentication failed' });
-				}
-				return fail(error.statusCode, { error: error.message });
+				return fail(error.statusCode || 401, { error: error.message });
 			}
 
-			console.error('Sign-in error details:', error);
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-			return fail(500, { error: `Error: ${errorMessage}` });
+			console.error('Sign-in error:', error);
+			return fail(500, { error: `Error: ${error instanceof Error ? error.message : 'Unknown'}` });
 		}
 	}
 };
