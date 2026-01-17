@@ -7,59 +7,29 @@
 	import { formatCurrency } from '$lib/utils';
 	import Button from '$lib/components/ui/button.svelte';
 	import {
-		TrendingUp,
 		Users,
 		CreditCard,
 		DollarSign,
 		School,
-		Activity,
 		CheckCircle2,
 		Percent,
 		BarChart3,
 		Clock
 	} from 'lucide-svelte';
 
-	import RevenueTrendChart from '$lib/components/admin/charts/RevenueTrendChart.svelte';
-	import ConversionFunnel from '$lib/components/admin/charts/ConversionFunnel.svelte';
-	import RealTimePanel from '$lib/components/admin/RealTimePanel.svelte';
-
 	let { data } = $props<{ data: PageData }>();
 	let stats = $derived(data.stats);
-
-	const onlineUsers = 1240; // Simulated
-	const newRegToday = 145; // Simulated
-	const pendingVerifications = stats.tenants.list.filter((t) => t.status === 'PENDING').length;
-	const criticalActions = [
-		{ id: '1', title: 'Global Islamic School', time: '2h ago', type: 'verification' as const },
-		{ id: '2', title: 'St. Mary Academy', time: '4h ago', type: 'verification' as const },
-		{ id: '3', title: 'Highland Primary', time: '5h ago', type: 'verification' as const }
-	];
-
-	const revenueData = $derived(stats.financial.dailyRevenue.map((d: any) => Number(d.amount)));
-	const revenueLabels = $derived(
-		stats.financial.dailyRevenue.map((d: any) => {
-			const date = new Date(d.date);
-			return `${date.getDate()}/${date.getMonth() + 1}`;
-		})
-	);
-
-	const funnelSteps = [
-		{ label: 'Registration', value: 2450, color: 'bg-blue-500' },
-		{ label: 'Verification', value: 1820, color: 'bg-indigo-500' },
-		{ label: 'Payment', value: 1240, color: 'bg-violet-500' },
-		{ label: 'Completion', value: 1100, color: 'bg-emerald-500' }
-	];
 
 	const maxDailyRevenue = $derived(
 		Math.max(...(stats.financial.dailyRevenue?.map((d: any) => Number(d.amount)) || [0]), 1)
 	);
+
+	const pendingVerifications = $derived(
+		stats.tenants.list.filter((t: any) => t.status === 'PENDING').length
+	);
 </script>
 
 <DashboardLayout>
-	{#snippet rightPanel()}
-		<RealTimePanel {onlineUsers} {newRegToday} {pendingVerifications} {criticalActions} />
-	{/snippet}
-
 	<div class="space-y-8">
 		<!-- Header -->
 		<div class="flex justify-between items-end">
@@ -119,7 +89,7 @@
 
 			<KPICard
 				title="Verification Queue"
-				value={24}
+				value={pendingVerifications}
 				subtitle="Pending schools"
 				trendDirection="neutral"
 			>
@@ -157,74 +127,41 @@
 			</KPICard>
 		</div>
 
-		<!-- Rest of the dashboard content... -->
+		<!-- Charts & Market Leaders -->
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 			<!-- Revenue Trend Chart -->
 			<div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
 				<div class="flex justify-between items-center mb-6">
-					<div>
-						<h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
-							Revenue Velocity
-						</h3>
-						<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-							Financial Growth Pulse
-						</p>
-					</div>
-					<div class="flex items-center gap-2">
-						<span class="flex items-center gap-1 text-[10px] font-bold text-emerald-500">
-							<TrendingUp class="w-3 h-3" />
-							+12.5%
-						</span>
-						<div class="h-4 w-px bg-slate-200 mx-1"></div>
-						<div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-							Last 30 Days
-						</div>
-					</div>
-				</div>
-
-				<div class="h-64">
-					{#if revenueData.length > 0}
-						<RevenueTrendChart
-							data={revenueData}
-							labels={revenueLabels}
-							height={256}
-							color="#3b82f6"
-						/>
-					{:else}
-						<div
-							class="h-full flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest italic opacity-50"
-						>
-							Not enough data to display trend
-						</div>
-					{/if}
-				</div>
-			</div>
-
-			<!-- Conversion Funnel -->
-			<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-				<div class="mb-8">
 					<h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
-						Conversion Funnel
+						Revenue Velocity
 					</h3>
-					<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-						Application Lifecycle
-					</p>
+					<div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+						Last 30 Days
+					</div>
 				</div>
-				<ConversionFunnel steps={funnelSteps} />
+				<div class="h-64 flex items-end gap-1">
+					{#each stats.financial.dailyRevenue as day}
+						<div
+							class="flex-1 bg-slate-100 hover:bg-blue-500 transition-colors rounded-t-sm group relative"
+							style="height: {(Number(day.amount) / maxDailyRevenue) * 100}%"
+						>
+							<div
+								class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10"
+							>
+								{formatCurrency(Number(day.amount))}
+							</div>
+						</div>
+					{/each}
+				</div>
 			</div>
 
 			<!-- Market Leaders -->
-			<div class="lg:col-span-2 bg-slate-900 text-white p-6 rounded-xl shadow-sm">
-				<div class="flex justify-between items-center mb-6">
-					<h3 class="text-sm font-bold uppercase tracking-wider">Market Leaders</h3>
-					<div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-						Top Performance
-					</div>
-				</div>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+			<div class="bg-slate-900 text-white p-6 rounded-xl shadow-sm">
+				<h3 class="text-sm font-bold uppercase tracking-wider mb-6">Market Leaders</h3>
+				<div class="space-y-4">
 					{#each stats.financial.topSchools as school, i}
 						<div
-							class="flex items-center justify-between pb-3 border-b border-slate-800 last:border-0 md:[&:nth-last-child(2)]:border-0"
+							class="flex items-center justify-between pb-3 border-b border-slate-800 last:border-0"
 						>
 							<div class="flex items-center gap-3">
 								<span class="text-[10px] font-bold text-slate-500">0{i + 1}</span>
@@ -236,26 +173,6 @@
 							<p class="text-xs font-bold">{formatCurrency(Number(school.revenue))}</p>
 						</div>
 					{/each}
-				</div>
-			</div>
-
-			<!-- Active Nodes (Placeholder for future expansion) -->
-			<div class="bg-blue-600 text-white p-6 rounded-xl shadow-sm flex flex-col justify-between">
-				<div>
-					<h3 class="text-sm font-bold uppercase tracking-wider mb-2">Regional Distribution</h3>
-					<p class="text-xs text-blue-100 font-medium">System nodes active across 12 provinces.</p>
-				</div>
-				<div class="mt-8 flex justify-center">
-					<Activity class="w-16 h-16 opacity-20 animate-pulse" />
-				</div>
-				<div class="mt-8 pt-4 border-t border-white/10">
-					<Button
-						variant="ghost"
-						size="sm"
-						class="w-full text-[10px] font-bold uppercase text-white hover:bg-white/10"
-					>
-						View Network Map
-					</Button>
 				</div>
 			</div>
 		</div>

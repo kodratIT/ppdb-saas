@@ -3,7 +3,8 @@
 	import DashboardSidebar from './DashboardSidebar.svelte';
 	import { History, Zap, Activity } from 'lucide-svelte';
 
-	let { children, rightPanel } = $props();
+	let { children, rightPanel }: { children: Snippet; rightPanel?: Snippet } = $props();
+	import type { Snippet } from 'svelte';
 </script>
 
 <div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
