@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, isRedirect } from '@sveltejs/kit';
 import { authenticateFirebaseUser } from '$lib/server/auth/firebase';
 import { createSession } from '$lib/server/auth/session';
 import { AuthError } from '$lib/server/auth/types';
@@ -96,12 +96,7 @@ export const actions: Actions = {
 				}
 				return fail(error.statusCode, { error: error.message });
 			}
-			// SvelteKit 2 redirect handling
-			const err = error as { status?: number; location?: string };
-			if (err.status && err.location) {
-				throw error;
-			}
-
+			
 			console.error('Sign-in error:', error);
 			return fail(500, { error: 'An error occurred during sign-in' });
 		}

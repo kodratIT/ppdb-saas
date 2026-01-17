@@ -25,8 +25,9 @@
 			class="space-y-6"
 			use:enhance={() => {
 				loading = true;
-				return async () => {
+				return async ({ update }) => {
 					loading = false;
+					await update();
 				};
 			}}
 		>

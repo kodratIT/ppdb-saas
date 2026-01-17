@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { tenants, auditLogs, users, invoices, applications } from '$lib/server/db/schema';
-import { sql, eq, count, and } from 'drizzle-orm';
+import { sql, eq, count, and, gte, desc } from 'drizzle-orm';
 
 export async function createTenant(data: { name: string; slug: string }, actorId: string) {
 	const reserved = ['www', 'app', 'api', 'admin', 'super-admin'];
@@ -100,18 +100,50 @@ export async function getDashboardStats() {
 		.from(invoices)
 		.where(eq(invoices.status, 'PAID'));
 
+	// 5. Revenue Trend (Last 30 days)
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+	const dailyRevenue = await db
+		.select({
+			date: sql<string>`DATE(${invoices.createdAt})`,
+			amount: sql<number>`sum(${invoices.amount})`
+		})
+		.from(invoices)
+		.where(and(eq(invoices.status, 'PAID'), gte(invoices.createdAt, thirtyDaysAgo)))
+		.groupBy(sql`DATE(${invoices.createdAt})`)
+		.orderBy(sql`DATE(${invoices.createdAt})`);
+
+	// 6. Top Performing Schools
+	const topSchools = await db
+		.select({
+			id: tenants.id,
+			name: tenants.name,
+			slug: tenants.slug,
+			appCount: count(applications.id),
+			revenue: sql<number>`sum(CASE WHEN ${invoices.status} = 'PAID' THEN ${invoices.amount} ELSE 0 END)`
+		})
+		.from(tenants)
+		.leftJoin(applications, eq(tenants.id, applications.tenantId))
+		.leftJoin(invoices, eq(tenants.id, invoices.tenantId))
+		.groupBy(tenants.id)
+		.orderBy(desc(sql`revenue`))
+		.limit(5);
+
 	return {
 		tenants: {
 			total: allTenants.length,
 			active: activeTenants.length,
-			list: allTenants.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5) // Recent 5
+			list: allTenants.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5)
 		},
 		users: {
 			totalParents: usersCount.count
 		},
 		financial: {
 			totalTransactions: transactionsCount.count,
-			totalRevenue: revenueResult.total || 0
+			totalRevenue: revenueResult.total || 0,
+			dailyRevenue,
+			topSchools
 		}
 	};
 }
