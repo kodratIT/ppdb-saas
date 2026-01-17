@@ -1,8 +1,25 @@
-// Temporary stub - Dialog components to be implemented
-export { default as Dialog } from './Dialog.svelte';
-export { default as DialogTrigger } from './DialogTrigger.svelte';
-export { default as DialogContent } from './DialogContent.svelte';
-export { default as DialogHeader } from './DialogHeader.svelte';
-export { default as DialogTitle } from './DialogTitle.svelte';
-export { default as DialogDescription } from './DialogDescription.svelte';
-export { default as DialogFooter } from './DialogFooter.svelte';
+import Root from './Dialog.svelte';
+import Trigger from './DialogTrigger.svelte';
+import Content from './DialogContent.svelte';
+import Header from './DialogHeader.svelte';
+import Title from './DialogTitle.svelte';
+import Description from './DialogDescription.svelte';
+import Footer from './DialogFooter.svelte';
+
+export {
+	Root,
+	Trigger,
+	Content,
+	Header,
+	Title,
+	Description,
+	Footer,
+	// Also export as individual names for flexibility
+	Root as Dialog,
+	Trigger as DialogTrigger,
+	Content as DialogContent,
+	Header as DialogHeader,
+	Title as DialogTitle,
+	Description as DialogDescription,
+	Footer as DialogFooter
+};

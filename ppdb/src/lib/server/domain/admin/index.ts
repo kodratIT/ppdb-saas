@@ -120,14 +120,13 @@ export async function getDashboardStats() {
 			id: tenants.id,
 			name: tenants.name,
 			slug: tenants.slug,
-			appCount: count(applications.id),
-			revenue: sql<number>`sum(CASE WHEN ${invoices.status} = 'PAID' THEN ${invoices.amount} ELSE 0 END)`
+			appCount: sql<number>`(SELECT count(*) FROM ${applications} WHERE ${applications.tenantId} = ${tenants.id})`,
+			revenue: sql<number>`COALESCE(sum(CASE WHEN ${invoices.status} = 'PAID' THEN ${invoices.amount} ELSE 0 END), 0)`
 		})
 		.from(tenants)
-		.leftJoin(applications, eq(tenants.id, applications.tenantId))
 		.leftJoin(invoices, eq(tenants.id, invoices.tenantId))
-		.groupBy(tenants.id)
-		.orderBy(desc(sql`revenue`))
+		.groupBy(tenants.id, tenants.name, tenants.slug)
+		.orderBy(desc(sql`COALESCE(sum(CASE WHEN ${invoices.status} = 'PAID' THEN ${invoices.amount} ELSE 0 END), 0)`))
 		.limit(5);
 
 	return {

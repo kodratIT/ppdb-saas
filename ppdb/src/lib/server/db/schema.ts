@@ -316,6 +316,8 @@ export const applications = pgTable('applications', {
 	// Address
 	address: text('address'),
 	city: text('city'),
+	province: text('province'),
+	postalCode: text('postal_code'),
 
 	// Step tracking
 	currentStep: integer('current_step').default(1).notNull(),

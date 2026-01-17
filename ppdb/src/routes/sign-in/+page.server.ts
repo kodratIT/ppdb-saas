@@ -4,7 +4,7 @@ import { authenticateFirebaseUser } from '$lib/server/auth/firebase';
 import { createSession } from '$lib/server/auth/session';
 import { AuthError } from '$lib/server/auth/types';
 import { db } from '$lib/server/db';
-import { users } from '$lib/server/db/schema';
+import { users, tenants } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -40,10 +40,6 @@ export const actions: Actions = {
 		try {
 			const firebaseUser = await authenticateFirebaseUser(email, password);
 
-			if (!locals.tenantId) {
-				return fail(403, { error: 'Tenant context not found' });
-			}
-
 			const existingUsers = await db
 				.select()
 				.from(users)
@@ -56,9 +52,36 @@ export const actions: Actions = {
 
 			const user = existingUsers[0];
 
+			// If we're on the root domain, only super_admins can log in
+			// and they get associated with the 'admin' tenant.
+			let targetTenantId = locals.tenantId;
+
+			if (!targetTenantId) {
+				if (user.role === 'super_admin') {
+					// Fetch central admin tenant ID
+					const centralTenant = await db.query.tenants.findFirst({
+						where: eq(tenants.slug, 'admin')
+					});
+					if (!centralTenant) {
+						return fail(500, { error: 'System configuration error: central tenant not found' });
+					}
+					targetTenantId = centralTenant.id;
+				} else {
+					return fail(403, {
+						error:
+							'Pendaftaran sekolah atau login admin sekolah harus melalui URL sekolah masing-masing.'
+					});
+				}
+			} else {
+				// Verify user belongs to this tenant or is super_admin
+				if (user.tenantId !== targetTenantId && user.role !== 'super_admin') {
+					return fail(403, { error: 'Akun Anda tidak terdaftar di sekolah ini.' });
+				}
+			}
+
 			const session = await createSession({
 				userId: user.id,
-				tenantId: locals.tenantId,
+				tenantId: targetTenantId,
 				authType: 'firebase',
 				authIdentifier: firebaseUser.uid
 			});
@@ -68,11 +91,11 @@ export const actions: Actions = {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-				maxAge: session.expiresAt.getTime() - Date.now()
+				maxAge: 30 * 24 * 60 * 60 // 30 days
 			});
 
 			// Redirect based on role
-			const role = session.role || 'parent';
+			const role = user.role;
 
 			if (role === 'super_admin') {
 				throw redirect(302, '/admin');
@@ -80,7 +103,18 @@ export const actions: Actions = {
 
 			const slug = locals.tenant?.slug;
 			if (!slug) {
-				throw redirect(302, '/'); // Should not happen if tenantId check passed
+				// If we have no slug in locals but have a tenantId from user
+				const tenant = await db.query.tenants.findFirst({
+					where: eq(tenants.id, user.tenantId)
+				});
+				if (tenant) {
+					if (['school_admin', 'verifier', 'treasurer', 'interviewer'].includes(role)) {
+						throw redirect(302, `/${tenant.slug}/admin`);
+					} else {
+						throw redirect(302, `/${tenant.slug}/dashboard`);
+					}
+				}
+				throw redirect(302, '/');
 			}
 
 			if (['school_admin', 'verifier', 'treasurer', 'interviewer'].includes(role)) {
@@ -90,16 +124,18 @@ export const actions: Actions = {
 				throw redirect(302, `/${slug}/dashboard`);
 			}
 		} catch (error) {
+			if (isRedirect(error)) throw error;
+
 			if (error instanceof AuthError) {
 				if (error.statusCode === 401) {
 					return fail(error.statusCode, { error: 'Authentication failed' });
 				}
 				return fail(error.statusCode, { error: error.message });
 			}
-			
+
 			console.error('Sign-in error details:', error);
-			// @ts-expect-error - Error type unknown
-			return fail(500, { error: `Error: ${error.message || 'Unknown error'}` });
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			return fail(500, { error: `Error: ${errorMessage}` });
 		}
 	}
 };

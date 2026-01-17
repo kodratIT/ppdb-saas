@@ -17,7 +17,7 @@ export async function getDraftRanking(admissionPathId: string): Promise<RankedCa
 			applicationId: applications.id,
 			name: applications.childFullName,
 			score: applicationScores.score,
-			distance: applications.distance_m,
+			distance: applications.distanceM,
 			childDob: applications.childDob,
 			createdAt: applications.createdAt
 		})
@@ -32,7 +32,7 @@ export async function getDraftRanking(admissionPathId: string): Promise<RankedCa
 		)
 		.orderBy(
 			desc(applicationScores.score),
-			asc(applications.distance_m),
+			asc(applications.distanceM),
 			asc(applications.childDob),
 			asc(applications.createdAt)
 		);

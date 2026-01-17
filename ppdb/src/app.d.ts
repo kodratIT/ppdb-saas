@@ -4,6 +4,7 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
+			lucia: import('lucia').Lucia;
 			tenantId?: string;
 			tenant?: {
 				id: string;

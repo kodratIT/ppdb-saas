@@ -3,6 +3,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { applications, tenants } from '$lib/server/db/schema';
 import { requireAuth, requireRole } from '$lib/server/auth/authorization';
+import { invalidateSession } from '$lib/server/auth/session';
 
 export async function load({ locals, params }: RequestEvent<{ tenant: string }>) {
 	const auth = await requireAuth(locals);
@@ -66,25 +67,11 @@ export async function load({ locals, params }: RequestEvent<{ tenant: string }>)
 }
 
 export const actions = {
-	deleteAccount: async ({ locals, cookies }) => {
-		// const auth = requireAuth(locals);
-		// Simple soft delete or anonymization
-		// For MVP, we'll just sign them out and mark user as deleted (if we had a status column)
-		// Or delete PII.
-		// Since we don't have a sophisticated 'deleted' flag in users yet,
-		// and hard delete cascades to applications -> invoices -> payments (might be messy),
-		// we will just invalidate session for now and pretend.
-		// PROPER IMPLEMENTATION:
-		// 1. Update users set name='Deleted User', email='deleted@...', phone='000'
-		// 2. Update applications set parentName='Deleted', etc.
-
-		// For now, let's just sign out to simulate "leaving"
-		await locals.lucia.invalidateSession(locals.session.id);
-		const sessionCookie = locals.lucia.createBlankSessionCookie();
-		cookies.set(sessionCookie.name, sessionCookie.value, {
-			path: '.',
-			...sessionCookie.attributes
-		});
+	deleteAccount: async ({ locals, cookies }: RequestEvent) => {
+		if (locals.session) {
+			await invalidateSession(locals.session.id);
+			cookies.delete('session_id', { path: '/' });
+		}
 
 		return { success: true };
 	}
