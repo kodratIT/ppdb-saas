@@ -4,12 +4,10 @@ import { z } from 'zod';
 const slugRegex = /^[a-z0-9-]+$/;
 
 // Identity Step Schema
-export const identitySchema = z.object({
+export const identityBaseSchema = z.object({
+	type: z.enum(['single', 'foundation']).default('single'),
 	name: z.string().min(3, 'School name must be at least 3 characters'),
-	npsn: z
-		.string()
-		.length(8, 'NPSN must be exactly 8 digits')
-		.regex(/^\d+$/, 'NPSN must differ only of numbers'),
+	npsn: z.string().optional(),
 	slug: z
 		.string()
 		.min(3, 'Slug must be at least 3 characters')
@@ -17,6 +15,20 @@ export const identitySchema = z.object({
 	level: z.enum(['SD', 'SMP', 'SMA', 'SMK', 'Universitas', 'Lainnya']),
 	status: z.enum(['active', 'inactive']).default('active')
 });
+
+const validateNPSN = (data: { type: string; npsn?: string }, ctx: z.RefinementCtx) => {
+	if (data.type === 'single') {
+		if (!data.npsn || data.npsn.length !== 8 || !/^\d+$/.test(data.npsn)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'NPSN must be exactly 8 digits for single school',
+				path: ['npsn']
+			});
+		}
+	}
+};
+
+export const identitySchema = identityBaseSchema.superRefine(validateNPSN);
 
 // Location Step Schema
 export const locationSchema = z.object({
@@ -43,11 +55,13 @@ export const adminSchema = z.object({
 });
 
 // Combined Schema for final submission (optional, but good for type inference)
-export const registrationSchema = z.object({
-	...identitySchema.shape,
-	...locationSchema.shape,
-	...adminSchema.shape
-});
+export const registrationSchema = z
+	.object({
+		...identityBaseSchema.shape,
+		...locationSchema.shape,
+		...adminSchema.shape
+	})
+	.superRefine(validateNPSN);
 
 export type IdentityFormData = z.infer<typeof identitySchema>;
 export type LocationFormData = z.infer<typeof locationSchema>;

@@ -8,6 +8,9 @@
 	}
 
 	let { formData }: Props = $props();
+
+	// Type cast for safety due to Zod type inference nuances with Partial
+	const data = (formData || {}) as any;
 </script>
 
 <div class="space-y-6">
@@ -26,32 +29,42 @@
 		<CardContent class="space-y-3">
 			<div class="grid grid-cols-2 gap-4">
 				<div>
-					<p class="text-sm text-muted-foreground">School Name</p>
-					<p class="font-medium">{formData.name || '-'}</p>
+					<p class="text-sm text-muted-foreground">Institution Type</p>
+					<p class="font-medium">
+						{data.type === 'foundation' ? 'Yayasan / Institusi' : 'Sekolah Satuan'}
+					</p>
+				</div>
+				<div>
+					<p class="text-sm text-muted-foreground">
+						{data.type === 'foundation' ? 'Foundation Name' : 'School Name'}
+					</p>
+					<p class="font-medium">{data.name || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">NPSN</p>
-					<p class="font-medium">{formData.npsn || '-'}</p>
+					<p class="font-medium">{data.npsn || '-'}</p>
 				</div>
 				<div>
-					<p class="text-sm text-muted-foreground">Slug</p>
-					<p class="font-medium font-mono text-sm">{formData.slug || '-'}</p>
+					<p class="text-sm text-muted-foreground">
+						{data.type === 'foundation' ? 'Foundation Slug' : 'School Slug'}
+					</p>
+					<p class="font-medium font-mono text-sm">{data.slug || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">Level</p>
-					<p class="font-medium">{formData.level || '-'}</p>
+					<p class="font-medium">{data.level || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">Status</p>
-					<Badge variant={formData.status === 'active' ? 'default' : 'secondary'}>
-						{formData.status || '-'}
+					<Badge variant={data.status === 'active' ? 'default' : 'secondary'}>
+						{data.status || '-'}
 					</Badge>
 				</div>
 			</div>
 			<div class="pt-2 border-t">
 				<p class="text-sm text-muted-foreground">Subdomain</p>
 				<p class="font-medium text-primary">
-					{formData.slug || 'your-school'}.ppdb.id
+					{data.slug || (data.type === 'foundation' ? 'your-foundation' : 'your-school')}.ppdb.id
 				</p>
 			</div>
 		</CardContent>
@@ -66,28 +79,28 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div>
 					<p class="text-sm text-muted-foreground">Province</p>
-					<p class="font-medium">{formData.province || '-'}</p>
+					<p class="font-medium">{data.province || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">City/Regency</p>
-					<p class="font-medium">{formData.city || '-'}</p>
+					<p class="font-medium">{data.city || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">District</p>
-					<p class="font-medium">{formData.district || '-'}</p>
+					<p class="font-medium">{data.district || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">Village</p>
-					<p class="font-medium">{formData.village || '-'}</p>
+					<p class="font-medium">{data.village || '-'}</p>
 				</div>
 			</div>
 			<div class="pt-2 border-t">
 				<p class="text-sm text-muted-foreground">Street Address</p>
-				<p class="font-medium">{formData.address || '-'}</p>
+				<p class="font-medium">{data.address || '-'}</p>
 			</div>
 			<div>
 				<p class="text-sm text-muted-foreground">Postal Code</p>
-				<p class="font-medium">{formData.postalCode || '-'}</p>
+				<p class="font-medium">{data.postalCode || '-'}</p>
 			</div>
 		</CardContent>
 	</Card>
@@ -101,15 +114,15 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div>
 					<p class="text-sm text-muted-foreground">Admin Name</p>
-					<p class="font-medium">{formData.adminName || '-'}</p>
+					<p class="font-medium">{data.adminName || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">Email</p>
-					<p class="font-medium">{formData.email || '-'}</p>
+					<p class="font-medium">{data.email || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">WhatsApp</p>
-					<p class="font-medium">{formData.whatsapp || '-'}</p>
+					<p class="font-medium">{data.whatsapp || '-'}</p>
 				</div>
 				<div>
 					<p class="text-sm text-muted-foreground">Password</p>
@@ -120,7 +133,9 @@
 	</Card>
 
 	<!-- Important Notice -->
-	<div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+	<div
+		class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+	>
 		<div class="flex gap-3">
 			<div class="text-blue-600 dark:text-blue-400">
 				<svg
