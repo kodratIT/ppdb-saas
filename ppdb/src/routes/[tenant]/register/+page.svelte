@@ -25,9 +25,13 @@
 
 	// @ts-ignore
 	const admissionPaths = $derived((data.admissionPaths as any[]) || []);
+	const selectedUnitId = $derived(data.selectedUnitId);
 
 	function startRegistration() {
-		goto(`/${data.tenantSlug}/register/start`);
+		const searchParams = new URLSearchParams();
+		if (selectedUnitId) searchParams.set('unit_id', selectedUnitId);
+		const queryString = searchParams.toString();
+		goto(`/${data.tenantSlug}/register/start${queryString ? '?' + queryString : ''}`);
 	}
 </script>
 

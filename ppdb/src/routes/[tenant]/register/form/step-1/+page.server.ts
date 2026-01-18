@@ -11,12 +11,18 @@ import {
 } from '$lib/server/utils/custom-fields';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const auth = await requireAuth(locals);
 	await requireRole(auth, 'parent');
 
+	const unitId = url.searchParams.get('unit_id');
+
 	const activePaths = await db.query.admissionPaths.findMany({
-		where: and(eq(admissionPaths.tenantId, auth.tenantId), eq(admissionPaths.status, 'open'))
+		where: and(
+			eq(admissionPaths.tenantId, auth.tenantId),
+			eq(admissionPaths.status, 'open'),
+			unitId ? eq(admissionPaths.unitId, unitId) : undefined
+		)
 	});
 
 	const draft = await db.query.applications.findFirst({
@@ -54,14 +60,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		admissionPaths: activePaths,
 		draft: processedDraft,
-		customFields: step1CustomFields
+		customFields: step1CustomFields,
+		unitId
 	};
 };
 
 export const actions = {
-	saveDraft: async ({ request, locals, params }) => {
+	saveDraft: async ({ request, locals, params, url }) => {
 		const auth = await requireAuth(locals);
 		await requireRole(auth, 'parent');
+
+		const unitId = url.searchParams.get('unit_id');
 
 		const formData = await request.formData();
 		const values = Object.fromEntries(formData.entries());
@@ -119,6 +128,7 @@ export const actions = {
 
 			const updateData = {
 				admissionPathId,
+				unitId: path.unitId || unitId || null,
 				childFullName,
 				childNickname: childNickname || null,
 				childDob: new Date(childDob),

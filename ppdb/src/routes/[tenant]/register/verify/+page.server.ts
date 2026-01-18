@@ -8,6 +8,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url, params, cookies }) => {
 	const phone = url.searchParams.get('phone');
+	const unitId = url.searchParams.get('unit_id');
 	const sessionId = cookies.get('otp_session_id');
 
 	if (!phone) {
@@ -16,13 +17,15 @@ export const load: PageServerLoad = async ({ url, params, cookies }) => {
 
 	return {
 		phone,
+		unitId,
 		sessionId,
 		tenantSlug: params.tenant
 	};
 };
 
 export const actions = {
-	verifyOTP: async ({ request, params, cookies }) => {
+	verifyOTP: async ({ request, params, cookies, url }) => {
+		const unitId = url.searchParams.get('unit_id');
 		const data = await request.formData();
 		const phoneNumber = data.get('phone')?.toString();
 		const otp = data.get('otp')?.toString();
@@ -89,7 +92,10 @@ export const actions = {
 
 			cookies.delete('otp_session_id', { path: '/' });
 
-			throw redirect(303, `/${params.tenant}/register/form/step-1`);
+			const redirectUrl = new URL(`/${params.tenant}/register/form/step-1`, url.origin);
+			if (unitId) redirectUrl.searchParams.set('unit_id', unitId);
+
+			throw redirect(303, redirectUrl.pathname + redirectUrl.search);
 		} catch (error) {
 			if (error instanceof Response && error.status === 303) {
 				throw error;

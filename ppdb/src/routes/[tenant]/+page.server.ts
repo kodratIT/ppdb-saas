@@ -7,7 +7,10 @@ import { getGlobalBranding } from '$lib/server/domain/admin/branding';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const tenant = await db.query.tenants.findFirst({
-		where: eq(tenants.slug, params.tenant)
+		where: eq(tenants.slug, params.tenant),
+		with: {
+			units: true
+		}
 	});
 
 	if (!tenant) {
@@ -23,6 +26,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		tenant,
 		profile,
-		branding
+		branding,
+		units: tenant.units || []
 	};
 };

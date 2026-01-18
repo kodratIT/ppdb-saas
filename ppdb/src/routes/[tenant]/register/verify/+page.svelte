@@ -37,7 +37,7 @@
 
 		<form
 			method="POST"
-			action="?/verifyOTP"
+			action="?/verifyOTP{data.unitId ? `&unit_id=${data.unitId}` : ''}"
 			use:enhance={() => {
 				isSubmitting = true;
 				return async ({ update }) => {
@@ -74,7 +74,7 @@
 		<div class="mt-6 text-center space-y-2">
 			<p class="text-sm text-gray-600">Tidak menerima kode?</p>
 			<a
-				href="/{data.tenantSlug}/register/start"
+				href="/{data.tenantSlug}/register/start{data.unitId ? `?unit_id=${data.unitId}` : ''}"
 				class="text-sm text-blue-600 hover:text-blue-700 inline-block"
 			>
 				Kirim Ulang Kode

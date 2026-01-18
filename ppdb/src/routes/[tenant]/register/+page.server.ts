@@ -5,7 +5,9 @@ import { getSchoolProfileByTenantId } from '$lib/server/domain/school-profile';
 import { tenants, admissionPaths } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url }) => {
+	const unitId = url.searchParams.get('unit_id');
+
 	const tenant = await db.query.tenants.findFirst({
 		where: eq(tenants.slug, params.tenant)
 	});
@@ -17,7 +19,11 @@ export const load: PageServerLoad = async ({ params }) => {
 	const [school, paths] = await Promise.all([
 		getSchoolProfileByTenantId(db, tenant.id),
 		db.query.admissionPaths.findMany({
-			where: and(eq(admissionPaths.tenantId, tenant.id), eq(admissionPaths.status, 'open'))
+			where: and(
+				eq(admissionPaths.tenantId, tenant.id),
+				eq(admissionPaths.status, 'open'),
+				unitId ? eq(admissionPaths.unitId, unitId) : undefined
+			)
 		})
 	]);
 
@@ -28,6 +34,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		tenantSlug: params.tenant,
 		school,
-		admissionPaths: paths
+		admissionPaths: paths,
+		selectedUnitId: unitId
 	};
 };

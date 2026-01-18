@@ -15,7 +15,10 @@
 
 	$effect(() => {
 		if (form?.success && form?.phone) {
-			goto(`/${data.tenantSlug}/register/verify?phone=${encodeURIComponent(form.phone)}`);
+			const searchParams = new URLSearchParams();
+			searchParams.set('phone', form.phone);
+			if (data.unitId) searchParams.set('unit_id', data.unitId);
+			goto(`/${data.tenantSlug}/register/verify?${searchParams.toString()}`);
 		}
 	});
 </script>

@@ -32,7 +32,8 @@ function validatePhoneNumber(phone: string): {
 	return { valid: false, error: 'Format nomor tidak valid. Gunakan +62, 62, atau 08' };
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url }) => {
+	const unitId = url.searchParams.get('unit_id');
 	const tenant = await db.query.tenants.findFirst({
 		where: eq(tenants.slug, params.tenant)
 	});
@@ -42,7 +43,8 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 
 	return {
-		tenantSlug: tenant.slug
+		tenantSlug: tenant.slug,
+		unitId
 	};
 };
 

@@ -63,7 +63,7 @@
 
 	<form
 		method="POST"
-		action="?/saveDraft"
+		action="?/saveDraft{data.unitId ? `&unit_id=${data.unitId}` : ''}"
 		use:enhance={() => {
 			isSubmitting = true;
 			return async ({ update }) => {
