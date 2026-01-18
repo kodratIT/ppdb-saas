@@ -116,12 +116,17 @@
 		isConfirmOpen = true;
 	}
 
-	function formatDate(date: Date) {
-		return new Intl.DateTimeFormat('id-ID', {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric'
-		}).format(new Date(date));
+	function formatDate(date: any) {
+		try {
+			if (!date) return '-';
+			return new Intl.DateTimeFormat('id-ID', {
+				day: 'numeric',
+				month: 'long',
+				year: 'numeric'
+			}).format(new Date(date));
+		} catch (e) {
+			return '-';
+		}
 	}
 </script>
 
@@ -268,18 +273,17 @@
 		<Card.Content class="p-0 overflow-hidden">
 			<Table>
 				<TableHeader>
-					<TableRow class="bg-muted/50 hover:bg-muted/50">
-						<TableHead class="pl-6 py-3">Nama Unit</TableHead>
-						<TableHead class="py-3">Jenjang</TableHead>
-						<TableHead class="py-3">NPSN</TableHead>
-						<TableHead class="py-3">Tanggal Dibuat</TableHead>
-						<TableHead class="text-right pr-6 py-3">Aksi</TableHead>
+					<TableRow class="bg-muted/50 hover:bg-muted/50 border-b-0">
+						<TableHead class="pl-6 py-3 text-foreground font-semibold">Nama Unit</TableHead>
+						<TableHead class="py-3 text-foreground font-semibold">Jenjang</TableHead>
+						<TableHead class="py-3 text-foreground font-semibold">NPSN</TableHead>
+						<TableHead class="text-right pr-6 py-3 text-foreground font-semibold">Aksi</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
 					{#if groupedUnits.length === 0}
 						<TableRow>
-							<TableCell colspan={5} class="h-24 text-center text-muted-foreground">
+							<TableCell colspan={4} class="h-24 text-center text-muted-foreground">
 								Tidak ada unit yang ditemukan.
 							</TableCell>
 						</TableRow>
@@ -289,7 +293,7 @@
 							<TableRow
 								class="bg-primary/5 hover:bg-primary/10 border-y transition-colors text-xs uppercase tracking-wider font-bold"
 							>
-								<TableCell colspan={5} class="py-2.5 pl-6 text-primary">
+								<TableCell colspan={4} class="py-2.5 pl-6 text-primary">
 									<div class="flex items-center gap-2">
 										<Building2 class="h-4 w-4" />
 										{group.name}
@@ -303,7 +307,7 @@
 
 							<!-- Units in this Foundation -->
 							{#each group.units as unit (unit.id)}
-								<TableRow class="group">
+								<TableRow class="group border-b last:border-0 hover:bg-muted/30 transition-colors">
 									<TableCell class="font-medium pl-10 py-4">
 										<div class="flex items-center gap-3">
 											<div
@@ -330,12 +334,6 @@
 									</TableCell>
 									<TableCell class="text-xs font-mono text-muted-foreground">
 										{unit.npsn || '-'}
-									</TableCell>
-									<TableCell>
-										<div class="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-											<Calendar class="h-3.5 w-3.5" />
-											{formatDate(unit.createdAt)}
-										</div>
 									</TableCell>
 									<TableCell class="text-right pr-6">
 										<div class="flex items-center justify-end gap-1">
