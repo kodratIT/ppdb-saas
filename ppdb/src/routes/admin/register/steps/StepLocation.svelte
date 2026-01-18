@@ -7,9 +7,8 @@
 		Select,
 		SelectContent,
 		SelectItem,
-		SelectTrigger,
-		SelectValue
-	} from '$lib/components/ui/select';
+		SelectTrigger
+	} from '$lib/components/ui/select/index';
 	import {
 		fetchProvinces,
 		fetchCities,
@@ -178,7 +177,11 @@
 			disabled={loadingProvinces}
 		>
 			<SelectTrigger id="province" class={errors.province ? 'border-destructive' : ''}>
-				<SelectValue placeholder={loadingProvinces ? 'Loading...' : 'Select province'} />
+				<span>
+					{loadingProvinces
+						? 'Loading...'
+						: provinces.find((p) => p.id === selectedProvinceId)?.name || 'Select province'}
+				</span>
 			</SelectTrigger>
 			<SelectContent>
 				{#each provinces as province (province.id)}
@@ -200,13 +203,13 @@
 			disabled={!selectedProvinceId || loadingCities}
 		>
 			<SelectTrigger id="city" class={errors.city ? 'border-destructive' : ''}>
-				<SelectValue
-					placeholder={loadingCities
+				<span>
+					{loadingCities
 						? 'Loading...'
 						: selectedProvinceId
-							? 'Select city/regency'
+							? cities.find((c) => c.id === selectedCityId)?.name || 'Select city/regency'
 							: 'Select province first'}
-				/>
+				</span>
 			</SelectTrigger>
 			<SelectContent>
 				{#each cities as city (city.id)}
@@ -228,13 +231,13 @@
 			disabled={!selectedCityId || loadingDistricts}
 		>
 			<SelectTrigger id="district" class={errors.district ? 'border-destructive' : ''}>
-				<SelectValue
-					placeholder={loadingDistricts
+				<span>
+					{loadingDistricts
 						? 'Loading...'
 						: selectedCityId
-							? 'Select district'
+							? districts.find((d) => d.id === selectedDistrictId)?.name || 'Select district'
 							: 'Select city first'}
-				/>
+				</span>
 			</SelectTrigger>
 			<SelectContent>
 				{#each districts as district (district.id)}
@@ -256,13 +259,13 @@
 			disabled={!selectedDistrictId || loadingVillages}
 		>
 			<SelectTrigger id="village" class={errors.village ? 'border-destructive' : ''}>
-				<SelectValue
-					placeholder={loadingVillages
+				<span>
+					{loadingVillages
 						? 'Loading...'
 						: selectedDistrictId
-							? 'Select village'
+							? formData.village || 'Select village'
 							: 'Select district first'}
-				/>
+				</span>
 			</SelectTrigger>
 			<SelectContent>
 				{#each villages as village (village.id)}

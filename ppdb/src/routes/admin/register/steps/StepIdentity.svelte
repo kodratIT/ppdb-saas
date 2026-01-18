@@ -5,9 +5,8 @@
 		Select,
 		SelectContent,
 		SelectItem,
-		SelectTrigger,
-		SelectValue
-	} from '$lib/components/ui/select';
+		SelectTrigger
+	} from '$lib/components/ui/select/index';
 	import { RadioGroup, RadioGroupItem } from '$lib/components/ui/radio-group';
 	import type { IdentityFormData } from '../schema';
 
@@ -18,6 +17,19 @@
 	}
 
 	let { formData = $bindable(), errors = {}, onUpdate }: Props = $props();
+
+	const schoolLevels = [
+		{ value: 'SD', label: 'SD (Sekolah Dasar)' },
+		{ value: 'SMP', label: 'SMP (Sekolah Menengah Pertama)' },
+		{ value: 'SMA', label: 'SMA (Sekolah Menengah Atas)' },
+		{ value: 'SMK', label: 'SMK (Sekolah Menengah Kejuruan)' },
+		{ value: 'Universitas', label: 'Universitas' },
+		{ value: 'Lainnya', label: 'Lainnya' }
+	];
+
+	function getLevelLabel(value: string | undefined) {
+		return schoolLevels.find((l) => l.value === value)?.label;
+	}
 
 	// Auto-generate slug from name
 	function slugify(text: string): string {
@@ -140,15 +152,12 @@
 		<Label for="level">School Level *</Label>
 		<Select value={formData.level || 'SMA'} onValueChange={handleLevelChange}>
 			<SelectTrigger id="level" class={errors.level ? 'border-destructive' : ''}>
-				<SelectValue placeholder="Select school level" />
+				<span>{getLevelLabel(formData.level || 'SMA') || 'Select school level'}</span>
 			</SelectTrigger>
 			<SelectContent>
-				<SelectItem value="SD">SD (Sekolah Dasar)</SelectItem>
-				<SelectItem value="SMP">SMP (Sekolah Menengah Pertama)</SelectItem>
-				<SelectItem value="SMA">SMA (Sekolah Menengah Atas)</SelectItem>
-				<SelectItem value="SMK">SMK (Sekolah Menengah Kejuruan)</SelectItem>
-				<SelectItem value="Universitas">Universitas</SelectItem>
-				<SelectItem value="Lainnya">Lainnya</SelectItem>
+				{#each schoolLevels as level}
+					<SelectItem value={level.value}>{level.label}</SelectItem>
+				{/each}
 			</SelectContent>
 		</Select>
 		{#if errors.level}
