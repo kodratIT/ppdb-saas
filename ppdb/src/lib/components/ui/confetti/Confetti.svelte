@@ -2,53 +2,56 @@
 	import confetti from 'canvas-confetti';
 	import { onMount } from 'svelte';
 
-	let { options = {} } = $props<{ options?: confetti.Options }>();
+	interface Props {
+		duration?: number;
+		particleCount?: number;
+		spread?: number;
+		origin?: { x: number; y: number };
+	}
+
+	let {
+		duration = 3000,
+		particleCount = 200,
+		spread = 70,
+		origin = { x: 0.5, y: 0.5 }
+	}: Props = $props();
 
 	onMount(() => {
-		const duration = 3000;
-		const animationEnd = Date.now() + duration;
-		const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 50 };
+		// Fire confetti on mount
+		const end = Date.now() + duration;
 
-		const randomInRange = (min: number, max: number) => {
-			return Math.random() * (max - min) + min;
+		const frame = () => {
+			confetti({
+				particleCount: 2,
+				angle: 60,
+				spread: spread,
+				origin: { x: 0, y: 0.6 },
+				colors: ['#002C5F', '#0066CC', '#4A90E2']
+			});
+			confetti({
+				particleCount: 2,
+				angle: 120,
+				spread: spread,
+				origin: { x: 1, y: 0.6 },
+				colors: ['#002C5F', '#0066CC', '#4A90E2']
+			});
+
+			if (Date.now() < end) {
+				requestAnimationFrame(frame);
+			}
 		};
 
-		// If specific options provided, run once with those
-		if (Object.keys(options).length > 0) {
-			confetti({
-				zIndex: 9999,
-				...options
-			});
-			return;
-		}
+		// Initial burst
+		confetti({
+			particleCount: particleCount,
+			spread: spread,
+			origin: origin,
+			colors: ['#002C5F', '#0066CC', '#4A90E2', '#FFD700']
+		});
 
-		// Default "Party Mode" burst if no options provided
-		const interval: any = setInterval(function () {
-			const timeLeft = animationEnd - Date.now();
-
-			if (timeLeft <= 0) {
-				return clearInterval(interval);
-			}
-
-			const particleCount = 50 * (timeLeft / duration);
-
-			// since particles fall down, start a bit higher than random
-			confetti({
-				...defaults,
-				particleCount,
-				origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-				zIndex: 9999
-			});
-			confetti({
-				...defaults,
-				particleCount,
-				origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-				zIndex: 9999
-			});
-		}, 250);
-
-		return () => clearInterval(interval);
+		// Continuous confetti
+		frame();
 	});
 </script>
 
-<div class="fixed inset-0 pointer-events-none z-50"></div>
+<!-- This component doesn't render anything visible, it just triggers confetti -->

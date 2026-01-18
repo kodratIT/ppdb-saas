@@ -1,63 +1,69 @@
 <script lang="ts">
-	import { Check } from 'lucide-svelte';
-	import { cn } from '$lib/utils';
-
-	let { steps = [], currentStep = 1 } = $props<{
-		steps: string[];
+	interface Props {
 		currentStep: number;
-	}>();
+		totalSteps: number;
+		steps?: string[];
+	}
+
+	let { currentStep = 1, totalSteps = 4, steps = [] }: Props = $props();
+
+	const defaultSteps = ['Identity', 'Location', 'Admin', 'Review'];
+	const stepLabels = steps.length > 0 ? steps : defaultSteps.slice(0, totalSteps);
 </script>
 
-<div class="w-full px-2 pb-8 pt-2">
-	<div class="relative flex w-full items-center justify-between">
-		<!-- Progress Bar Background -->
-		<div
-			class="absolute left-0 top-1/2 -z-0 h-1 w-full -translate-y-1/2 rounded-full bg-muted"
-		></div>
+<div class="w-full py-4">
+	<div class="flex items-center justify-between">
+		{#each Array(totalSteps) as _, index}
+			{@const stepNumber = index + 1}
+			{@const isActive = stepNumber === currentStep}
+			{@const isCompleted = stepNumber < currentStep}
 
-		<!-- Active Progress Bar -->
-		<div
-			class="absolute left-0 top-1/2 -z-0 h-1 -translate-y-1/2 rounded-full bg-primary transition-all duration-500 ease-in-out"
-			style="width: {steps.length > 1
-				? (Math.max(0, currentStep - 1) / (steps.length - 1)) * 100
-				: 0}%"
-		></div>
-
-		<!-- Steps -->
-		{#each steps as step, i}
-			{@const stepNum = i + 1}
-			{@const isActive = stepNum === currentStep}
-			{@const isCompleted = stepNum < currentStep}
-
-			<div class="group relative z-10 flex flex-col items-center justify-center">
-				<div
-					class={cn(
-						'flex h-10 w-10 items-center justify-center rounded-full border-2 bg-background text-sm font-semibold transition-all duration-300 ease-in-out',
-						isActive &&
-							'border-primary bg-primary text-primary-foreground scale-110 shadow-[0_0_20px_rgba(var(--primary),0.3)] ring-4 ring-primary/20',
-						isCompleted && 'border-primary bg-primary text-primary-foreground',
-						!isActive && !isCompleted && 'border-muted text-muted-foreground bg-background'
-					)}
-				>
-					{#if isCompleted}
-						<Check class="h-5 w-5 animate-in zoom-in duration-300" strokeWidth={3} />
-					{:else}
-						<span class={cn('transition-colors duration-300', isActive && 'scale-110')}>
-							{stepNum}
-						</span>
-					{/if}
+			<div class="flex flex-1 items-center">
+				<!-- Step Circle -->
+				<div class="flex flex-col items-center">
+					<div
+						class="flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all {isCompleted
+							? 'border-primary bg-primary text-primary-foreground'
+							: isActive
+								? 'border-primary bg-primary text-primary-foreground'
+								: 'border-muted-foreground bg-background text-muted-foreground'}"
+					>
+						{#if isCompleted}
+							<svg
+								class="h-5 w-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								></path>
+							</svg>
+						{:else}
+							<span class="text-sm font-semibold">{stepNumber}</span>
+						{/if}
+					</div>
+					<span
+						class="mt-2 text-xs font-medium {isActive || isCompleted
+							? 'text-primary'
+							: 'text-muted-foreground'}"
+					>
+						{stepLabels[index]}
+					</span>
 				</div>
 
-				<!-- Label -->
-				<div
-					class={cn(
-						'absolute -bottom-8 w-32 text-center text-xs font-medium transition-all duration-300',
-						isActive ? 'text-primary -translate-y-1 font-bold' : 'text-muted-foreground',
-						isCompleted && 'text-primary/80'
-					)}
-				>
-					{step}
-				</div>
+				<!-- Connector Line -->
+				{#if index < totalSteps - 1}
+					<div
+						class="mx-2 h-0.5 flex-1 transition-all {isCompleted
+							? 'bg-primary'
+							: 'bg-muted-foreground/30'}"
+					></div>
+				{/if}
 			</div>
 		{/each}
 	</div>
