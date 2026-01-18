@@ -1,5 +1,13 @@
 import { db } from '$lib/server/db';
-import { tenants, auditLogs, users, invoices, applications, schoolProfiles } from '$lib/server/db/schema';
+import {
+	tenants,
+	auditLogs,
+	users,
+	invoices,
+	applications,
+	schoolProfiles,
+	units
+} from '$lib/server/db/schema';
 import { sql, eq, count, and, gte, desc, getTableColumns, ilike, or, asc } from 'drizzle-orm';
 import { getCached, setCached, clearCache } from '$lib/server/cache';
 
@@ -51,7 +59,15 @@ export async function createTenant(
 			postalCode: data.postalCode
 		});
 
-		// 3. Create Audit Log
+		// 3. Create default unit
+		await tx.insert(units).values({
+			tenantId: newTenant.id,
+			name: data.name,
+			level: (data.level || 'Lainnya') as any, // Cast to schoolLevelEnum
+			config: {}
+		});
+
+		// 4. Create Audit Log
 		await tx.insert(auditLogs).values({
 			actorId,
 			action: 'create_tenant',
