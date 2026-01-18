@@ -331,6 +331,41 @@ export async function getDashboardStats() {
 		)
 		.limit(5);
 
+	// 10. Unit-level Breakdown
+	const appCountsSubquery = db
+		.select({
+			unitId: applications.unitId,
+			count: sql<number>`cast(count(${applications.id}) as integer)`.as('app_count')
+		})
+		.from(applications)
+		.groupBy(applications.unitId)
+		.as('unit_app_counts');
+
+	const revenueSubquery = db
+		.select({
+			unitId: invoices.unitId,
+			total: sql<number>`cast(sum(${invoices.amount}) as integer)`.as('unit_revenue')
+		})
+		.from(invoices)
+		.where(eq(invoices.status, 'PAID'))
+		.groupBy(invoices.unitId)
+		.as('unit_revenues');
+
+	const unitStats = await db
+		.select({
+			unitId: units.id,
+			unitName: units.name,
+			tenantName: tenants.name,
+			level: units.level,
+			appCount: sql<number>`coalesce(${appCountsSubquery.count}, 0)`,
+			revenue: sql<number>`coalesce(${revenueSubquery.total}, 0)`
+		})
+		.from(units)
+		.innerJoin(tenants, eq(units.tenantId, tenants.id))
+		.leftJoin(appCountsSubquery, eq(units.id, appCountsSubquery.unitId))
+		.leftJoin(revenueSubquery, eq(units.id, revenueSubquery.unitId))
+		.orderBy(tenants.name, units.name);
+
 	const totalRevenue = revenueResult.total || 0;
 	const activeTenantsCount = activeTenants.length;
 	const averageRevenuePerSchool = activeTenantsCount > 0 ? totalRevenue / activeTenantsCount : 0;
@@ -343,6 +378,7 @@ export async function getDashboardStats() {
 			active: activeTenantsCount,
 			list: allTenants.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5)
 		},
+		unitStats,
 		users: {
 			totalParents: usersCount.count,
 			newRegistrationsToday: newUsersToday.count
