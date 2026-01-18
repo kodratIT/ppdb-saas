@@ -8,7 +8,8 @@
 		SelectTrigger
 	} from '$lib/components/ui/select/index';
 	import { RadioGroup, RadioGroupItem } from '$lib/components/ui/radio-group';
-	import type { IdentityFormData } from '../schema';
+	import Alert from '$lib/components/ui/alert.svelte';
+	import type { IdentityFormData } from '../schema.js';
 
 	interface Props {
 		formData: Partial<IdentityFormData>;
@@ -81,23 +82,63 @@
 		formData.status = value as IdentityFormData['status'];
 		onUpdate(formData);
 	}
+
+	function handleTypeChange(value: string) {
+		formData.type = value as IdentityFormData['type'];
+		onUpdate(formData);
+	}
 </script>
 
 <div class="space-y-6">
 	<div>
 		<h2 class="text-xl font-semibold mb-2">School Identity 🏫</h2>
-		<p class="text-sm text-muted-foreground">
-			Enter the basic information about your school.
-		</p>
+		<p class="text-sm text-muted-foreground">Enter the basic information about your school.</p>
+	</div>
+
+	<!-- Institution Type -->
+	<div class="space-y-3">
+		<Label>Tipe Institusi *</Label>
+		<RadioGroup
+			value={formData.type || 'single'}
+			onValueChange={handleTypeChange}
+			class="flex flex-col sm:flex-row gap-4"
+		>
+			<div
+				class="flex items-center space-x-2 border rounded-md p-3 px-4 cursor-pointer hover:bg-accent transition-colors {formData.type ===
+					'single' || !formData.type
+					? 'border-primary bg-primary/5'
+					: ''}"
+			>
+				<RadioGroupItem value="single" id="type-single" />
+				<Label for="type-single" class="font-medium cursor-pointer">Sekolah Satuan</Label>
+			</div>
+			<div
+				class="flex items-center space-x-2 border rounded-md p-3 px-4 cursor-pointer hover:bg-accent transition-colors {formData.type ===
+				'foundation'
+					? 'border-primary bg-primary/5'
+					: ''}"
+			>
+				<RadioGroupItem value="foundation" id="type-foundation" />
+				<Label for="type-foundation" class="font-medium cursor-pointer">Yayasan / Institusi</Label>
+			</div>
+		</RadioGroup>
+		{#if formData.type === 'foundation'}
+			<Alert
+				variant="info"
+				message="Anda dapat menambahkan unit sekolah (TK, SD, SMP, SMA) di bawah Yayasan ini setelah pendaftaran selesai."
+			/>
+		{/if}
 	</div>
 
 	<!-- School Name -->
 	<div class="space-y-2">
-		<Label for="name">School Name *</Label>
+		<Label for="name">{formData.type === 'foundation' ? 'Foundation Name' : 'School Name'} *</Label>
 		<Input
 			id="name"
 			type="text"
-			placeholder="e.g., SMA Negeri 1 Jakarta"
+			placeholder={formData.type === 'foundation'
+				? 'e.g., Yayasan Pendidikan Indonesia'
+				: 'e.g., SMA Negeri 1 Jakarta'}
 			value={formData.name || ''}
 			oninput={handleNameChange}
 			class={errors.name ? 'border-destructive' : ''}
@@ -109,12 +150,19 @@
 
 	<!-- NPSN -->
 	<div class="space-y-2">
-		<Label for="npsn">NPSN (Nomor Pokok Sekolah Nasional) *</Label>
+		<Label for="npsn">
+			NPSN (Nomor Pokok Sekolah Nasional)
+			{#if formData.type === 'foundation'}
+				<span class="text-muted-foreground font-normal">(Opsional)</span>
+			{:else}
+				*
+			{/if}
+		</Label>
 		<Input
 			id="npsn"
 			type="text"
 			placeholder="8 digit number"
-			maxlength="8"
+			maxlength={8}
 			value={formData.npsn || ''}
 			oninput={handleNpsnChange}
 			class={errors.npsn ? 'border-destructive' : ''}
@@ -123,17 +171,21 @@
 			<p class="text-sm text-destructive">{errors.npsn[0]}</p>
 		{/if}
 		<p class="text-xs text-muted-foreground">
-			Enter your school's 8-digit NPSN number from Kemdikbud.
+			{formData.type === 'foundation'
+				? 'Masukkan NPSN jika yayasan memiliki NPSN induk, atau kosongkan jika tidak ada.'
+				: "Enter your school's 8-digit NPSN number from Kemdikbud."}
 		</p>
 	</div>
 
 	<!-- Slug -->
 	<div class="space-y-2">
-		<Label for="slug">School Slug *</Label>
+		<Label for="slug">{formData.type === 'foundation' ? 'Foundation Slug' : 'School Slug'} *</Label>
 		<Input
 			id="slug"
 			type="text"
-			placeholder="e.g., sma-negeri-1-jakarta"
+			placeholder={formData.type === 'foundation'
+				? 'e.g., yayasan-pendidikan'
+				: 'e.g., sma-negeri-1-jakarta'}
 			value={formData.slug || ''}
 			oninput={handleSlugChange}
 			class={errors.slug ? 'border-destructive' : ''}
@@ -142,7 +194,10 @@
 			<p class="text-sm text-destructive">{errors.slug[0]}</p>
 		{/if}
 		<p class="text-xs text-muted-foreground">
-			This will be your school's subdomain: <strong>{formData.slug || 'your-school'}.ppdb.id</strong
+			This will be your {formData.type === 'foundation' ? "foundation's" : "school's"} subdomain:
+			<strong
+				>{formData.slug ||
+					(formData.type === 'foundation' ? 'your-foundation' : 'your-school')}.ppdb.id</strong
 			>
 		</p>
 	</div>
