@@ -63,7 +63,7 @@
 				Kelola unit sekolah (TK, SD, SMP, SMA, dsb) di bawah yayasan Anda.
 			</p>
 		</div>
-		<AddUnitDialog />
+		<AddUnitDialog tenants={data.tenants} user={data.user} />
 	</div>
 
 	<!-- Stats (Optional but good for dashboard look) -->

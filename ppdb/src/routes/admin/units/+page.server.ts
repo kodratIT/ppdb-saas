@@ -1,5 +1,11 @@
 import { db } from '$lib/server/db';
-import { units, admissionPaths, applications, schoolLevelEnum } from '$lib/server/db/schema';
+import {
+	units,
+	admissionPaths,
+	applications,
+	schoolLevelEnum,
+	tenants
+} from '$lib/server/db/schema';
 import { eq, and, count } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
@@ -19,9 +25,18 @@ export const load: PageServerLoad = async ({ locals }) => {
 		orderBy: (units, { asc }) => [asc(units.name)]
 	});
 
+	// Fetch tenants for selection if Super Admin
+	let allTenants: any[] = [];
+	if (isSuperAdmin) {
+		allTenants = await db.query.tenants.findMany({
+			orderBy: (tenants, { asc }) => [asc(tenants.name)]
+		});
+	}
+
 	return {
 		units: tenantUnits,
-		user: auth.session
+		user: auth.session,
+		tenants: allTenants
 	};
 };
 
@@ -33,6 +48,7 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
 		const level = formData.get('level') as string;
+		const targetTenantId = formData.get('tenantId') as string;
 
 		const npsn = formData.get('npsn') as string;
 		const accreditation = formData.get('accreditation') as string;
@@ -47,9 +63,13 @@ export const actions: Actions = {
 			return fail(400, { error: 'Jenjang sekolah tidak valid' });
 		}
 
+		// Only Super Admin can specify a different tenant
+		const tenantId =
+			auth.session.role === 'super_admin' && targetTenantId ? targetTenantId : auth.tenantId;
+
 		try {
 			await db.insert(units).values({
-				tenantId: auth.tenantId,
+				tenantId,
 				name,
 				level: level as any,
 				npsn,
