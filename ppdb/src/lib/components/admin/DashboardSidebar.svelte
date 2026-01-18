@@ -3,6 +3,7 @@
 		LayoutDashboard,
 		BarChart3,
 		School,
+		LayoutGrid,
 		Users,
 		CreditCard,
 		FileText,
@@ -20,23 +21,20 @@
 	const navigation = [
 		{
 			group: 'Main',
-			items: [
-				{ name: 'Dashboard', icon: LayoutDashboard, href: '/admin' }
-			]
+			items: [{ name: 'Dashboard', icon: LayoutDashboard, href: '/admin' }]
 		},
 		{
 			group: 'Management',
 			items: [
 				{ name: 'Schools', icon: School, href: '/admin/schools' },
+				{ name: 'Units', icon: LayoutGrid, href: '/admin/units' },
 				{ name: 'Verification', icon: FileCheck, href: '/admin/verification' },
 				{ name: 'Broadcast', icon: Megaphone, href: '/admin/broadcast' }
 			]
 		},
 		{
 			group: 'System',
-			items: [
-				{ name: 'Settings', icon: Settings, href: '/admin/settings' }
-			]
+			items: [{ name: 'Settings', icon: Settings, href: '/admin/settings' }]
 		}
 	];
 </script>
