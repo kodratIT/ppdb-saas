@@ -9,6 +9,8 @@
 	import StepLocation from './steps/StepLocation.svelte';
 	import StepAdmin from './steps/StepAdmin.svelte';
 	import StepReview from './steps/StepReview.svelte';
+	import { Confetti } from '$lib/components/ui/confetti';
+	import { goto } from '$app/navigation';
 
 	let { form } = $props<{ form: ActionData }>();
 
@@ -16,6 +18,7 @@
 
 	let currentStep = $state(1);
 	let isSubmitting = $state(false);
+	let showSuccess = $state(false);
 	let errors = $state<Record<string, string[]>>({});
 
 	// Initialize with default values
@@ -124,9 +127,19 @@
 					action="?/create"
 					use:enhance={() => {
 						isSubmitting = true;
-						return async ({ update }) => {
+						return async ({ result, update }) => {
 							await update();
 							isSubmitting = false;
+							
+							// Check if successful
+							if (result.type === 'success' && result.data?.success) {
+								showSuccess = true;
+								
+								// Redirect after 3 seconds
+								setTimeout(() => {
+									goto('/admin/schools');
+								}, 3000);
+							}
 						};
 					}}
 				>
@@ -161,12 +174,32 @@
 		</div>
 	{/if}
 
-	{#if form?.success}
+	{#if showSuccess || form?.success}
+		<Confetti />
 		<div
 			class="mt-4 p-4 rounded-md bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800"
 			transition:fade
 		>
-			Registration Successful!
+			<div class="flex items-center gap-2">
+				<svg
+					class="w-5 h-5"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<div>
+					<p class="font-medium">🎉 Registration Successful!</p>
+					<p class="text-sm">Redirecting to schools dashboard in 3 seconds...</p>
+				</div>
+			</div>
 		</div>
 	{/if}
 </div>
