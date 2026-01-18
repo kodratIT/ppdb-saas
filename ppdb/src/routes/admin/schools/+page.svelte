@@ -1,14 +1,30 @@
 <script lang="ts">
 	/* eslint-disable svelte/require-each-key */
-	/* eslint-disable svelte/no-navigation-without-resolve */
 	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
 	import Button from '$lib/components/ui/button.svelte';
 	import { Table, TableBody, TableCell, TableHead, TableRow } from '$lib/components/ui/table';
 	import { Badge } from '$lib/components/ui/badge';
-	import { School, Globe, Activity, Shield, ExternalLink, Power } from 'lucide-svelte';
+	import { Globe, ExternalLink, Power, School } from 'lucide-svelte';
+	import SchoolsStatsCards from './components/SchoolsStatsCards.svelte';
 
 	let { data } = $props<{ data: PageData }>();
+
+	interface Tenant {
+		id: string;
+		name: string;
+		slug: string;
+		status: 'active' | 'inactive';
+		stats?: {
+			applications: number;
+			paidInvoices: number;
+		};
+	}
+
+	const totalSchools = $derived(data.tenants.length);
+	const activeSchools = $derived(
+		(data.tenants as Tenant[]).filter((t) => t.status === 'active').length
+	);
 </script>
 
 <div class="space-y-8 p-6">
@@ -24,33 +40,7 @@
 		</Button>
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-		<div class="bg-white p-6 rounded-xl border shadow-sm">
-			<div class="flex items-center gap-4 mb-2">
-				<div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><School class="w-5 h-5" /></div>
-				<span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Total Sekolah</span>
-			</div>
-			<p class="text-4xl font-black text-[#002C5F]">{data.tenants.length}</p>
-		</div>
-		<div class="bg-white p-6 rounded-xl border shadow-sm">
-			<div class="flex items-center gap-4 mb-2">
-				<div class="p-2 bg-green-50 text-green-600 rounded-lg"><Activity class="w-5 h-5" /></div>
-				<span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Sekolah Aktif</span>
-			</div>
-			<p class="text-4xl font-black text-green-600">
-				{data.tenants.filter((t: any) => t.status === 'active').length}
-			</p>
-		</div>
-		<div class="bg-white p-6 rounded-xl border shadow-sm">
-			<div class="flex items-center gap-4 mb-2">
-				<div class="p-2 bg-purple-50 text-purple-600 rounded-lg"><Shield class="w-5 h-5" /></div>
-				<span class="text-sm font-bold text-gray-400 uppercase tracking-widest"
-					>Security Status</span
-				>
-			</div>
-			<p class="text-xl font-black text-purple-600 uppercase italic">Enterprise Safe</p>
-		</div>
-	</div>
+	<SchoolsStatsCards total={totalSchools} active={activeSchools} />
 
 	<div class="bg-white rounded-xl border shadow-md overflow-hidden">
 		<Table>
