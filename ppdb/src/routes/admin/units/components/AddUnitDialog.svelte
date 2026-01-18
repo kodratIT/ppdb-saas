@@ -3,12 +3,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui/select/index';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
@@ -76,9 +71,9 @@
 			</div>
 			<div class="space-y-2">
 				<Label for="level">Jenjang</Label>
-				<Select value={selectedLevel} onValueChange={handleLevelChange}>
+				<Select type="single" value={selectedLevel} onValueChange={handleLevelChange}>
 					<SelectTrigger id="level">
-						<span>{getLevelLabel(selectedLevel)}</span>
+						{getLevelLabel(selectedLevel)}
 					</SelectTrigger>
 					<SelectContent>
 						{#each schoolLevels as level}

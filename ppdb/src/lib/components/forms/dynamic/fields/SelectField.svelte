@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Select } from '$lib/components/ui';
+	import { NativeSelect as Select } from '$lib/components/ui';
 	import { Label } from '$lib/components/ui';
 	import type { customFieldSchema } from '$lib/server/domain/form-builder.schema';
 	import type { z } from 'zod';

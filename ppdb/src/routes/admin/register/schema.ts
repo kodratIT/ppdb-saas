@@ -12,7 +12,7 @@ export const identityBaseSchema = z.object({
 		.string()
 		.min(3, 'Slug must be at least 3 characters')
 		.regex(slugRegex, 'Slug can only contain lowercase letters, numbers, and hyphens'),
-	level: z.enum(['SD', 'SMP', 'SMA', 'SMK', 'Universitas', 'Lainnya']),
+	level: z.enum(['TK', 'SD', 'SMP', 'SMA', 'SMK', 'Universitas', 'Lainnya']),
 	status: z.enum(['active', 'inactive']).default('active')
 });
 
@@ -63,7 +63,7 @@ export const registrationSchema = z
 	})
 	.superRefine(validateNPSN);
 
-export type IdentityFormData = z.infer<typeof identitySchema>;
+export type IdentityFormData = z.infer<typeof identityBaseSchema>;
 export type LocationFormData = z.infer<typeof locationSchema>;
 export type AdminFormData = z.infer<typeof adminSchema>;
 export type RegistrationFormData = z.infer<typeof registrationSchema>;

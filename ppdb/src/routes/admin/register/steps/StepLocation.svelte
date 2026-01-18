@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import { Textarea } from '$lib/components/ui/textarea';
 	import {
+		Input,
+		Label,
+		Textarea,
 		Select,
 		SelectContent,
 		SelectItem,
 		SelectTrigger
-	} from '$lib/components/ui/select/index';
+	} from '$lib/components/ui';
 	import {
 		fetchProvinces,
 		fetchCities,
@@ -42,18 +42,113 @@
 	let selectedProvinceId = $state<string>('');
 	let selectedCityId = $state<string>('');
 	let selectedDistrictId = $state<string>('');
+	let selectedVillageId = $state<string>('');
 
 	// Load provinces on mount
 	onMount(async () => {
 		loadingProvinces = true;
 		try {
 			provinces = await fetchProvinces();
+			// Try to restore IDs from names if they exist in formData (e.g. on back step)
+			if (formData.province) {
+				const p = provinces.find((p) => p.name === formData.province);
+				if (p) {
+					selectedProvinceId = p.id;
+					await loadCities(p.id, false);
+				}
+			}
 		} catch (error) {
 			console.error('Failed to load provinces:', error);
 		} finally {
 			loadingProvinces = false;
 		}
 	});
+
+	async function loadCities(provinceId: string, resetDependent = true) {
+		if (resetDependent) {
+			selectedCityId = '';
+			selectedDistrictId = '';
+			selectedVillageId = '';
+			formData.city = '';
+			formData.district = '';
+			formData.village = '';
+		}
+		cities = [];
+		districts = [];
+		villages = [];
+
+		if (!provinceId) return;
+
+		loadingCities = true;
+		try {
+			cities = await fetchCities(provinceId);
+			if (formData.city) {
+				const c = cities.find((item) => item.name === formData.city);
+				if (c) {
+					selectedCityId = c.id;
+					await loadDistricts(c.id, false);
+				}
+			}
+		} catch (error) {
+			console.error('Failed to load cities:', error);
+		} finally {
+			loadingCities = false;
+		}
+	}
+
+	async function loadDistricts(cityId: string, resetDependent = true) {
+		if (resetDependent) {
+			selectedDistrictId = '';
+			selectedVillageId = '';
+			formData.district = '';
+			formData.village = '';
+		}
+		districts = [];
+		villages = [];
+
+		if (!cityId) return;
+
+		loadingDistricts = true;
+		try {
+			districts = await fetchDistricts(cityId);
+			if (formData.district) {
+				const d = districts.find((item) => item.name === formData.district);
+				if (d) {
+					selectedDistrictId = d.id;
+					await loadVillages(d.id, false);
+				}
+			}
+		} catch (error) {
+			console.error('Failed to load districts:', error);
+		} finally {
+			loadingDistricts = false;
+		}
+	}
+
+	async function loadVillages(districtId: string, resetDependent = true) {
+		if (resetDependent) {
+			selectedVillageId = '';
+			formData.village = '';
+		}
+		villages = [];
+
+		if (!districtId) return;
+
+		loadingVillages = true;
+		try {
+			villages = await fetchVillages(districtId);
+			if (formData.village) {
+				const v = villages.find((item) => item.name === formData.village);
+				if (v) {
+					selectedVillageId = v.id;
+				}
+			}
+		} catch (error) {
+			console.error('Failed to load villages:', error);
+		} finally {
+			loadingVillages = false;
+		}
+	}
 
 	async function handleProvinceChange(provinceId: string) {
 		selectedProvinceId = provinceId;
@@ -62,28 +157,7 @@
 			formData.province = province.name;
 			onUpdate(formData);
 		}
-
-		// Reset dependent fields
-		selectedCityId = '';
-		selectedDistrictId = '';
-		formData.city = '';
-		formData.district = '';
-		formData.village = '';
-		cities = [];
-		districts = [];
-		villages = [];
-
-		// Load cities
-		if (provinceId) {
-			loadingCities = true;
-			try {
-				cities = await fetchCities(provinceId);
-			} catch (error) {
-				console.error('Failed to load cities:', error);
-			} finally {
-				loadingCities = false;
-			}
-		}
+		await loadCities(provinceId);
 	}
 
 	async function handleCityChange(cityId: string) {
@@ -93,25 +167,7 @@
 			formData.city = city.name;
 			onUpdate(formData);
 		}
-
-		// Reset dependent fields
-		selectedDistrictId = '';
-		formData.district = '';
-		formData.village = '';
-		districts = [];
-		villages = [];
-
-		// Load districts
-		if (cityId) {
-			loadingDistricts = true;
-			try {
-				districts = await fetchDistricts(cityId);
-			} catch (error) {
-				console.error('Failed to load districts:', error);
-			} finally {
-				loadingDistricts = false;
-			}
-		}
+		await loadDistricts(cityId);
 	}
 
 	async function handleDistrictChange(districtId: string) {
@@ -121,25 +177,11 @@
 			formData.district = district.name;
 			onUpdate(formData);
 		}
-
-		// Reset dependent fields
-		formData.village = '';
-		villages = [];
-
-		// Load villages
-		if (districtId) {
-			loadingVillages = true;
-			try {
-				villages = await fetchVillages(districtId);
-			} catch (error) {
-				console.error('Failed to load villages:', error);
-			} finally {
-				loadingVillages = false;
-			}
-		}
+		await loadVillages(districtId);
 	}
 
 	function handleVillageChange(villageId: string) {
+		selectedVillageId = villageId;
 		const village = villages.find((v) => v.id === villageId);
 		if (village) {
 			formData.village = village.name;
@@ -163,25 +205,22 @@
 <div class="space-y-6">
 	<div>
 		<h2 class="text-xl font-semibold mb-2">Location Details 📍</h2>
-		<p class="text-sm text-muted-foreground">
-			Provide the complete address of your school.
-		</p>
+		<p class="text-sm text-muted-foreground">Provide the complete address of your school.</p>
 	</div>
 
 	<!-- Province -->
 	<div class="space-y-2">
 		<Label for="province">Province *</Label>
 		<Select
+			type="single"
 			value={selectedProvinceId}
 			onValueChange={handleProvinceChange}
 			disabled={loadingProvinces}
 		>
 			<SelectTrigger id="province" class={errors.province ? 'border-destructive' : ''}>
-				<span>
-					{loadingProvinces
-						? 'Loading...'
-						: provinces.find((p) => p.id === selectedProvinceId)?.name || 'Select province'}
-				</span>
+				{loadingProvinces
+					? 'Loading...'
+					: provinces.find((p) => p.id === selectedProvinceId)?.name || 'Select province'}
 			</SelectTrigger>
 			<SelectContent>
 				{#each provinces as province (province.id)}
@@ -198,18 +237,17 @@
 	<div class="space-y-2">
 		<Label for="city">City/Regency *</Label>
 		<Select
+			type="single"
 			value={selectedCityId}
 			onValueChange={handleCityChange}
 			disabled={!selectedProvinceId || loadingCities}
 		>
 			<SelectTrigger id="city" class={errors.city ? 'border-destructive' : ''}>
-				<span>
-					{loadingCities
-						? 'Loading...'
-						: selectedProvinceId
-							? cities.find((c) => c.id === selectedCityId)?.name || 'Select city/regency'
-							: 'Select province first'}
-				</span>
+				{loadingCities
+					? 'Loading...'
+					: selectedProvinceId
+						? cities.find((c) => c.id === selectedCityId)?.name || 'Select city/regency'
+						: 'Select province first'}
 			</SelectTrigger>
 			<SelectContent>
 				{#each cities as city (city.id)}
@@ -226,18 +264,17 @@
 	<div class="space-y-2">
 		<Label for="district">District *</Label>
 		<Select
+			type="single"
 			value={selectedDistrictId}
 			onValueChange={handleDistrictChange}
 			disabled={!selectedCityId || loadingDistricts}
 		>
 			<SelectTrigger id="district" class={errors.district ? 'border-destructive' : ''}>
-				<span>
-					{loadingDistricts
-						? 'Loading...'
-						: selectedCityId
-							? districts.find((d) => d.id === selectedDistrictId)?.name || 'Select district'
-							: 'Select city first'}
-				</span>
+				{loadingDistricts
+					? 'Loading...'
+					: selectedCityId
+						? districts.find((d) => d.id === selectedDistrictId)?.name || 'Select district'
+						: 'Select city first'}
 			</SelectTrigger>
 			<SelectContent>
 				{#each districts as district (district.id)}
@@ -254,22 +291,21 @@
 	<div class="space-y-2">
 		<Label for="village">Village *</Label>
 		<Select
-			value={formData.village || ''}
+			type="single"
+			value={selectedVillageId}
 			onValueChange={handleVillageChange}
 			disabled={!selectedDistrictId || loadingVillages}
 		>
 			<SelectTrigger id="village" class={errors.village ? 'border-destructive' : ''}>
-				<span>
-					{loadingVillages
-						? 'Loading...'
-						: selectedDistrictId
-							? formData.village || 'Select village'
-							: 'Select district first'}
-				</span>
+				{loadingVillages
+					? 'Loading...'
+					: selectedDistrictId
+						? villages.find((v) => v.id === selectedVillageId)?.name || 'Select village'
+						: 'Select district first'}
 			</SelectTrigger>
 			<SelectContent>
 				{#each villages as village (village.id)}
-					<SelectItem value={village.name}>{village.name}</SelectItem>
+					<SelectItem value={village.id}>{village.name}</SelectItem>
 				{/each}
 			</SelectContent>
 		</Select>
@@ -301,7 +337,7 @@
 			id="postalCode"
 			type="text"
 			placeholder="e.g., 12345"
-			maxlength="5"
+			maxlength={5}
 			value={formData.postalCode || ''}
 			oninput={handlePostalCodeChange}
 			class={errors.postalCode ? 'border-destructive' : ''}

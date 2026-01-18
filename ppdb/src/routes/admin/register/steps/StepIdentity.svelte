@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
 	import {
+		Input,
+		Label,
 		Select,
 		SelectContent,
 		SelectItem,
 		SelectTrigger
-	} from '$lib/components/ui/select/index';
+	} from '$lib/components/ui';
 	import { RadioGroup, RadioGroupItem } from '$lib/components/ui/radio-group';
 	import Alert from '$lib/components/ui/alert.svelte';
-	import type { IdentityFormData } from '../schema.js';
+	import type { IdentityFormData } from '../schema';
 
 	interface Props {
 		formData: Partial<IdentityFormData>;
@@ -20,6 +20,7 @@
 	let { formData = $bindable(), errors = {}, onUpdate }: Props = $props();
 
 	const schoolLevels = [
+		{ value: 'TK', label: 'TK (Taman Kanak-Kanak)' },
 		{ value: 'SD', label: 'SD (Sekolah Dasar)' },
 		{ value: 'SMP', label: 'SMP (Sekolah Menengah Pertama)' },
 		{ value: 'SMA', label: 'SMA (Sekolah Menengah Atas)' },
@@ -204,10 +205,12 @@
 
 	<!-- Level -->
 	<div class="space-y-2">
-		<Label for="level">School Level *</Label>
-		<Select value={formData.level || 'SMA'} onValueChange={handleLevelChange}>
+		<Label for="level">
+			{formData.type === 'foundation' ? 'First Unit Level' : 'School Level'} *
+		</Label>
+		<Select type="single" value={formData.level || 'SMA'} onValueChange={handleLevelChange}>
 			<SelectTrigger id="level" class={errors.level ? 'border-destructive' : ''}>
-				<span>{getLevelLabel(formData.level || 'SMA') || 'Select school level'}</span>
+				{getLevelLabel(formData.level || 'SMA') || 'Select level'}
 			</SelectTrigger>
 			<SelectContent>
 				{#each schoolLevels as level}
@@ -217,6 +220,11 @@
 		</Select>
 		{#if errors.level}
 			<p class="text-sm text-destructive">{errors.level[0]}</p>
+		{/if}
+		{#if formData.type === 'foundation'}
+			<p class="text-xs text-muted-foreground">
+				Pilih jenjang untuk unit sekolah pertama yang akan dibuat otomatis.
+			</p>
 		{/if}
 	</div>
 

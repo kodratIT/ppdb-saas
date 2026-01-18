@@ -15,6 +15,7 @@ export async function createTenant(
 	data: {
 		name: string;
 		slug: string;
+		type?: 'single' | 'foundation';
 		npsn?: string;
 		level?: string;
 		status?: 'active' | 'inactive';
@@ -34,7 +35,7 @@ export async function createTenant(
 	}
 
 	// Use transaction to ensure atomicity
-	return await db.transaction(async (tx) => {
+	return await db.transaction(async (tx: any) => {
 		// 1. Insert tenant
 		const [newTenant] = await tx
 			.insert(tenants)
@@ -75,6 +76,7 @@ export async function createTenant(
 			details: JSON.stringify({
 				name: data.name,
 				id: newTenant.id,
+				type: data.type,
 				npsn: data.npsn,
 				level: data.level
 			})
