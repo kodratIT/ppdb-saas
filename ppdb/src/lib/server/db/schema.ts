@@ -15,6 +15,15 @@ import {
 import { relations } from 'drizzle-orm';
 
 export const statusEnum = pgEnum('status', ['active', 'inactive']);
+export const schoolLevelEnum = pgEnum('school_level', [
+	'TK',
+	'SD',
+	'SMP',
+	'SMA',
+	'SMK',
+	'Universitas',
+	'Lainnya'
+]);
 export const admissionPathStatusEnum = pgEnum('admission_path_status', [
 	'draft',
 	'open',
@@ -90,6 +99,18 @@ export const tenants = pgTable('tenants', {
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
+export const units = pgTable('units', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	name: text('name').notNull(),
+	level: schoolLevelEnum('level').notNull(),
+	config: jsonb('config').default({}).notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 export const users = pgTable(
 	'users',
 	{
@@ -120,7 +141,18 @@ export const usersRelations = relations(users, ({ one }) => ({
 }));
 
 export const tenantsRelations = relations(tenants, ({ many }) => ({
-	users: many(users)
+	users: many(users),
+	units: many(units)
+}));
+
+export const unitsRelations = relations(units, ({ one, many }) => ({
+	tenant: one(tenants, {
+		fields: [units.tenantId],
+		references: [tenants.id]
+	}),
+	admissionPaths: many(admissionPaths),
+	applications: many(applications),
+	invoices: many(invoices)
 }));
 
 export const auditLogs = pgTable('audit_logs', {
@@ -186,6 +218,7 @@ export const admissionPaths = pgTable('admission_paths', {
 	quota: integer('quota').notNull(),
 	filledSlots: integer('filled_slots').notNull().default(0),
 	status: admissionPathStatusEnum('status').notNull().default('draft'),
+	unitId: uuid('unit_id').references(() => units.id),
 	// Epic 4.3: Ranking Engine - Announcement date for scheduling
 	announcementDate: timestamp('announcement_date'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -196,6 +229,10 @@ export const admissionPathsRelations = relations(admissionPaths, ({ one, many })
 	tenant: one(tenants, {
 		fields: [admissionPaths.tenantId],
 		references: [tenants.id]
+	}),
+	unit: one(units, {
+		fields: [admissionPaths.unitId],
+		references: [units.id]
 	}),
 	feeStructures: many(feeStructures)
 }));
@@ -295,6 +332,7 @@ export const applications = pgTable('applications', {
 	admissionPathId: uuid('admission_path_id')
 		.references(() => admissionPaths.id)
 		.notNull(),
+	unitId: uuid('unit_id').references(() => units.id),
 	status: applicationStatusEnum('status').default('draft').notNull(),
 
 	// Dynamic custom field values
@@ -343,6 +381,10 @@ export const applicationsRelations = relations(applications, ({ one, many }) => 
 	admissionPath: one(admissionPaths, {
 		fields: [applications.admissionPathId],
 		references: [admissionPaths.id]
+	}),
+	unit: one(units, {
+		fields: [applications.unitId],
+		references: [units.id]
 	}),
 	documents: many(applicationDocuments),
 	invoices: many(invoices)
@@ -616,6 +658,7 @@ export const invoices = pgTable('invoices', {
 	applicationId: uuid('application_id')
 		.references(() => applications.id)
 		.notNull(),
+	unitId: uuid('unit_id').references(() => units.id),
 	externalId: text('external_id').notNull().unique(), // Xendit Invoice ID
 	amount: integer('amount').notNull(),
 	status: invoiceStatusEnum('status').notNull().default('PENDING'),
@@ -633,6 +676,10 @@ export const invoicesRelations = relations(invoices, ({ one, many }) => ({
 	tenant: one(tenants, {
 		fields: [invoices.tenantId],
 		references: [tenants.id]
+	}),
+	unit: one(units, {
+		fields: [invoices.unitId],
+		references: [units.id]
 	}),
 	transactions: many(paymentTransactions),
 	proofs: many(paymentProofs)
