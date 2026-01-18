@@ -81,7 +81,7 @@
 		class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
 	>
 		<div class="p-6">
-			<Stepper {steps} {currentStep} />
+			<Stepper currentStep={currentStep} totalSteps={4} steps={steps} />
 		</div>
 
 		<div class="p-6 min-h-[400px]">
