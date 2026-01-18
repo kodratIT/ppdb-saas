@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
 	import {
 		Table,
@@ -9,20 +10,90 @@
 		TableCell,
 		TableHead,
 		TableHeader,
-		TableRow
-	} from '$lib/components/ui/table.ts';
+		TableRow,
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger,
+		Input,
+		Badge,
+		Button
+	} from '$lib/components/ui';
 	import * as Card from '$lib/components/ui/card';
-	import Button from '$lib/components/ui/button.svelte';
-	import Badge from '$lib/components/ui/badge.svelte';
 	import AddUnitDialog from './components/AddUnitDialog.svelte';
+	import EditUnitDialog from './components/EditUnitDialog.svelte';
 	import ConfirmDialog from '../schools/components/ConfirmDialog.svelte';
-	import { School, Trash2, Calendar, LayoutGrid, Building2, Loader2 } from 'lucide-svelte';
+	import {
+		School,
+		Trash2,
+		Calendar,
+		LayoutGrid,
+		Building2,
+		Loader2,
+		Search,
+		Filter,
+		X
+	} from 'lucide-svelte';
 
 	let { data } = $props<{ data: PageData }>();
 
 	let unitToDelete = $state<string | null>(null);
 	let isConfirmOpen = $state(false);
 	let isDeleting = $state(false);
+
+	// Filter states
+	let search = $state(data.filters.search);
+	let selectedLevelFilter = $state(data.filters.level);
+	let selectedTenantIdFilter = $state(data.filters.tenantId);
+
+	const schoolLevels = [
+		{ value: 'all', label: 'Semua Jenjang' },
+		{ value: 'TK', label: 'TK' },
+		{ value: 'SD', label: 'SD' },
+		{ value: 'SMP', label: 'SMP' },
+		{ value: 'SMA', label: 'SMA' },
+		{ value: 'SMK', label: 'SMK' },
+		{ value: 'Universitas', label: 'Universitas' }
+	];
+
+	function updateFilters() {
+		const url = new URL(page.url);
+		if (search) url.searchParams.set('search', search);
+		else url.searchParams.delete('search');
+
+		if (selectedLevelFilter !== 'all') url.searchParams.set('level', selectedLevelFilter);
+		else url.searchParams.delete('level');
+
+		if (selectedTenantIdFilter !== 'all') url.searchParams.set('tenant_id', selectedTenantIdFilter);
+		else url.searchParams.delete('tenant_id');
+
+		goto(url.toString(), { keepFocus: true, replaceState: true });
+	}
+
+	let debounceTimer: ReturnType<typeof setTimeout>;
+	function handleSearchInput() {
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(updateFilters, 300);
+	}
+
+	function resetFilters() {
+		search = '';
+		selectedLevelFilter = 'all';
+		selectedTenantIdFilter = 'all';
+		goto(page.url.pathname);
+	}
+
+	function handleLevelFilterChange(value: string | undefined) {
+		if (!value) return;
+		selectedLevelFilter = value;
+		updateFilters();
+	}
+
+	function handleTenantFilterChange(value: string | undefined) {
+		if (!value) return;
+		selectedTenantIdFilter = value;
+		updateFilters();
+	}
 
 	// Group units by tenant for easier viewing
 	const groupedUnits = $derived.by(() => {
@@ -91,6 +162,87 @@
 		<AddUnitDialog tenants={data.tenants} user={data.user} />
 	</div>
 
+	<!-- Filters Bar -->
+	<Card.Root>
+		<Card.Content class="p-4">
+			<div class="flex flex-col md:flex-row items-end gap-4">
+				<!-- Search -->
+				<div class="flex-1 space-y-2 w-full">
+					<div
+						class="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-widest"
+					>
+						<Search class="h-3 w-3" /> Cari Unit
+					</div>
+					<Input
+						placeholder="Nama unit atau NPSN..."
+						bind:value={search}
+						oninput={handleSearchInput}
+						class="h-9"
+					/>
+				</div>
+
+				<!-- Level Filter -->
+				<div class="w-full md:w-[180px] space-y-2">
+					<div
+						class="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-widest"
+					>
+						<Filter class="h-3 w-3" /> Jenjang
+					</div>
+					<Select type="single" value={selectedLevelFilter} onValueChange={handleLevelFilterChange}>
+						<SelectTrigger class="h-9">
+							{schoolLevels.find((l) => l.value === selectedLevelFilter)?.label || 'Semua Jenjang'}
+						</SelectTrigger>
+						<SelectContent>
+							{#each schoolLevels as level}
+								<SelectItem value={level.value}>{level.label}</SelectItem>
+							{/each}
+						</SelectContent>
+					</Select>
+				</div>
+
+				<!-- Tenant Filter (Super Admin Only) -->
+				{#if data.user.role === 'super_admin'}
+					<div class="w-full md:w-[220px] space-y-2">
+						<div
+							class="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-widest"
+						>
+							<Building2 class="h-3 w-3" /> Yayasan
+						</div>
+						<Select
+							type="single"
+							value={selectedTenantIdFilter}
+							onValueChange={handleTenantFilterChange}
+						>
+							<SelectTrigger class="h-9">
+								<span class="truncate">
+									{data.tenants.find((t: any) => t.id === selectedTenantIdFilter)?.name ||
+										'Semua Yayasan'}
+								</span>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">Semua Yayasan</SelectItem>
+								{#each data.tenants as tenant}
+									<SelectItem value={tenant.id}>{tenant.name}</SelectItem>
+								{/each}
+							</SelectContent>
+						</Select>
+					</div>
+				{/if}
+
+				<!-- Reset -->
+				<Button
+					variant="outline"
+					size="icon"
+					class="h-9 w-9 shrink-0"
+					onclick={resetFilters}
+					title="Reset Filter"
+				>
+					<X class="h-4 w-4" />
+				</Button>
+			</div>
+		</Card.Content>
+	</Card.Root>
+
 	<!-- Stats -->
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 		<Card.Root>
@@ -100,7 +252,7 @@
 			</Card.Header>
 			<Card.Content>
 				<div class="text-2xl font-bold">{data.units.length}</div>
-				<p class="text-xs text-muted-foreground">Unit terdaftar di seluruh sistem</p>
+				<p class="text-xs text-muted-foreground">Unit cocok dengan filter</p>
 			</Card.Content>
 		</Card.Root>
 	</div>
@@ -128,7 +280,7 @@
 					{#if groupedUnits.length === 0}
 						<TableRow>
 							<TableCell colspan={5} class="h-24 text-center text-muted-foreground">
-								Belum ada unit sekolah. Klik "Tambah Unit" untuk memulai.
+								Tidak ada unit yang ditemukan.
 							</TableCell>
 						</TableRow>
 					{:else}
@@ -186,20 +338,23 @@
 										</div>
 									</TableCell>
 									<TableCell class="text-right pr-6">
-										<Button
-											variant="ghost"
-											size="icon"
-											class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
-											onclick={() => confirmDelete(unit.id)}
-											disabled={isDeleting && unitToDelete === unit.id}
-										>
-											{#if isDeleting && unitToDelete === unit.id}
-												<Loader2 class="h-4 w-4 animate-spin" />
-											{:else}
-												<Trash2 class="h-4 w-4" />
-											{/if}
-											<span class="sr-only">Hapus</span>
-										</Button>
+										<div class="flex items-center justify-end gap-1">
+											<EditUnitDialog {unit} tenants={data.tenants} user={data.user} />
+											<Button
+												variant="ghost"
+												size="icon"
+												class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+												onclick={() => confirmDelete(unit.id)}
+												disabled={isDeleting && unitToDelete === unit.id}
+											>
+												{#if isDeleting && unitToDelete === unit.id}
+													<Loader2 class="h-4 w-4 animate-spin" />
+												{:else}
+													<Trash2 class="h-4 w-4" />
+												{/if}
+												<span class="sr-only">Hapus</span>
+											</Button>
+										</div>
 									</TableCell>
 								</TableRow>
 							{/each}
