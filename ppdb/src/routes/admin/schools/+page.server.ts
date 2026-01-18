@@ -1,6 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
-import { listTenantsWithStats, updateTenantStatus, getEnhancedStats } from '$lib/server/domain/admin';
+import {
+	listTenantsWithStats,
+	updateTenantStatus,
+	getEnhancedStats,
+	deleteTenant
+} from '$lib/server/domain/admin';
 import { requireAuth, requireSuperAdmin } from '$lib/server/auth/authorization';
 import { PAGINATION_LIMIT } from '$lib/constants/admin';
 import { ERROR_MESSAGES, createErrorResponse } from '$lib/constants/errors';
@@ -30,7 +35,7 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
 			}),
 			getEnhancedStats()
 		]);
-		
+
 		return { tenants, enhancedStats };
 	} catch (error) {
 		console.error('Failed to load tenants:', error);
@@ -53,16 +58,16 @@ export const actions: Actions = {
 			}
 
 			const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-			
+
 			await updateTenantStatus(tenantId, newStatus, auth.userId);
 
-			return { 
+			return {
 				success: true,
 				message: `School ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`
 			};
 		} catch (error) {
 			console.error('Toggle status failed:', error);
-			
+
 			// Check for specific error types
 			if (error instanceof Error) {
 				if (error.message.includes('not found')) {
@@ -72,10 +77,13 @@ export const actions: Actions = {
 					return fail(403, createErrorResponse(ERROR_MESSAGES.UNAUTHORIZED, 'UNAUTHORIZED'));
 				}
 			}
-			
-			return fail(500, createErrorResponse(ERROR_MESSAGES.UPDATE_FAILED, 'SERVER_ERROR', {
-				error: error instanceof Error ? error.message : 'Unknown error'
-			}));
+
+			return fail(
+				500,
+				createErrorResponse(ERROR_MESSAGES.UPDATE_FAILED, 'SERVER_ERROR', {
+					error: error instanceof Error ? error.message : 'Unknown error'
+				})
+			);
 		}
 	},
 
@@ -93,7 +101,7 @@ export const actions: Actions = {
 			}
 
 			const ids = JSON.parse(tenantIds) as string[];
-			
+
 			if (ids.length === 0) {
 				return fail(400, createErrorResponse('No schools selected', 'VALIDATION_ERROR'));
 			}
@@ -121,9 +129,12 @@ export const actions: Actions = {
 			};
 		} catch (error) {
 			console.error('Bulk update failed:', error);
-			return fail(500, createErrorResponse(ERROR_MESSAGES.UPDATE_FAILED, 'SERVER_ERROR', {
-				error: error instanceof Error ? error.message : 'Unknown error'
-			}));
+			return fail(
+				500,
+				createErrorResponse(ERROR_MESSAGES.UPDATE_FAILED, 'SERVER_ERROR', {
+					error: error instanceof Error ? error.message : 'Unknown error'
+				})
+			);
 		}
 	},
 
@@ -153,9 +164,12 @@ export const actions: Actions = {
 			};
 		} catch (error) {
 			console.error('Export failed:', error);
-			return fail(500, createErrorResponse('Failed to export schools', 'SERVER_ERROR', {
-				error: error instanceof Error ? error.message : 'Unknown error'
-			}));
+			return fail(
+				500,
+				createErrorResponse('Failed to export schools', 'SERVER_ERROR', {
+					error: error instanceof Error ? error.message : 'Unknown error'
+				})
+			);
 		}
 	}
 };

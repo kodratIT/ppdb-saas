@@ -10,7 +10,7 @@
 		TableHead,
 		TableHeader,
 		TableRow
-	} from '$lib/components/ui';
+	} from '$lib/components/ui/table.ts';
 	import * as Card from '$lib/components/ui/card';
 	import Button from '$lib/components/ui/button.svelte';
 	import Badge from '$lib/components/ui/badge.svelte';
@@ -70,6 +70,7 @@
 					isConfirmOpen = false;
 					await invalidateAll();
 				} else if (result.type === 'failure') {
+					// @ts-ignore
 					toast.error(result.data?.error || 'Gagal menghapus unit');
 				}
 			};
@@ -133,16 +134,16 @@
 					{:else}
 						{#each groupedUnits as group (group.id)}
 							<!-- Foundation Group Header -->
-							<TableRow class="bg-primary/5 hover:bg-primary/10 border-y transition-colors">
-								<TableCell colspan={5} class="py-2.5 pl-6">
+							<TableRow
+								class="bg-primary/5 hover:bg-primary/10 border-y transition-colors text-xs uppercase tracking-wider font-bold"
+							>
+								<TableCell colspan={5} class="py-2.5 pl-6 text-primary">
 									<div class="flex items-center gap-2">
-										<Building2 class="h-4 w-4 text-primary" />
-										<span class="font-bold text-primary uppercase tracking-wider text-[11px]">
-											{group.name}
-										</span>
+										<Building2 class="h-4 w-4" />
+										{group.name}
 										<div class="h-1 w-1 rounded-full bg-primary/30"></div>
-										<span class="text-[10px] text-primary/70 font-medium">
-											{group.units.length} Unit
+										<span class="text-[10px] text-primary/70 font-medium lowercase">
+											{group.units.length} unit
 										</span>
 									</div>
 								</TableCell>

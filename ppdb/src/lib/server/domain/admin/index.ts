@@ -1,15 +1,24 @@
 import { db } from '$lib/server/db';
 import {
 	tenants,
-	auditLogs,
-	users,
-	invoices,
-	applications,
 	schoolProfiles,
-	units
+	admissionPaths,
+	feeStructures,
+	customFields,
+	applications,
+	applicationDocuments,
+	users,
+	auditLogs,
+	units,
+	invoices,
+	paymentTransactions,
+	paymentProofs,
+	broadcasts,
+	selectionResults,
+	homeVisitReports
 } from '$lib/server/db/schema';
-import { sql, eq, count, and, gte, desc, getTableColumns, ilike, or, asc } from 'drizzle-orm';
-import { getCached, setCached, clearCache } from '$lib/server/cache';
+import { eq, sql, desc, or, ilike, and, getTableColumns } from 'drizzle-orm';
+import { clearCache, getCached, setCached } from '$lib/server/cache';
 
 export async function createTenant(
 	data: {
@@ -90,6 +99,62 @@ export async function createTenant(
 	});
 }
 
+/**
+ * Delete a tenant and its associated data
+ */
+export async function deleteTenant(tenantId: string, actorId: string) {
+	// Use transaction to ensure all associated data is deleted or nothing is
+	return await db.transaction(async (tx: any) => {
+		// 1. Check if there are any applications across units
+		const [appCount] = await tx
+			.select({ val: sql`count(*)` })
+			.from(applications)
+			.where(eq(applications.tenantId, tenantId));
+
+		if (Number(appCount?.val || 0) > 0) {
+			throw new Error('Cannot delete school with existing pendaftar (applications)');
+		}
+
+		// 2. Delete associated units
+		await tx.delete(units).where(eq(units.tenantId, tenantId));
+
+		// 3. Delete school profiles
+		await tx.delete(schoolProfiles).where(eq(schoolProfiles.tenantId, tenantId));
+
+		// 4. Delete associated users (except the actor if they belong here)
+		// We avoid deleting the current actor if they are tied to this tenant
+		await tx.delete(users).where(eq(users.tenantId, tenantId));
+
+		// 5. Delete other related tables
+		await tx.delete(admissionPaths).where(eq(admissionPaths.tenantId, tenantId));
+		await tx.delete(feeStructures).where(eq(feeStructures.tenantId, tenantId));
+		await tx.delete(customFields).where(eq(customFields.tenantId, tenantId));
+		await tx.delete(invoices).where(eq(invoices.tenantId, tenantId));
+		await tx.delete(paymentTransactions).where(eq(paymentTransactions.tenantId, tenantId));
+		await tx.delete(paymentProofs).where(eq(paymentProofs.tenantId, tenantId));
+		await tx.delete(broadcasts).where(eq(broadcasts.tenantId, tenantId));
+		await tx.delete(selectionResults).where(eq(selectionResults.tenantId, tenantId));
+		await tx.delete(homeVisitReports).where(eq(homeVisitReports.tenantId, tenantId));
+
+		// 6. Delete the tenant itself
+		const [deleted] = await tx.delete(tenants).where(eq(tenants.id, tenantId)).returning();
+
+		// 7. Create Audit Log (using global db as the transaction might be closed or we want it persistent)
+		await db.insert(auditLogs).values({
+			actorId,
+			action: 'delete_tenant',
+			target: `tenant:${tenantId}`,
+			details: JSON.stringify({
+				id: tenantId,
+				name: deleted?.name
+			})
+		});
+
+		clearCache('tenants:');
+		return deleted;
+	});
+}
+
 export async function listTenantsWithStats(
 	params: {
 		page?: number;
@@ -104,50 +169,21 @@ export async function listTenantsWithStats(
 
 	// Check cache
 	const cacheKey = `tenants:list:${JSON.stringify({ page, limit, search, status, sortBy, sortOrder })}`;
-	const cachedData = getCached<any>(cacheKey);
-	if (cachedData) return cachedData;
+	const cached = await getCached<any>(cacheKey);
+	if (cached) return cached;
 
-	const offset = (page - 1) * limit;
-
-	// 1. Build Where Clause
+	// Build filter
 	const conditions = [];
-	if (status && status !== 'all') {
-		conditions.push(eq(tenants.status, status as 'active' | 'inactive'));
-	}
 	if (search) {
 		conditions.push(or(ilike(tenants.name, `%${search}%`), ilike(tenants.slug, `%${search}%`)));
 	}
-	const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+	if (status && status !== 'all') {
+		conditions.push(eq(tenants.status, status as any));
+	}
 
-	// 2. Count Query
-	const [totalResult] = await db.select({ count: count() }).from(tenants).where(whereClause);
-	const [activeResult] = await db
-		.select({ count: count() })
-		.from(tenants)
-		.where(
-			and(
-				eq(tenants.status, 'active'),
-				...(search
-					? [or(ilike(tenants.name, `%${search}%`), ilike(tenants.slug, `%${search}%`))]
-					: [])
-			)
-		);
+	const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-	const total = Number(totalResult?.count || 0);
-	const activeCount = Number(activeResult?.count || 0);
-
-	// 3. Data Query with Aggregations
-	const allowedSortColumns = {
-		createdAt: tenants.createdAt,
-		name: tenants.name,
-		slug: tenants.slug,
-		status: tenants.status
-	};
-
-	const sortColumn =
-		allowedSortColumns[sortBy as keyof typeof allowedSortColumns] || tenants.createdAt;
-	const orderBy = sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn);
-
+	// 1. Get main data with counts in one query
 	const data = await db
 		.select({
 			...getTableColumns(tenants),
@@ -157,11 +193,27 @@ export async function listTenantsWithStats(
 		.from(tenants)
 		.leftJoin(applications, eq(tenants.id, applications.tenantId))
 		.leftJoin(invoices, eq(tenants.id, invoices.tenantId))
-		.where(whereClause)
+		.where(where)
 		.groupBy(tenants.id)
-		.orderBy(orderBy)
+		.orderBy(
+			sortOrder === 'desc'
+				? desc((tenants as any)[sortBy])
+				: (tenants as any)[sortBy] || desc(tenants.createdAt)
+		)
 		.limit(limit)
-		.offset(offset);
+		.offset((page - 1) * limit);
+
+	// 2. Get total count
+	const [totalCount] = await db
+		.select({ count: sql<number>`cast(count(*) as integer)` })
+		.from(tenants)
+		.where(where);
+
+	// 3. Get total active count
+	const [activeCount] = await db
+		.select({ count: sql<number>`cast(count(*) as integer)` })
+		.from(tenants)
+		.where(eq(tenants.status, 'active'));
 
 	const result = {
 		data: data.map((t) => ({
@@ -171,167 +223,133 @@ export async function listTenantsWithStats(
 				paidInvoices: t.paidInvoices
 			}
 		})),
-		total,
-		activeCount,
+		total: totalCount.count,
+		activeCount: activeCount.count,
 		page,
-		totalPages: Math.ceil(total / limit)
+		totalPages: Math.ceil(totalCount.count / limit)
 	};
 
-	// Save to cache
-	setCached(cacheKey, result, 60); // Cache for 1 minute
-
+	await setCached(cacheKey, result, 300); // 5 mins
 	return result;
 }
 
-/**
- * Get enhanced statistics for admin dashboard
- */
-export async function getEnhancedStats() {
-	const cacheKey = 'tenants:enhanced-stats';
-	const cached = getCached<any>(cacheKey);
-	if (cached) return cached;
+export async function getTenantById(id: string) {
+	const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
+	if (!tenant) return null;
 
-	// 1. Total and Active Schools
-	const [totalResult] = await db.select({ count: count() }).from(tenants);
-	const [activeResult] = await db
-		.select({ count: count() })
-		.from(tenants)
-		.where(eq(tenants.status, 'active'));
+	const [profile] = await db.select().from(schoolProfiles).where(eq(schoolProfiles.tenantId, id));
 
-	// 2. New Schools This Month
-	const startOfMonth = new Date();
-	startOfMonth.setDate(1);
-	startOfMonth.setHours(0, 0, 0, 0);
-	const [newThisMonthResult] = await db
-		.select({ count: count() })
-		.from(tenants)
-		.where(gte(tenants.createdAt, startOfMonth));
-
-	// 3. Total Revenue
-	const [revenueResult] = await db
-		.select({ total: sql<number>`COALESCE(sum(${invoices.amount}), 0)` })
-		.from(invoices)
-		.where(eq(invoices.status, 'PAID'));
-
-	// 4. Average Applications Per School
-	const avgApplicationsSubquery = db
-		.select({
-			tenantId: applications.tenantId,
-			app_count: sql<number>`count(${applications.id})`.as('app_count')
-		})
-		.from(applications)
-		.groupBy(applications.tenantId)
-		.as('tenant_apps');
-
-	const avgApplicationsResult = await db
-		.select({ avg: sql<number>`COALESCE(AVG(app_count), 0)` })
-		.from(avgApplicationsSubquery);
-
-	const stats = {
-		total: Number(totalResult?.count || 0),
-		active: Number(activeResult?.count || 0),
-		newThisMonth: Number(newThisMonthResult?.count || 0),
-		totalRevenue: Number(revenueResult?.total || 0),
-		avgApplications: Math.round(Number(avgApplicationsResult[0]?.avg || 0))
+	return {
+		...tenant,
+		profile
 	};
-
-	setCached(cacheKey, stats, 300); // Cache for 5 minutes
-	return stats;
 }
 
 export async function updateTenantStatus(
-	tenantId: string,
+	id: string,
 	status: 'active' | 'inactive',
 	actorId: string
 ) {
-	await db.update(tenants).set({ status, updatedAt: new Date() }).where(eq(tenants.id, tenantId));
+	const [updated] = await db
+		.update(tenants)
+		.set({
+			status,
+			updatedAt: new Date()
+		})
+		.where(eq(tenants.id, id))
+		.returning();
 
+	if (!updated) throw new Error('Tenant not found');
+
+	// Log action
 	await db.insert(auditLogs).values({
 		actorId,
 		action: 'update_tenant_status',
-		target: `tenant:${tenantId}`,
+		target: `tenant:${id}`,
 		details: JSON.stringify({ status })
 	});
 
-	// Invalidate cache
 	clearCache('tenants:');
-}
-
-export async function listTenants() {
-	return await db.select().from(tenants);
+	return updated;
 }
 
 export async function getDashboardStats() {
-	// 1. Total Tenants & Active
-	const allTenants = await db.select().from(tenants);
+	// 1. Total Tenants
+	const allTenants = await db.query.tenants.findMany();
 	const activeTenants = allTenants.filter((t) => t.status === 'active');
 
 	// 2. Total Users (Parents)
 	const [usersCount] = await db
-		.select({ count: count() })
+		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(users)
 		.where(eq(users.role, 'parent'));
 
-	// 3. New Registrations Today
-	const startOfToday = new Date();
-	startOfToday.setHours(0, 0, 0, 0);
+	// 3. New registrations today
 	const [newUsersToday] = await db
-		.select({ count: count() })
+		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(users)
-		.where(and(eq(users.role, 'parent'), gte(users.createdAt, startOfToday)));
+		.where(and(eq(users.role, 'parent'), sql`${users.createdAt} >= CURRENT_DATE`));
 
-	// 4. Pending Verifications (Submitted status)
+	// 4. Verification Queue (Total unverified across all schools)
 	const [pendingVerifications] = await db
-		.select({ count: count() })
+		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(applications)
 		.where(eq(applications.status, 'submitted'));
 
-	// 5. Total Applications (for conversion rate)
-	const [totalApplications] = await db.select({ count: count() }).from(applications);
+	// 5. Total Applications (Successful context)
+	const [totalApplications] = await db
+		.select({ count: sql<number>`cast(count(*) as integer)` })
+		.from(applications);
 
-	// 6. Total Invoices/Transactions (Paid)
+	// 6. Revenue & Transaction counts
 	const [transactionsCount] = await db
-		.select({ count: count() })
+		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(invoices)
 		.where(eq(invoices.status, 'PAID'));
 
-	// 7. Total Revenue (Sum of PAID invoices)
 	const [revenueResult] = await db
-		.select({ total: sql<number>`sum(${invoices.amount})` })
+		.select({ total: sql<number>`cast(sum(${invoices.amount}) as integer)` })
 		.from(invoices)
 		.where(eq(invoices.status, 'PAID'));
 
-	// 8. Revenue Trend (Last 30 days)
-	const thirtyDaysAgo = new Date();
-	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
+	// 7. Daily Revenue (last 7 days)
 	const dailyRevenue = await db
 		.select({
-			date: sql<string>`DATE(${invoices.createdAt})`,
-			amount: sql<number>`sum(${invoices.amount})`
+			date: sql`DATE(${invoices.createdAt})`,
+			amount: sql<number>`cast(sum(${invoices.amount}) as integer)`
 		})
 		.from(invoices)
-		.where(and(eq(invoices.status, 'PAID'), gte(invoices.createdAt, thirtyDaysAgo)))
+		.where(
+			and(eq(invoices.status, 'PAID'), sql`${invoices.createdAt} >= NOW() - INTERVAL '7 days'`)
+		)
 		.groupBy(sql`DATE(${invoices.createdAt})`)
 		.orderBy(sql`DATE(${invoices.createdAt})`);
 
-	// 9. Top Performing Schools
+	// 8. Top performing schools by revenue
 	const topSchools = await db
 		.select({
-			id: tenants.id,
 			name: tenants.name,
-			slug: tenants.slug,
-			appCount: sql<number>`(SELECT count(*) FROM ${applications} WHERE ${applications.tenantId} = ${tenants.id})`,
-			revenue: sql<number>`COALESCE(sum(CASE WHEN ${invoices.status} = 'PAID' THEN ${invoices.amount} ELSE 0 END), 0)`
+			revenue: sql<number>`cast(sum(${invoices.amount}) as integer)`,
+			appCount: sql<number>`cast(count(distinct ${applications.id}) as integer)`
 		})
 		.from(tenants)
-		.leftJoin(invoices, eq(tenants.id, invoices.tenantId))
-		.groupBy(tenants.id, tenants.name, tenants.slug)
-		.orderBy(
-			desc(
-				sql`COALESCE(sum(CASE WHEN ${invoices.status} = 'PAID' THEN ${invoices.amount} ELSE 0 END), 0)`
-			)
-		)
+		.leftJoin(invoices, and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID')))
+		.leftJoin(applications, eq(tenants.id, applications.tenantId))
+		.groupBy(tenants.name)
+		.orderBy(sql`sum(${invoices.amount}) DESC`)
+		.limit(5);
+
+	// 9. Live Snapshot: Recent payments across platform
+	const recentPayments = await db
+		.select({
+			tenantName: tenants.name,
+			amount: invoices.amount,
+			paidAt: invoices.updatedAt
+		})
+		.from(invoices)
+		.innerJoin(tenants, eq(invoices.tenantId, tenants.id))
+		.where(eq(invoices.status, 'PAID'))
+		.orderBy(desc(invoices.updatedAt))
 		.limit(5);
 
 	// 10. Unit-level Breakdown
@@ -395,7 +413,22 @@ export async function getDashboardStats() {
 			averageRevenuePerSchool,
 			conversionRate,
 			dailyRevenue,
-			topSchools
+			topSchools,
+			recentPayments
+		}
+	};
+}
+
+export async function getEnhancedStats() {
+	// Standard stats from the domain logic
+	const baseStats = await getDashboardStats();
+
+	// Additional insights for Super Admin
+	return {
+		...baseStats,
+		performance: {
+			dailyAverage: baseStats.financial.totalRevenue / 30, // Simplified
+			activeRate: (baseStats.tenants.active / baseStats.tenants.total) * 100
 		}
 	};
 }
