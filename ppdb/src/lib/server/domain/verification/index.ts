@@ -12,12 +12,18 @@ import { eq, and, desc, inArray } from 'drizzle-orm';
  * Get list of applications that require verification.
  * Filters for 'submitted' or 'under_review' status.
  */
-export async function getVerificationQueue(tenantId: string) {
+export async function getVerificationQueue(tenantId: string, unitId?: string | null) {
+	const conditions = [
+		eq(applications.tenantId, tenantId),
+		inArray(applications.status, ['submitted', 'under_review'])
+	];
+
+	if (unitId && unitId !== 'all') {
+		conditions.push(eq(applications.unitId, unitId));
+	}
+
 	return await db.query.applications.findMany({
-		where: and(
-			eq(applications.tenantId, tenantId),
-			inArray(applications.status, ['submitted', 'under_review'])
-		),
+		where: and(...conditions),
 		with: {
 			user: true,
 			admissionPath: true,
