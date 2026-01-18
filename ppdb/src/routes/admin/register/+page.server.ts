@@ -21,11 +21,41 @@ export const actions: Actions = {
 		}
 
 		const data = await request.formData();
-		const name = data.get('name');
-		const slug = data.get('slug');
-		const adminEmail = data.get('adminEmail');
-		const adminPassword = data.get('adminPassword');
+		
+		// Parse formData JSON if available (from wizard)
+		const formDataJson = data.get('formData');
+		let parsedData: any = {};
+		
+		if (formDataJson && typeof formDataJson === 'string') {
+			try {
+				parsedData = JSON.parse(formDataJson);
+			} catch (e) {
+				console.error('Failed to parse formData JSON:', e);
+			}
+		}
 
+		// Extract fields (prioritize individual fields, fallback to JSON)
+		const name = (data.get('name') as string) || parsedData.name;
+		const slug = (data.get('slug') as string) || parsedData.slug;
+		const npsn = parsedData.npsn;
+		const level = parsedData.level;
+		const status = parsedData.status || 'active';
+		
+		// Location fields
+		const province = parsedData.province;
+		const city = parsedData.city;
+		const district = parsedData.district;
+		const village = parsedData.village;
+		const address = parsedData.address;
+		const postalCode = parsedData.postalCode;
+		
+		// Admin fields
+		const adminName = parsedData.adminName;
+		const adminEmail = (data.get('adminEmail') as string) || parsedData.email;
+		const adminPassword = (data.get('adminPassword') as string) || parsedData.password;
+		const whatsapp = parsedData.whatsapp;
+
+		// Validation
 		if (!name || typeof name !== 'string') {
 			return fail(400, { missing: true, message: 'Name is required' });
 		}
@@ -33,13 +63,13 @@ export const actions: Actions = {
 			return fail(400, { missing: true, message: 'Slug is required' });
 		}
 		if (!adminEmail || typeof adminEmail !== 'string') {
-			return fail(400, { missing: true, message: 'School email is required' });
+			return fail(400, { missing: true, message: 'Admin email is required' });
 		}
 		if (!adminPassword || typeof adminPassword !== 'string') {
 			return fail(400, { missing: true, message: 'Admin password is required' });
 		}
 		if (!adminEmail.includes('@')) {
-			return fail(400, { missing: true, message: 'Invalid school email format' });
+			return fail(400, { missing: true, message: 'Invalid email format' });
 		}
 		if (adminPassword.length < 6) {
 			return fail(400, {
@@ -50,23 +80,42 @@ export const actions: Actions = {
 
 		try {
 			const actorId = locals.userId;
-			const newTenant = await createTenant({ name, slug }, actorId);
+			
+			// Create tenant with full profile data using transaction
+			const newTenant = await createTenant(
+				{
+					name,
+					slug,
+					npsn,
+					level,
+					status: status as 'active' | 'inactive',
+					province,
+					city,
+					district,
+					village,
+					address,
+					postalCode
+				},
+				actorId
+			);
 
+			// Create Firebase user
 			const firebaseUser = await createFirebaseUser(adminEmail, adminPassword);
 
+			// Create DB user (admin)
 			await db
 				.insert(users)
 				.values({
 					email: adminEmail,
 					tenantId: newTenant.id,
-					name,
+					name: adminName || name, // Use adminName if provided, fallback to school name
 					role: 'school_admin',
 					status: 'active',
 					firebaseUid: firebaseUser.uid
 				})
 				.returning();
 
-			return { success: true };
+			return { success: true, tenantId: newTenant.id, slug: newTenant.slug };
 		} catch (error) {
 			console.error('Failed to create tenant or admin:', error);
 			if (error instanceof AuthError) {

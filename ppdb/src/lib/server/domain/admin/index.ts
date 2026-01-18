@@ -1,35 +1,74 @@
 import { db } from '$lib/server/db';
-import { tenants, auditLogs, users, invoices, applications } from '$lib/server/db/schema';
+import { tenants, auditLogs, users, invoices, applications, schoolProfiles } from '$lib/server/db/schema';
 import { sql, eq, count, and, gte, desc, getTableColumns, ilike, or, asc } from 'drizzle-orm';
 import { getCached, setCached, clearCache } from '$lib/server/cache';
 
-export async function createTenant(data: { name: string; slug: string }, actorId: string) {
+export async function createTenant(
+	data: {
+		name: string;
+		slug: string;
+		npsn?: string;
+		level?: string;
+		status?: 'active' | 'inactive';
+		// Location data
+		province?: string;
+		city?: string;
+		district?: string;
+		village?: string;
+		address?: string;
+		postalCode?: string;
+	},
+	actorId: string
+) {
 	const reserved = ['www', 'app', 'api', 'admin', 'super-admin'];
 	if (reserved.includes(data.slug)) {
 		throw new Error('Reserved slug');
 	}
 
-	const [newTenant] = await db
-		.insert(tenants)
-		.values({
+	// Use transaction to ensure atomicity
+	return await db.transaction(async (tx) => {
+		// 1. Insert tenant
+		const [newTenant] = await tx
+			.insert(tenants)
+			.values({
+				name: data.name,
+				slug: data.slug,
+				status: data.status || 'active'
+			})
+			.returning();
+
+		// 2. Insert school profile with location data
+		await tx.insert(schoolProfiles).values({
+			tenantId: newTenant.id,
 			name: data.name,
-			slug: data.slug,
-			status: 'active'
-		})
-		.returning();
+			npsn: data.npsn,
+			schoolLevel: data.level,
+			// Location fields
+			province: data.province,
+			city: data.city,
+			district: data.district,
+			address: data.address,
+			postalCode: data.postalCode
+		});
 
-	// Create Audit Log
-	await db.insert(auditLogs).values({
-		actorId,
-		action: 'create_tenant',
-		target: `tenant:${data.slug}`,
-		details: JSON.stringify({ name: data.name, id: newTenant.id })
+		// 3. Create Audit Log
+		await tx.insert(auditLogs).values({
+			actorId,
+			action: 'create_tenant',
+			target: `tenant:${data.slug}`,
+			details: JSON.stringify({
+				name: data.name,
+				id: newTenant.id,
+				npsn: data.npsn,
+				level: data.level
+			})
+		});
+
+		// Invalidate cache
+		clearCache('tenants:');
+
+		return newTenant;
 	});
-
-	// Invalidate cache
-	clearCache('tenants:');
-
-	return newTenant;
 }
 
 export async function listTenantsWithStats(
@@ -123,6 +162,62 @@ export async function listTenantsWithStats(
 	setCached(cacheKey, result, 60); // Cache for 1 minute
 
 	return result;
+}
+
+/**
+ * Get enhanced statistics for admin dashboard
+ */
+export async function getEnhancedStats() {
+	const cacheKey = 'tenants:enhanced-stats';
+	const cached = getCached<any>(cacheKey);
+	if (cached) return cached;
+
+	// 1. Total and Active Schools
+	const [totalResult] = await db.select({ count: count() }).from(tenants);
+	const [activeResult] = await db
+		.select({ count: count() })
+		.from(tenants)
+		.where(eq(tenants.status, 'active'));
+
+	// 2. New Schools This Month
+	const startOfMonth = new Date();
+	startOfMonth.setDate(1);
+	startOfMonth.setHours(0, 0, 0, 0);
+	const [newThisMonthResult] = await db
+		.select({ count: count() })
+		.from(tenants)
+		.where(gte(tenants.createdAt, startOfMonth));
+
+	// 3. Total Revenue
+	const [revenueResult] = await db
+		.select({ total: sql<number>`COALESCE(sum(${invoices.amount}), 0)` })
+		.from(invoices)
+		.where(eq(invoices.status, 'PAID'));
+
+	// 4. Average Applications Per School
+	const avgApplicationsSubquery = db
+		.select({
+			tenantId: applications.tenantId,
+			app_count: sql<number>`count(${applications.id})`.as('app_count')
+		})
+		.from(applications)
+		.groupBy(applications.tenantId)
+		.as('tenant_apps');
+
+	const avgApplicationsResult = await db
+		.select({ avg: sql<number>`COALESCE(AVG(app_count), 0)` })
+		.from(avgApplicationsSubquery);
+
+	const stats = {
+		total: Number(totalResult?.count || 0),
+		active: Number(activeResult?.count || 0),
+		newThisMonth: Number(newThisMonthResult?.count || 0),
+		totalRevenue: Number(revenueResult?.total || 0),
+		avgApplications: Math.round(Number(avgApplicationsResult[0]?.avg || 0))
+	};
+
+	setCached(cacheKey, stats, 300); // Cache for 5 minutes
+	return stats;
 }
 
 export async function updateTenantStatus(
