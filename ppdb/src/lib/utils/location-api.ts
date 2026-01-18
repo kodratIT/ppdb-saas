@@ -1,10 +1,10 @@
 /**
  * Location API Helper
- * Fetches Indonesian administrative regions from emsifa's API
- * API: https://emsifa.github.io/api-wilayah-indonesia/api
+ * Proxies Indonesian administrative regions through our own server
+ * to avoid CORS issues with wilayah.id.
  */
 
-const BASE_URL = 'https://emsifa.github.io/api-wilayah-indonesia/api';
+const BASE_URL = '/api/location';
 
 export interface Province {
 	id: string;
@@ -13,20 +13,22 @@ export interface Province {
 
 export interface City {
 	id: string;
-	id_provinsi: string;
 	name: string;
 }
 
 export interface District {
 	id: string;
-	id_kota: string;
 	name: string;
 }
 
 export interface Village {
 	id: string;
-	id_kecamatan: string;
 	name: string;
+}
+
+interface ApiResponse {
+	data: Array<{ code: string; name: string }>;
+	meta: any;
 }
 
 /**
@@ -38,7 +40,11 @@ export async function fetchProvinces(): Promise<Province[]> {
 		if (!response.ok) {
 			throw new Error('Failed to fetch provinces');
 		}
-		return await response.json();
+		const result = (await response.json()) as ApiResponse;
+		return result.data.map((item) => ({
+			id: item.code,
+			name: item.name
+		}));
 	} catch (error) {
 		console.error('Error fetching provinces:', error);
 		throw error;
@@ -54,7 +60,11 @@ export async function fetchCities(provinceId: string): Promise<City[]> {
 		if (!response.ok) {
 			throw new Error('Failed to fetch cities');
 		}
-		return await response.json();
+		const result = (await response.json()) as ApiResponse;
+		return result.data.map((item) => ({
+			id: item.code,
+			name: item.name
+		}));
 	} catch (error) {
 		console.error('Error fetching cities:', error);
 		throw error;
@@ -70,7 +80,11 @@ export async function fetchDistricts(cityId: string): Promise<District[]> {
 		if (!response.ok) {
 			throw new Error('Failed to fetch districts');
 		}
-		return await response.json();
+		const result = (await response.json()) as ApiResponse;
+		return result.data.map((item) => ({
+			id: item.code,
+			name: item.name
+		}));
 	} catch (error) {
 		console.error('Error fetching districts:', error);
 		throw error;
@@ -86,7 +100,11 @@ export async function fetchVillages(districtId: string): Promise<Village[]> {
 		if (!response.ok) {
 			throw new Error('Failed to fetch villages');
 		}
-		return await response.json();
+		const result = (await response.json()) as ApiResponse;
+		return result.data.map((item) => ({
+			id: item.code,
+			name: item.name
+		}));
 	} catch (error) {
 		console.error('Error fetching villages:', error);
 		throw error;
