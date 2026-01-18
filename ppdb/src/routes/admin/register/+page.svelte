@@ -7,6 +7,8 @@
 	import type { ActionData } from './$types';
 	import StepIdentity from './steps/StepIdentity.svelte';
 	import StepLocation from './steps/StepLocation.svelte';
+	import StepAdmin from './steps/StepAdmin.svelte';
+	import StepReview from './steps/StepReview.svelte';
 
 	let { form } = $props<{ form: ActionData }>();
 
@@ -96,35 +98,12 @@
 					<StepLocation bind:formData {errors} onUpdate={(data) => (formData = { ...formData, ...data })} />
 				</div>
 			{:else if currentStep === 3}
-				<div class="space-y-4" in:fade>
-					<h2 class="text-lg font-medium">Super Admin Account</h2>
-					<div
-						class="p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg text-center text-gray-500"
-					>
-						<p>Step 3: Admin Name, Email, Password, WhatsApp</p>
-						<p class="text-xs mt-2">Inputs will be implemented here</p>
-					</div>
+				<div in:fade>
+					<StepAdmin bind:formData {errors} onUpdate={(data) => (formData = { ...formData, ...data })} />
 				</div>
 			{:else if currentStep === 4}
-				<div class="space-y-4" in:fade>
-					<h2 class="text-lg font-medium">Review & Submit</h2>
-					<div class="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-lg space-y-4">
-						<h3 class="font-medium">Summary</h3>
-						<div class="grid grid-cols-2 gap-4 text-sm">
-							<div>
-								<span class="text-gray-500 block">School Name</span>
-								<span class="font-medium">{formData.name || '-'}</span>
-							</div>
-							<div>
-								<span class="text-gray-500 block">Level</span>
-								<span class="font-medium">{formData.level || '-'}</span>
-							</div>
-							<div>
-								<span class="text-gray-500 block">Email</span>
-								<span class="font-medium">{formData.email || '-'}</span>
-							</div>
-						</div>
-					</div>
+				<div in:fade>
+					<StepReview {formData} />
 				</div>
 			{/if}
 		</div>
