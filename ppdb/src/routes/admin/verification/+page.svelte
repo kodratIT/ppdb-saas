@@ -8,20 +8,23 @@
 
 	let { data }: { data: PageData } = $props();
 
+	let selectedUnitId = $state(data.selectedUnitId);
+
 	let selectedUnitLabel = $derived(
-		data.units.find((u: any) => u.id === data.selectedUnitId)?.name || 'Semua Unit'
+		data.units.find((u: any) => u.id === selectedUnitId)?.name || 'Semua Unit'
 	);
 
-	function handleUnitChange(value: string | undefined) {
-		if (!value) return;
-		const url = new URL(window.location.href);
-		if (value === 'all') {
-			url.searchParams.delete('unit_id');
-		} else {
-			url.searchParams.set('unit_id', value);
+	$effect(() => {
+		if (selectedUnitId !== data.selectedUnitId) {
+			const url = new URL(window.location.href);
+			if (selectedUnitId === 'all') {
+				url.searchParams.delete('unit_id');
+			} else {
+				url.searchParams.set('unit_id', selectedUnitId);
+			}
+			goto(url.toString());
 		}
-		goto(url.toString());
-	}
+	});
 </script>
 
 <div class="container mx-auto py-6 space-y-6">
@@ -33,7 +36,7 @@
 
 		<div class="flex items-center gap-2">
 			<span class="text-sm font-medium text-gray-700 whitespace-nowrap">Filter Unit:</span>
-			<Select.Root type="single" value={data.selectedUnitId} onValueChange={handleUnitChange}>
+			<Select.Root bind:value={selectedUnitId}>
 				<Select.Trigger class="w-[200px]">
 					{selectedUnitLabel}
 				</Select.Trigger>
@@ -81,9 +84,9 @@
 								<Badge variant="outline">{app.status}</Badge>
 							</td>
 							<td class="px-6 py-4 text-sm text-gray-600">
-								{app.uploadedDocuments.length} docs
+								{app.documents.length} docs
 								<span class="text-xs text-gray-400">
-									({app.uploadedDocuments.filter((d) => d.status === 'verified').length} verified)
+									({app.documents.filter((d: any) => d.status === 'verified').length} verified)
 								</span>
 							</td>
 							<td class="px-6 py-4 text-right">
