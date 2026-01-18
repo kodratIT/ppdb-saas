@@ -5,6 +5,7 @@
 	import { fade } from 'svelte/transition';
 	import { identitySchema, locationSchema, adminSchema, type RegistrationFormData } from './schema';
 	import type { ActionData } from './$types';
+	import StepIdentity from './steps/StepIdentity.svelte';
 
 	let { form } = $props<{ form: ActionData }>();
 
@@ -86,20 +87,8 @@
 
 		<div class="p-6 min-h-[400px]">
 			{#if currentStep === 1}
-				<div class="space-y-4" in:fade>
-					<h2 class="text-lg font-medium">School Identity</h2>
-					<div
-						class="p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg text-center text-gray-500"
-					>
-						<p>Step 1: School Name, NPSN, Level, Slug</p>
-						<p class="text-xs mt-2">Inputs will be implemented here</p>
-						<!-- Temporary Debug: Show validation errors -->
-						{#if Object.keys(errors).length > 0}
-							<div class="mt-4 text-red-500 text-sm text-left">
-								<pre>{JSON.stringify(errors, null, 2)}</pre>
-							</div>
-						{/if}
-					</div>
+				<div in:fade>
+					<StepIdentity bind:formData {errors} onUpdate={(data) => (formData = { ...formData, ...data })} />
 				</div>
 			{:else if currentStep === 2}
 				<div class="space-y-4" in:fade>

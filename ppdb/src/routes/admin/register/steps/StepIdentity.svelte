@@ -1,150 +1,176 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui';
-	import { Label } from '$lib/components/ui';
-	import * as Select from '$lib/components/ui/select';
-	import { cn } from '$lib/utils';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger,
+		SelectValue
+	} from '$lib/components/ui/select';
+	import { RadioGroup, RadioGroupItem } from '$lib/components/ui/radio-group';
 	import type { IdentityFormData } from '../schema';
 
-	let { data = $bindable(), errors } = $props<{
-		data: IdentityFormData;
-		errors: Record<string, string[] | undefined> | undefined;
-	}>();
-
-	let manuallyEditedSlug = $state(false);
-
-	// Auto-generate slug from name if not manually edited
-	$effect(() => {
-		if (!manuallyEditedSlug && data.name) {
-			data.slug = data.name
-				.toLowerCase()
-				.replace(/[^a-z0-9]+/g, '-')
-				.replace(/^-+|-+$/g, '');
-		}
-	});
-
-	function handleSlugInput() {
-		manuallyEditedSlug = true;
-		// Simple regex check simulation or debounce could go here
-		// For now we rely on the schema validation passed via errors
+	interface Props {
+		formData: Partial<IdentityFormData>;
+		errors?: Record<string, string[]>;
+		onUpdate: (data: Partial<IdentityFormData>) => void;
 	}
 
-	const levels = [
-		{ value: 'SD', label: 'SD' },
-		{ value: 'SMP', label: 'SMP' },
-		{ value: 'SMA', label: 'SMA' },
-		{ value: 'SMK', label: 'SMK' }
-	];
+	let { formData = $bindable(), errors = {}, onUpdate }: Props = $props();
 
-	const statuses = [
-		{ value: 'negeri', label: 'Negeri' },
-		{ value: 'swasta', label: 'Swasta' }
-	];
+	// Auto-generate slug from name
+	function slugify(text: string): string {
+		return text
+			.toLowerCase()
+			.trim()
+			.replace(/[^\w\s-]/g, '') // Remove special characters
+			.replace(/[\s_-]+/g, '-') // Replace spaces, underscores with hyphens
+			.replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+	}
+
+	let slugDebounceTimer: ReturnType<typeof setTimeout>;
+
+	function handleNameChange(e: Event) {
+		const target = e.target as HTMLInputElement;
+		const name = target.value;
+		formData.name = name;
+
+		// Auto-generate slug with debounce
+		clearTimeout(slugDebounceTimer);
+		slugDebounceTimer = setTimeout(() => {
+			if (name) {
+				formData.slug = slugify(name);
+				onUpdate(formData);
+			}
+		}, 300);
+
+		onUpdate(formData);
+	}
+
+	function handleSlugChange(e: Event) {
+		const target = e.target as HTMLInputElement;
+		formData.slug = target.value;
+		onUpdate(formData);
+	}
+
+	function handleNpsnChange(e: Event) {
+		const target = e.target as HTMLInputElement;
+		formData.npsn = target.value;
+		onUpdate(formData);
+	}
+
+	function handleLevelChange(value: string) {
+		formData.level = value as IdentityFormData['level'];
+		onUpdate(formData);
+	}
+
+	function handleStatusChange(value: string) {
+		formData.status = value as IdentityFormData['status'];
+		onUpdate(formData);
+	}
 </script>
 
-<div class="grid gap-4 py-4">
-	<!-- School Name -->
-	<div class="grid gap-2">
-		<Label for="name">Nama Sekolah</Label>
-		<Input
-			id="name"
-			placeholder="Contoh: SMA Negeri 1 Jakarta"
-			bind:value={data.name}
-			class={cn(errors?.name && 'border-destructive focus-visible:ring-destructive')}
-		/>
-		{#if errors?.name}
-			<p class="text-[0.8rem] font-medium text-destructive">{errors.name[0]}</p>
-		{/if}
+<div class="space-y-6">
+	<div>
+		<h2 class="text-xl font-semibold mb-2">School Identity 🏫</h2>
+		<p class="text-sm text-muted-foreground">
+			Enter the basic information about your school.
+		</p>
 	</div>
 
-	<!-- Slug -->
-	<div class="grid gap-2">
-		<Label for="slug">Subdomain (Slug)</Label>
-		<div class="flex items-center">
-			<span
-				class="flex h-10 items-center rounded-l-md border border-r-0 bg-muted px-3 text-sm text-muted-foreground"
-			>
-				https://
-			</span>
-			<Input
-				id="slug"
-				bind:value={data.slug}
-				oninput={handleSlugInput}
-				class={cn(
-					'rounded-none',
-					errors?.slug && 'border-destructive focus-visible:ring-destructive z-10'
-				)}
-			/>
-			<span
-				class="flex h-10 items-center rounded-r-md border border-l-0 bg-muted px-3 text-sm text-muted-foreground"
-			>
-				.ppdb.id
-			</span>
-		</div>
-		{#if errors?.slug}
-			<p class="text-[0.8rem] font-medium text-destructive">{errors.slug[0]}</p>
-		{:else if data.slug}
-			<p class="text-[0.8rem] text-muted-foreground">
-				Alamat sekolah: <span class="font-medium text-foreground">https://{data.slug}.ppdb.id</span>
-			</p>
+	<!-- School Name -->
+	<div class="space-y-2">
+		<Label for="name">School Name *</Label>
+		<Input
+			id="name"
+			type="text"
+			placeholder="e.g., SMA Negeri 1 Jakarta"
+			value={formData.name || ''}
+			oninput={handleNameChange}
+			class={errors.name ? 'border-destructive' : ''}
+		/>
+		{#if errors.name}
+			<p class="text-sm text-destructive">{errors.name[0]}</p>
 		{/if}
 	</div>
 
 	<!-- NPSN -->
-	<div class="grid gap-2">
-		<Label for="npsn">NPSN</Label>
+	<div class="space-y-2">
+		<Label for="npsn">NPSN (Nomor Pokok Sekolah Nasional) *</Label>
 		<Input
 			id="npsn"
-			placeholder="8 digit nomor pokok sekolah nasional"
-			bind:value={data.npsn}
-			maxlength={8}
-			class={cn(errors?.npsn && 'border-destructive focus-visible:ring-destructive')}
+			type="text"
+			placeholder="8 digit number"
+			maxlength="8"
+			value={formData.npsn || ''}
+			oninput={handleNpsnChange}
+			class={errors.npsn ? 'border-destructive' : ''}
 		/>
-		{#if errors?.npsn}
-			<p class="text-[0.8rem] font-medium text-destructive">{errors.npsn[0]}</p>
+		{#if errors.npsn}
+			<p class="text-sm text-destructive">{errors.npsn[0]}</p>
+		{/if}
+		<p class="text-xs text-muted-foreground">
+			Enter your school's 8-digit NPSN number from Kemdikbud.
+		</p>
+	</div>
+
+	<!-- Slug -->
+	<div class="space-y-2">
+		<Label for="slug">School Slug *</Label>
+		<Input
+			id="slug"
+			type="text"
+			placeholder="e.g., sma-negeri-1-jakarta"
+			value={formData.slug || ''}
+			oninput={handleSlugChange}
+			class={errors.slug ? 'border-destructive' : ''}
+		/>
+		{#if errors.slug}
+			<p class="text-sm text-destructive">{errors.slug[0]}</p>
+		{/if}
+		<p class="text-xs text-muted-foreground">
+			This will be your school's subdomain: <strong>{formData.slug || 'your-school'}.ppdb.id</strong
+			>
+		</p>
+	</div>
+
+	<!-- Level -->
+	<div class="space-y-2">
+		<Label for="level">School Level *</Label>
+		<Select value={formData.level || 'SMA'} onValueChange={handleLevelChange}>
+			<SelectTrigger id="level" class={errors.level ? 'border-destructive' : ''}>
+				<SelectValue placeholder="Select school level" />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="SD">SD (Sekolah Dasar)</SelectItem>
+				<SelectItem value="SMP">SMP (Sekolah Menengah Pertama)</SelectItem>
+				<SelectItem value="SMA">SMA (Sekolah Menengah Atas)</SelectItem>
+				<SelectItem value="SMK">SMK (Sekolah Menengah Kejuruan)</SelectItem>
+				<SelectItem value="Universitas">Universitas</SelectItem>
+				<SelectItem value="Lainnya">Lainnya</SelectItem>
+			</SelectContent>
+		</Select>
+		{#if errors.level}
+			<p class="text-sm text-destructive">{errors.level[0]}</p>
 		{/if}
 	</div>
 
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-		<!-- Level -->
-		<div class="grid gap-2">
-			<Label for="level">Jenjang</Label>
-			<Select.Root bind:value={data.level}>
-				<Select.Trigger
-					id="level"
-					class={cn(errors?.level && 'border-destructive focus:ring-destructive')}
-				>
-					<Select.Value placeholder="Pilih jenjang" />
-				</Select.Trigger>
-				<Select.Content>
-					{#each levels as level}
-						<Select.Item value={level.value}>{level.label}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-			{#if errors?.level}
-				<p class="text-[0.8rem] font-medium text-destructive">{errors.level[0]}</p>
-			{/if}
-		</div>
-
-		<!-- Status -->
-		<div class="grid gap-2">
-			<Label for="status">Status</Label>
-			<Select.Root bind:value={data.status}>
-				<Select.Trigger
-					id="status"
-					class={cn(errors?.status && 'border-destructive focus:ring-destructive')}
-				>
-					<Select.Value placeholder="Pilih status" />
-				</Select.Trigger>
-				<Select.Content>
-					{#each statuses as status}
-						<Select.Item value={status.value}>{status.label}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-			{#if errors?.status}
-				<p class="text-[0.8rem] font-medium text-destructive">{errors.status[0]}</p>
-			{/if}
-		</div>
+	<!-- Status -->
+	<div class="space-y-2">
+		<Label>School Status *</Label>
+		<RadioGroup value={formData.status || 'active'} onValueChange={handleStatusChange}>
+			<div class="flex items-center space-x-2">
+				<RadioGroupItem value="active" id="active" />
+				<Label for="active" class="font-normal cursor-pointer">Active</Label>
+			</div>
+			<div class="flex items-center space-x-2">
+				<RadioGroupItem value="inactive" id="inactive" />
+				<Label for="inactive" class="font-normal cursor-pointer">Inactive</Label>
+			</div>
+		</RadioGroup>
+		{#if errors.status}
+			<p class="text-sm text-destructive">{errors.status[0]}</p>
+		{/if}
 	</div>
 </div>
