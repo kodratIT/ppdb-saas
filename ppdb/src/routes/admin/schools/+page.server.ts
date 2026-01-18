@@ -3,11 +3,25 @@ import { fail } from '@sveltejs/kit';
 import { listTenantsWithStats, updateTenantStatus } from '$lib/server/domain/admin';
 import { requireAuth, requireSuperAdmin } from '$lib/server/auth/authorization';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const auth = await requireAuth(locals);
 	requireSuperAdmin(auth);
 
-	const tenants = await listTenantsWithStats();
+	const search = url.searchParams.get('search') || undefined;
+	const status = url.searchParams.get('status') || 'all';
+	const page = Number(url.searchParams.get('page')) || 1;
+	const limit = Number(url.searchParams.get('limit')) || 20;
+	const sortBy = url.searchParams.get('sortBy') || 'createdAt';
+	const sortOrder = (url.searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc';
+
+	const tenants = await listTenantsWithStats({
+		search,
+		status,
+		page,
+		limit,
+		sortBy,
+		sortOrder
+	});
 	return { tenants };
 };
 

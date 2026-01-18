@@ -63,8 +63,20 @@ export async function listTenantsWithStats(
 
 	// 2. Count Query
 	const [totalResult] = await db.select({ count: count() }).from(tenants).where(whereClause);
+	const [activeResult] = await db
+		.select({ count: count() })
+		.from(tenants)
+		.where(
+			and(
+				eq(tenants.status, 'active'),
+				...(search
+					? [or(ilike(tenants.name, `%${search}%`), ilike(tenants.slug, `%${search}%`))]
+					: [])
+			)
+		);
 
 	const total = Number(totalResult?.count || 0);
+	const activeCount = Number(activeResult?.count || 0);
 
 	// 3. Data Query with Aggregations
 	const allowedSortColumns = {
@@ -102,6 +114,7 @@ export async function listTenantsWithStats(
 			}
 		})),
 		total,
+		activeCount,
 		page,
 		totalPages: Math.ceil(total / limit)
 	};

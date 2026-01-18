@@ -7,24 +7,12 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Globe, ExternalLink, Power, School } from 'lucide-svelte';
 	import SchoolsStatsCards from './components/SchoolsStatsCards.svelte';
+	import SchoolsFilterBar from './components/SchoolsFilterBar.svelte';
 
 	let { data } = $props<{ data: PageData }>();
 
-	interface Tenant {
-		id: string;
-		name: string;
-		slug: string;
-		status: 'active' | 'inactive';
-		stats?: {
-			applications: number;
-			paidInvoices: number;
-		};
-	}
-
-	const totalSchools = $derived(data.tenants.length);
-	const activeSchools = $derived(
-		(data.tenants as Tenant[]).filter((t) => t.status === 'active').length
-	);
+	const totalSchools = $derived(data.tenants.total);
+	const activeSchools = $derived(data.tenants.activeCount);
 </script>
 
 <div class="space-y-8 p-6">
@@ -41,6 +29,8 @@
 	</div>
 
 	<SchoolsStatsCards total={totalSchools} active={activeSchools} />
+
+	<SchoolsFilterBar />
 
 	<div class="bg-white rounded-xl border shadow-md overflow-hidden">
 		<Table>
@@ -63,7 +53,7 @@
 				</TableRow>
 			</thead>
 			<TableBody>
-				{#each data.tenants as tenant}
+				{#each data.tenants.data as tenant}
 					<TableRow class="hover:bg-gray-50/50 transition-colors">
 						<TableCell>
 							<div class="flex items-center gap-3">
