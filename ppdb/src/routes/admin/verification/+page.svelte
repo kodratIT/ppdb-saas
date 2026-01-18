@@ -3,15 +3,47 @@
 	/* eslint-disable svelte/no-navigation-without-resolve */
 	import type { PageData } from './$types';
 	import Badge from '$lib/components/ui/badge.svelte';
+	import * as Select from '$lib/components/ui/select';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
+
+	let selectedUnitLabel = $derived(
+		data.units.find((u: any) => u.id === data.selectedUnitId)?.name || 'Semua Unit'
+	);
+
+	function handleUnitChange(value: string | undefined) {
+		if (!value) return;
+		const url = new URL(window.location.href);
+		if (value === 'all') {
+			url.searchParams.delete('unit_id');
+		} else {
+			url.searchParams.set('unit_id', value);
+		}
+		goto(url.toString());
+	}
 </script>
 
 <div class="container mx-auto py-6 space-y-6">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
 		<div>
 			<h1 class="text-3xl font-bold text-gray-900">Verification Queue</h1>
 			<p class="text-gray-600 mt-1">Review and verify applicant documents</p>
+		</div>
+
+		<div class="flex items-center gap-2">
+			<span class="text-sm font-medium text-gray-700 whitespace-nowrap">Filter Unit:</span>
+			<Select.Root type="single" value={data.selectedUnitId} onValueChange={handleUnitChange}>
+				<Select.Trigger class="w-[200px]">
+					{selectedUnitLabel}
+				</Select.Trigger>
+				<Select.Content>
+					<Select.Item value="all">Semua Unit</Select.Item>
+					{#each data.units as unit}
+						<Select.Item value={unit.id}>{unit.name}</Select.Item>
+					{/each}
+				</Select.Content>
+			</Select.Root>
 		</div>
 	</div>
 
