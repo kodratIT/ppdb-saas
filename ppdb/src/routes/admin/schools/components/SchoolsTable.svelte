@@ -8,19 +8,14 @@
 	import { enhance } from '$app/forms';
 	import { toast } from '$lib/utils/toast';
 	import { TENANT_ID_DISPLAY_LENGTH } from '$lib/constants/admin';
-	import {
-		Globe,
-		ExternalLink,
-		Power,
-		Loader2,
-		MoreHorizontal
-	} from 'lucide-svelte';
+	import { Globe, ExternalLink, Power, Loader2, MoreHorizontal } from 'lucide-svelte';
 
 	interface Tenant {
 		id: string;
 		name: string;
 		slug: string;
 		status: 'active' | 'inactive';
+		type?: 'single' | 'foundation';
 		stats?: {
 			applications: number;
 			paidInvoices: number;
@@ -46,9 +41,7 @@
 	const allSelected = $derived(
 		tenants.length > 0 && tenants.every((t) => selectedIds.includes(t.id))
 	);
-	const someSelected = $derived(
-		selectedIds.length > 0 && !allSelected
-	);
+	const someSelected = $derived(selectedIds.length > 0 && !allSelected);
 
 	function handleSelectAll(checked: boolean) {
 		onSelectAll?.(checked);
@@ -71,6 +64,7 @@
 				/>
 			</Table.Head>
 			<Table.Head class="w-80">School Identity</Table.Head>
+			<Table.Head>Type</Table.Head>
 			<Table.Head>Access URL</Table.Head>
 			<Table.Head class="text-center">Applicants</Table.Head>
 			<Table.Head class="text-center">Paid Invoices</Table.Head>
@@ -104,6 +98,11 @@
 					</div>
 				</Table.Cell>
 				<Table.Cell>
+					<Badge variant="outline" class="capitalize">
+						{tenant.type === 'foundation' ? 'Yayasan' : 'Sekolah'}
+					</Badge>
+				</Table.Cell>
+				<Table.Cell>
 					<a
 						href={`http://${tenant.slug}.ppdb.id`}
 						target="_blank"
@@ -122,7 +121,10 @@
 					</Badge>
 				</Table.Cell>
 				<Table.Cell>
-					<Badge variant={tenant.status === 'active' ? 'default' : 'destructive'} class="capitalize">
+					<Badge
+						variant={tenant.status === 'active' ? 'default' : 'destructive'}
+						class="capitalize"
+					>
 						{tenant.status}
 					</Badge>
 				</Table.Cell>
@@ -140,27 +142,27 @@
 								<ExternalLink class="mr-2 h-4 w-4" /> View as Admin
 							</DropdownMenu.Item>
 							<DropdownMenu.Separator />
-							<form 
-								method="POST" 
-								action="?/toggleStatus" 
+							<form
+								method="POST"
+								action="?/toggleStatus"
 								use:enhance={() => {
 									loadingTenants.add(tenant.id);
 									loadingTenants = loadingTenants;
-									
+
 									// Show loading toast
 									const loadingToastId = toast.loading(
 										`${tenant.status === 'active' ? 'Deactivating' : 'Activating'} ${tenant.name}...`
 									);
-									
+
 									return async ({ result, update }) => {
 										loadingTenants.delete(tenant.id);
 										loadingTenants = loadingTenants;
-										
+
 										console.log('Toggle status result:', result);
-										
+
 										// Dismiss loading toast
 										toast.dismiss(loadingToastId);
-										
+
 										if (result.type === 'success') {
 											const message = result.data?.message || 'Status updated successfully';
 											console.log('Success message:', message);
@@ -176,9 +178,12 @@
 							>
 								<input type="hidden" name="tenantId" value={tenant.id} />
 								<input type="hidden" name="currentStatus" value={tenant.status} />
-								<button 
+								<button
 									type="submit"
-									class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 {tenant.status === 'active' ? 'text-destructive focus:text-destructive' : 'text-green-600 focus:text-green-600'}"
+									class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 {tenant.status ===
+									'active'
+										? 'text-destructive focus:text-destructive'
+										: 'text-green-600 focus:text-green-600'}"
 									disabled={loadingTenants.has(tenant.id)}
 								>
 									{#if loadingTenants.has(tenant.id)}
@@ -195,9 +200,7 @@
 			</Table.Row>
 		{:else}
 			<Table.Row>
-				<Table.Cell colspan={7} class="h-24 text-center">
-					No schools found.
-				</Table.Cell>
+				<Table.Cell colspan={7} class="h-24 text-center">No schools found.</Table.Cell>
 			</Table.Row>
 		{/each}
 	</Table.Body>

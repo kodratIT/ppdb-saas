@@ -91,6 +91,9 @@
 				<Table.Header>
 					<Table.Row>
 						<Table.Head>Nama Unit</Table.Head>
+						{#if data.user.role === 'super_admin'}
+							<Table.Head>Yayasan</Table.Head>
+						{/if}
 						<Table.Head>Jenjang</Table.Head>
 						<Table.Head>Tanggal Dibuat</Table.Head>
 						<Table.Head class="text-right">Aksi</Table.Head>
@@ -99,7 +102,10 @@
 				<Table.Body>
 					{#if data.units.length === 0}
 						<Table.Row>
-							<Table.Cell colspan={4} class="h-24 text-center">
+							<Table.Cell
+								colspan={data.user.role === 'super_admin' ? 5 : 4}
+								class="h-24 text-center"
+							>
 								Belum ada unit sekolah. Klik "Tambah Unit" untuk memulai.
 							</Table.Cell>
 						</Table.Row>
@@ -114,6 +120,11 @@
 										{unit.name}
 									</div>
 								</Table.Cell>
+								{#if data.user.role === 'super_admin'}
+									<Table.Cell>
+										<Badge variant="outline">{unit.tenant?.name || 'Central'}</Badge>
+									</Table.Cell>
+								{/if}
 								<Table.Cell>
 									<Badge variant="secondary">{unit.level}</Badge>
 								</Table.Cell>

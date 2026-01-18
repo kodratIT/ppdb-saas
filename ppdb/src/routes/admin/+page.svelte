@@ -6,6 +6,9 @@
 	import MarketLeadersCard from '$lib/components/admin/MarketLeadersCard.svelte';
 	import LiveStatusCard from '$lib/components/admin/LiveStatusCard.svelte';
 	import RevenueChart from '$lib/components/admin/RevenueChart.svelte';
+	import * as Card from '$lib/components/ui/card';
+	import * as Table from '$lib/components/ui/table';
+	import Badge from '$lib/components/ui/badge.svelte';
 	import { formatCurrency } from '$lib/utils';
 	import {
 		Users,
@@ -37,9 +40,7 @@
 	<div class="flex items-center justify-between space-y-2">
 		<div>
 			<h2 class="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
-			<p class="text-muted-foreground">
-				System overview and performance metrics.
-			</p>
+			<p class="text-muted-foreground">System overview and performance metrics.</p>
 		</div>
 		<div class="flex items-center space-x-2">
 			<Button variant="outline" size="sm" class="hidden md:flex">
@@ -137,15 +138,63 @@
 		</KPICard>
 	</div>
 
-	<!-- Charts & Market Leaders -->
-	<div class="grid grid-cols-1 lg:grid-cols-7 gap-4">
-		<!-- Revenue Trend Chart (4 cols) -->
-		<div class="lg:col-span-4">
+	<!-- Main Content Grid -->
+	<div class="grid grid-cols-1 lg:grid-cols-7 gap-6">
+		<!-- Charts & Units (Left side - 4 cols) -->
+		<div class="lg:col-span-4 space-y-6">
+			<!-- Revenue Trend Chart -->
 			<RevenueChart data={stats.financial.dailyRevenue} maxRevenue={maxDailyRevenue} />
+
+			<!-- Units Breakdown -->
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Performa Per Unit</Card.Title>
+					<Card.Description>Breakdown pendaftar dan pendapatan tiap jenjang.</Card.Description>
+				</Card.Header>
+				<Card.Content>
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head>Unit</Table.Head>
+								<Table.Head>Jenjang</Table.Head>
+								<Table.Head class="text-right">Pendaftar</Table.Head>
+								<Table.Head class="text-right">Pendapatan</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
+							{#if stats.unitStats.length === 0}
+								<Table.Row>
+									<Table.Cell colspan={4} class="h-24 text-center text-muted-foreground">
+										Belum ada data unit.
+									</Table.Cell>
+								</Table.Row>
+							{:else}
+								{#each stats.unitStats as unit}
+									<Table.Row>
+										<Table.Cell>
+											<div class="font-medium">{unit.unitName}</div>
+											<div class="text-xs text-muted-foreground">{unit.tenantName}</div>
+										</Table.Cell>
+										<Table.Cell>
+											<Badge variant="secondary">{unit.level}</Badge>
+										</Table.Cell>
+										<Table.Cell class="text-right font-semibold">
+											{unit.appCount}
+										</Table.Cell>
+										<Table.Cell class="text-right">
+											{formatCurrency(unit.revenue)}
+										</Table.Cell>
+									</Table.Row>
+								{/each}
+							{/if}
+						</Table.Body>
+					</Table.Root>
+				</Card.Content>
+			</Card.Root>
 		</div>
 
-		<!-- Market Leaders (3 cols) -->
-		<div class="lg:col-span-3 space-y-4">
+		<!-- Market Leaders & Status (Right side - 3 cols) -->
+		<div class="lg:col-span-3 space-y-6">
 			<MarketLeadersCard schools={stats.financial.topSchools} />
 			<LiveStatusCard />
 		</div>

@@ -42,6 +42,7 @@ export async function createTenant(
 			.values({
 				name: data.name,
 				slug: data.slug,
+				type: data.type || 'single',
 				status: data.status || 'active'
 			})
 			.returning();

@@ -9,13 +9,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const auth = requireAuth(locals);
 	requireRole(auth, 'school_admin', 'super_admin');
 
+	const isSuperAdmin = auth.session.role === 'super_admin';
+
 	const tenantUnits = await db.query.units.findMany({
-		where: eq(units.tenantId, auth.tenantId),
+		where: isSuperAdmin ? undefined : eq(units.tenantId, auth.tenantId),
+		with: {
+			tenant: true
+		},
 		orderBy: (units, { asc }) => [asc(units.name)]
 	});
 
 	return {
-		units: tenantUnits
+		units: tenantUnits,
+		user: auth.session
 	};
 };
 
@@ -27,6 +33,11 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
 		const level = formData.get('level') as string;
+
+		const npsn = formData.get('npsn') as string;
+		const accreditation = formData.get('accreditation') as string;
+		const contactPhone = formData.get('contactPhone') as string;
+		const address = formData.get('address') as string;
 
 		if (!name) {
 			return fail(400, { error: 'Nama unit harus diisi' });
@@ -41,6 +52,10 @@ export const actions: Actions = {
 				tenantId: auth.tenantId,
 				name,
 				level: level as any,
+				npsn,
+				accreditation,
+				contactPhone,
+				address,
 				config: {}
 			});
 
