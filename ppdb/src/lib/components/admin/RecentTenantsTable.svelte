@@ -1,5 +1,10 @@
 <script lang="ts">
-	/* eslint-disable svelte/no-navigation-without-resolve */
+	import * as Table from '$lib/components/ui/table';
+	import * as Card from '$lib/components/ui/card';
+	import Badge from '$lib/components/ui/badge.svelte';
+	import Button from '$lib/components/ui/button.svelte';
+	import { ArrowRight, School, Eye, ExternalLink } from 'lucide-svelte';
+
 	// Define type manually to avoid importing server-only schema in client component
 	interface Tenant {
 		id: string;
@@ -10,92 +15,82 @@
 		updatedAt: Date;
 	}
 
-	export let tenants: Tenant[] = [];
+	let { tenants = [] } = $props<{ tenants: Tenant[] }>();
 </script>
 
-<div
-	class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
->
-	<div class="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
-		<h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-			Recent Registrations
-		</h3>
-	</div>
-	<div class="overflow-x-auto">
-		<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-			<thead class="bg-gray-50 dark:bg-gray-700">
-				<tr>
-					<th
-						scope="col"
-						class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-					>
-						School Name
-					</th>
-					<th
-						scope="col"
-						class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-					>
-						Subdomain
-					</th>
-					<th
-						scope="col"
-						class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-					>
-						Status
-					</th>
-					<th
-						scope="col"
-						class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-					>
-						Joined Date
-					</th>
-				</tr>
-			</thead>
-			<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+<Card.Root>
+	<Card.Header class="flex flex-row items-center justify-between pb-4">
+		<div class="space-y-1">
+			<Card.Title class="text-lg font-bold">Recent Registrations</Card.Title>
+			<Card.Description>Latest schools joining the platform</Card.Description>
+		</div>
+		<Button variant="outline" size="sm" href="/admin/schools" class="text-xs h-8">
+			View All <ArrowRight class="ml-2 h-3.5 w-3.5" />
+		</Button>
+	</Card.Header>
+	<Card.Content class="p-0">
+		<Table.Root>
+			<Table.Header>
+				<Table.Row class="hover:bg-transparent">
+					<Table.Head class="w-[300px] pl-6">School Name</Table.Head>
+					<Table.Head class="hidden md:table-cell">Subdomain</Table.Head>
+					<Table.Head>Status</Table.Head>
+					<Table.Head class="hidden md:table-cell text-right">Joined Date</Table.Head>
+					<Table.Head class="text-right pr-6">Actions</Table.Head>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
 				{#each tenants as tenant (tenant.id)}
-					<tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-						<td class="px-6 py-4 whitespace-nowrap">
-							<div class="text-sm font-medium text-gray-900 dark:text-white">{tenant.name}</div>
-						</td>
-						<td class="px-6 py-4 whitespace-nowrap">
-							<div class="text-sm text-gray-500 dark:text-gray-400">{tenant.slug}.ppdb.com</div>
-						</td>
-						<td class="px-6 py-4 whitespace-nowrap">
-							<span
-								class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {tenant.status ===
-								'active'
-									? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-									: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}"
+					<Table.Row class="group hover:bg-muted/50">
+						<Table.Cell class="font-medium pl-6">
+							<div class="flex items-center gap-3">
+								<div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+									<School class="h-5 w-5" />
+								</div>
+								<div class="flex flex-col">
+									<span class="font-semibold text-foreground truncate max-w-[150px] md:max-w-[200px]">{tenant.name}</span>
+									<span class="text-xs text-muted-foreground md:hidden">{tenant.slug}.ppdb.com</span>
+								</div>
+							</div>
+						</Table.Cell>
+						<Table.Cell class="hidden md:table-cell">
+							<a 
+								href={`http://${tenant.slug}.ppdb.com`} 
+								target="_blank" 
+								class="inline-flex items-center text-sm text-muted-foreground hover:text-primary hover:underline transition-colors"
 							>
+								{tenant.slug}.ppdb.com
+								<ExternalLink class="ml-1 h-3 w-3" />
+							</a>
+						</Table.Cell>
+						<Table.Cell>
+							<Badge variant={tenant.status === 'active' ? 'default' : 'secondary'} class="capitalize">
 								{tenant.status}
-							</span>
-						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+							</Badge>
+						</Table.Cell>
+						<Table.Cell class="hidden md:table-cell text-right text-muted-foreground">
 							{new Date(tenant.createdAt).toLocaleDateString('id-ID', {
 								day: 'numeric',
 								month: 'short',
 								year: 'numeric'
 							})}
-						</td>
-					</tr>
+						</Table.Cell>
+						<Table.Cell class="text-right pr-6">
+							<Button variant="ghost" size="icon" href={`/admin/schools/${tenant.id}`} class="h-8 w-8">
+								<Eye class="h-4 w-4" />
+								<span class="sr-only">View Details</span>
+							</Button>
+						</Table.Cell>
+					</Table.Row>
 				{/each}
 				{#if tenants.length === 0}
-					<tr>
-						<td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+					<Table.Row>
+						<Table.Cell colspan={5} class="h-32 text-center text-muted-foreground">
 							No recent registrations found.
-						</td>
-					</tr>
+						</Table.Cell>
+					</Table.Row>
 				{/if}
-			</tbody>
-		</table>
-	</div>
-	<div
-		class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-right"
-	>
-		<a
-			href="/admin/schools"
-			class="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
-			onclick={() => Promise.resolve()}>View all schools &rarr;</a
-		>
-	</div>
-</div>
+			</Table.Body>
+		</Table.Root>
+	</Card.Content>
+</Card.Root>

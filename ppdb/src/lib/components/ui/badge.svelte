@@ -9,7 +9,7 @@
 	type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 	interface Props extends HTMLAttributes<HTMLSpanElement> {
-		variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'status' | 'role' | 'priority';
+		variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'status' | 'role' | 'priority';
 		status?: Status;
 		role?: Role;
 		priority?: Priority;
@@ -31,7 +31,8 @@
 		secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
 		destructive:
 			'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-		outline: 'text-foreground'
+		outline: 'text-foreground',
+		success: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
 	};
 
 	const statusClasses: Record<Status, string> = {

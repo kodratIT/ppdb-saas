@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createTenant, listTenants } from '../../src/lib/server/domain/admin';
+import { createTenant, listTenants, getDashboardStats } from '../../src/lib/server/domain/admin';
 import { db } from '../../src/lib/server/db';
-import { tenants, auditLogs } from '../../src/lib/server/db/schema';
+import { tenants, auditLogs, users, applications, invoices } from '../../src/lib/server/db/schema';
 
 // Mock db
 vi.mock('../../src/lib/server/db', () => ({
@@ -93,6 +93,67 @@ describe('Admin Service', () => {
 			expect(db.select).toHaveBeenCalled();
 			expect(fromMock).toHaveBeenCalledWith(tenants);
 			expect(result).toEqual(mockTenants);
+		});
+	});
+
+	describe('getDashboardStats', () => {
+		it('should return correct dashboard statistics with new metrics', async () => {
+			const mockTenants = [
+				{ id: '1', name: 'S1', slug: 's1', status: 'active', createdAt: new Date() },
+				{ id: '2', name: 'S2', slug: 's2', status: 'active', createdAt: new Date() }
+			];
+
+			const fromMock = vi.fn().mockReturnValue({
+				where: vi.fn().mockReturnThis(),
+				leftJoin: vi.fn().mockReturnThis(),
+				groupBy: vi.fn().mockReturnThis(),
+				orderBy: vi.fn().mockReturnThis(),
+				limit: vi.fn().mockResolvedValue([])
+			});
+
+			const selectMock = vi.fn().mockReturnValue({
+				from: fromMock,
+				where: vi.fn().mockReturnThis(),
+				groupBy: vi.fn().mockReturnThis(),
+				orderBy: vi.fn().mockReturnThis(),
+				limit: vi.fn().mockResolvedValue([])
+			});
+
+			(db.select as any).mockImplementation(selectMock);
+
+			// First select: all tenants
+			fromMock.mockResolvedValueOnce(mockTenants);
+			// Second select: usersCount
+			fromMock.mockReturnValueOnce({ where: vi.fn().mockResolvedValue([{ count: 10 }]) });
+			// Third select: newUsersToday
+			fromMock.mockReturnValueOnce({ where: vi.fn().mockResolvedValue([{ count: 2 }]) });
+			// Fourth select: pendingVerifications
+			fromMock.mockReturnValueOnce({ where: vi.fn().mockResolvedValue([{ count: 5 }]) });
+			// Fifth select: totalApplications
+			fromMock.mockResolvedValueOnce([{ count: 20 }]);
+			// Sixth select: transactionsCount
+			fromMock.mockReturnValueOnce({ where: vi.fn().mockResolvedValue([{ count: 8 }]) });
+			// Seventh select: revenueResult
+			fromMock.mockReturnValueOnce({ where: vi.fn().mockResolvedValue([{ total: 8000 }]) });
+
+			const stats = await getDashboardStats();
+
+			expect(stats.users).toHaveProperty('newRegistrationsToday');
+			expect(typeof stats.users.newRegistrationsToday).toBe('number');
+
+			expect(stats.applications).toHaveProperty('pendingVerifications');
+			expect(typeof stats.applications.pendingVerifications).toBe('number');
+
+			expect(stats.financial).toHaveProperty('averageRevenuePerSchool');
+			expect(typeof stats.financial.averageRevenuePerSchool).toBe('number');
+
+			expect(stats.financial).toHaveProperty('conversionRate');
+			expect(typeof stats.financial.conversionRate).toBe('number');
+
+			expect(stats.users.newRegistrationsToday).toBe(2);
+			expect(stats.applications.pendingVerifications).toBe(5);
+			expect(stats.financial.averageRevenuePerSchool).toBe(4000); // 8000 / 2
+			expect(stats.financial.conversionRate).toBe(40); // (8 / 20) * 100
 		});
 	});
 });
