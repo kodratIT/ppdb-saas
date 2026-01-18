@@ -15,7 +15,7 @@ export const identitySchema = z.object({
 		.min(3, 'Slug must be at least 3 characters')
 		.regex(slugRegex, 'Slug can only contain lowercase letters, numbers, and hyphens'),
 	level: z.enum(['SD', 'SMP', 'SMA', 'SMK', 'Universitas', 'Lainnya']),
-	status: z.enum(['active', 'inactive']).default('active')
+	status: z.enum(['negeri', 'swasta']).default('negeri')
 });
 
 // Location Step Schema
