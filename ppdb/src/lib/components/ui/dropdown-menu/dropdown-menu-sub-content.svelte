@@ -6,11 +6,14 @@
 		ref = $bindable(null),
 		class: className,
 		...restProps
-	}: DropdownMenuPrimitive.SeparatorProps = $props();
+	}: DropdownMenuPrimitive.SubContentProps = $props();
 </script>
 
-<DropdownMenuPrimitive.Separator
+<DropdownMenuPrimitive.SubContent
 	bind:ref
-	class={cn("bg-muted -mx-1 my-1 h-px", className)}
+	class={cn(
+		"bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-md border p-1 shadow-lg focus:outline-none",
+		className
+	)}
 	{...restProps}
 />
