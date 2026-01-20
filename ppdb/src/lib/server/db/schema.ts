@@ -90,6 +90,18 @@ export const documentStatusEnum = pgEnum('document_status', [
 	'revision_requested'
 ]);
 
+// System Config Table for Global Settings
+export const systemConfigs = pgTable('system_configs', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	key: text('key').notNull().unique(), // e.g. 'maintenance_mode', 'saas_name'
+	value: text('value').notNull(), // JSON string or simple text
+	description: text('description'),
+	isEncrypted: boolean('is_encrypted').default(false).notNull(),
+	updatedBy: uuid('updated_by').references(() => users.id),
+	updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
 export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: text('name').notNull(),
@@ -812,5 +824,146 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 	tenant: one(tenants, {
 		fields: [sessions.tenantId],
 		references: [tenants.id]
+	})
+}));
+
+// SaaS Subscription System
+export const saasPackages = pgTable('saas_packages', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	name: text('name').notNull(), // e.g. "Basic", "Pro"
+	slug: text('slug').notNull().unique(), // e.g. "basic"
+	description: text('description'),
+	priceMonthly: integer('price_monthly').notNull(), // IDR
+	priceYearly: integer('price_yearly').notNull(), // IDR
+	limits: jsonb('limits').notNull().default({}), // e.g. { max_students: 100 }
+	features: jsonb('features').notNull().default([]), // e.g. ["whatsapp_blast", "export"]
+	isActive: boolean('is_active').default(true),
+	createdAt: timestamp('created_at').defaultNow(),
+	updatedAt: timestamp('updated_at').defaultNow()
+});
+
+export const saasSubscriptionStatus = pgEnum('saas_subscription_status', [
+	'trial',
+	'active',
+	'past_due',
+	'cancelled'
+]);
+
+export const saasBillingCycle = pgEnum('saas_billing_cycle', ['monthly', 'yearly']);
+
+export const saasSubscriptions = pgTable('saas_subscriptions', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull()
+		.unique(), // One active sub per tenant
+	packageId: uuid('package_id')
+		.references(() => saasPackages.id)
+		.notNull(),
+	status: saasSubscriptionStatus('status').notNull().default('trial'),
+	billingCycle: saasBillingCycle('billing_cycle').notNull().default('monthly'),
+	currentPeriodStart: timestamp('current_period_start').notNull(),
+	currentPeriodEnd: timestamp('current_period_end').notNull(),
+	autoRenew: boolean('auto_renew').default(true),
+	createdAt: timestamp('created_at').defaultNow(),
+	updatedAt: timestamp('updated_at').defaultNow()
+});
+
+export const saasInvoiceStatus = pgEnum('saas_invoice_status', ['pending', 'paid', 'void']);
+
+export const saasInvoices = pgTable('saas_invoices', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	subscriptionId: uuid('subscription_id').references(() => saasSubscriptions.id),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	amount: integer('amount').notNull(),
+	status: saasInvoiceStatus('status').notNull().default('pending'),
+	dueDate: timestamp('due_date').notNull(),
+	paidAt: timestamp('paid_at'),
+	notes: text('notes'), // e.g. "Manual transfer BCA..."
+	createdAt: timestamp('created_at').defaultNow()
+});
+
+export const saasPackagesRelations = relations(saasPackages, ({ many }) => ({
+	subscriptions: many(saasSubscriptions)
+}));
+
+export const saasSubscriptionsRelations = relations(saasSubscriptions, ({ one, many }) => ({
+	tenant: one(tenants, {
+		fields: [saasSubscriptions.tenantId],
+		references: [tenants.id]
+	}),
+	package: one(saasPackages, {
+		fields: [saasSubscriptions.packageId],
+		references: [saasPackages.id]
+	}),
+	invoices: many(saasInvoices)
+}));
+
+export const saasInvoicesRelations = relations(saasInvoices, ({ one }) => ({
+	subscription: one(saasSubscriptions, {
+		fields: [saasInvoices.subscriptionId],
+		references: [saasSubscriptions.id]
+	}),
+	tenant: one(tenants, {
+		fields: [saasInvoices.tenantId],
+		references: [tenants.id]
+	})
+}));
+
+// Support Tickets (Helpdesk)
+export const ticketStatusEnum = pgEnum('ticket_status', ['open', 'in_progress', 'resolved', 'closed']);
+export const ticketPriorityEnum = pgEnum('ticket_priority', ['low', 'medium', 'high', 'critical']);
+
+export const tickets = pgTable('tickets', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	userId: uuid('user_id')
+		.references(() => users.id)
+		.notNull(), // Requester (School Admin)
+	subject: text('subject').notNull(),
+	status: ticketStatusEnum('status').default('open').notNull(),
+	priority: ticketPriorityEnum('priority').default('medium').notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const ticketMessages = pgTable('ticket_messages', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	ticketId: uuid('ticket_id')
+		.references(() => tickets.id, { onDelete: 'cascade' })
+		.notNull(),
+	senderId: uuid('sender_id')
+		.references(() => users.id)
+		.notNull(), // Can be School Admin or Super Admin
+	content: text('content').notNull(),
+	isInternal: boolean('is_internal').default(false), // For admin-only notes
+	attachments: jsonb('attachments').default([]), // Array of file URLs
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const ticketsRelations = relations(tickets, ({ one, many }) => ({
+	tenant: one(tenants, {
+		fields: [tickets.tenantId],
+		references: [tenants.id]
+	}),
+	user: one(users, {
+		fields: [tickets.userId],
+		references: [users.id]
+	}),
+	messages: many(ticketMessages)
+}));
+
+export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
+	ticket: one(tickets, {
+		fields: [ticketMessages.ticketId],
+		references: [tickets.id]
+	}),
+	sender: one(users, {
+		fields: [ticketMessages.senderId],
+		references: [users.id]
 	})
 }));
