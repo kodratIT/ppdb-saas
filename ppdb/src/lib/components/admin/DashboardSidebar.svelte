@@ -14,11 +14,16 @@
 		Cpu,
 		PlusCircle,
 		Megaphone,
-		FileCheck
+		FileCheck,
+		Package,
+		Building2,
+		Ticket,
+		LineChart,
+		UserCog
 	} from 'lucide-svelte';
 	import { page } from '$app/state';
 
-	const navigation = [
+	const baseNavigation = [
 		{
 			group: 'Main',
 			items: [{ name: 'Dashboard', icon: LayoutDashboard, href: '/admin' }]
@@ -26,17 +31,43 @@
 		{
 			group: 'Management',
 			items: [
-				{ name: 'Schools', icon: School, href: '/admin/schools' },
-				{ name: 'Units', icon: LayoutGrid, href: '/admin/units' },
-				{ name: 'Verification', icon: FileCheck, href: '/admin/verification' },
-				{ name: 'Broadcast', icon: Megaphone, href: '/admin/broadcast' }
+				{ name: 'Organizations', icon: Building2, href: '/admin/schools' },
+				{ name: 'School Units', icon: School, href: '/admin/units' },
+				{ name: 'Announcements', icon: Megaphone, href: '/admin/announcements' },
+				{ name: 'Support Tickets', icon: Ticket, href: '/admin/tickets' }
 			]
 		},
 		{
+			group: 'Subscription',
+			items: [
+				{ name: 'Packages', icon: Package, href: '/admin/plans' },
+				{ name: 'Active Subs', icon: Users, href: '/admin/subscription/tenants' },
+				{ name: 'Transactions', icon: FileText, href: '/admin/subscription/transactions' }
+			]
+		},
+		{
+			group: 'Analytics',
+			items: [{ name: 'Global Reports', icon: LineChart, href: '/admin/reports' }]
+		},
+		{
 			group: 'System',
-			items: [{ name: 'Settings', icon: Settings, href: '/admin/settings' }]
+			items: [
+				{ name: 'Platform Admins', icon: UserCog, href: '/admin/users' },
+				{ name: 'Settings', icon: Settings, href: '/admin/settings' }
+			]
 		}
 	];
+
+	let role = $derived(page.data?.session?.role);
+
+	let navigation = $derived(
+		baseNavigation
+			.map((group) => ({
+				...group,
+				items: group.items
+			}))
+			.filter((group) => group.items.length > 0)
+	);
 </script>
 
 <aside
