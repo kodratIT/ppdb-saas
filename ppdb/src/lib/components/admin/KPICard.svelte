@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import * as Card from '$lib/components/ui/card';
+	import { cn } from '$lib/utils';
 
 	interface Props {
 		title: string;
@@ -10,6 +11,7 @@
 		trendDirection?: 'up' | 'down' | 'neutral';
 		icon: Snippet;
 		sparkline?: Snippet;
+		class?: string;
 	}
 
 	let {
@@ -19,45 +21,51 @@
 		trend,
 		trendDirection = 'neutral',
 		icon,
-		sparkline
+		sparkline,
+		class: className
 	}: Props = $props();
 
 	const trendColor = $derived(
 		trendDirection === 'up'
-			? 'text-emerald-600'
+			? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10'
 			: trendDirection === 'down'
-				? 'text-rose-600'
-				: 'text-muted-foreground'
+				? 'text-rose-600 bg-rose-50 dark:bg-rose-500/10'
+				: 'text-muted-foreground bg-muted'
 	);
 </script>
 
-<Card.Root>
+<Card.Root
+	class={cn(
+		'shadow-premium border-none bg-card/50 backdrop-blur-sm hover:translate-y-[-2px] transition-all duration-300',
+		className
+	)}
+>
 	<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-		<Card.Title class="text-sm font-medium">
+		<Card.Title class="text-xs font-bold uppercase tracking-widest text-slate-500">
 			{title}
 		</Card.Title>
-		<div class="h-4 w-4 text-muted-foreground">
+		<div class="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
 			{@render icon()}
 		</div>
 	</Card.Header>
 	<Card.Content>
-		<div class="text-2xl font-bold">{value}</div>
-		<div class="flex flex-col gap-2 mt-1">
+		<div class="text-3xl font-extrabold tracking-tight text-slate-900">{value}</div>
+		<div class="flex flex-col gap-3 mt-4">
 			<div class="flex items-center gap-2">
 				{#if trend !== undefined}
-					<span class="text-xs font-bold {trendColor}">
+					<span class={cn('text-[10px] font-bold px-2 py-1 rounded-lg', trendColor)}>
 						{trend > 0 ? '+' : ''}{trend}%
 					</span>
 				{/if}
 				{#if subtitle}
-					<p class="text-xs text-muted-foreground">
+					<p class="text-xs text-slate-500 font-medium">
 						{subtitle}
 					</p>
 				{/if}
 			</div>
 
 			{#if sparkline}
-				<div class="mt-2 h-10 w-full">
+				<div class="mt-2 h-10 w-full opacity-50">
 					{@render sparkline()}
 				</div>
 			{/if}

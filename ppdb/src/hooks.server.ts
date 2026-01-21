@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { resolveTenant } from '$lib/server/tenant';
 import { validateSession, refreshSession } from '$lib/server/auth/session';
 import { verifyFirebaseToken } from '$lib/server/auth/firebase';
@@ -7,7 +7,84 @@ import { AuthError } from '$lib/server/auth/types';
 
 const REFRESH_THRESHOLD = 2 * 24 * 60 * 60;
 
+// Rate limiter configuration
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX = {
+	admin: 60, // 60 requests per minute for admin endpoints
+	api: 100, // 100 requests per minute for API endpoints
+	public: 200, // 200 requests per minute for public pages
+	auth: 10 // 10 attempts per minute for auth endpoints
+};
+
+// In-memory rate limit store (for single-instance dev)
+// Production: Use Cloudflare KV or Upstash Redis
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimit(
+	key: string,
+	maxRequests: number
+): { success: boolean; remaining: number; resetAt: number } {
+	const now = Date.now();
+	const existing = rateLimitStore.get(key);
+
+	if (!existing || now > existing.resetAt) {
+		rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+		return { success: true, remaining: maxRequests - 1, resetAt: now + RATE_LIMIT_WINDOW };
+	}
+
+	if (existing.count >= maxRequests) {
+		return { success: false, remaining: 0, resetAt: existing.resetAt };
+	}
+
+	existing.count++;
+	return { success: true, remaining: maxRequests - existing.count, resetAt: existing.resetAt };
+}
+
+function getRateLimitKey(event: RequestEvent): { key: string; max: number } {
+	const path = event.url.pathname;
+	const ip = event.request.headers.get('cf-connecting-ip') || 'unknown';
+
+	// Auth endpoints
+	if (path.includes('/sign-in') || path.includes('/sign-up') || path.includes('/forgot-password')) {
+		return { key: `auth:${ip}`, max: RATE_LIMIT_MAX.auth };
+	}
+
+	// Admin endpoints
+	if (path.startsWith('/admin')) {
+		const userId = event.cookies.get('session_id') || ip;
+		return { key: `admin:${userId}`, max: RATE_LIMIT_MAX.admin };
+	}
+
+	// API endpoints
+	if (path.startsWith('/api')) {
+		return { key: `api:${ip}`, max: RATE_LIMIT_MAX.api };
+	}
+
+	// Public pages
+	return { key: `public:${ip}`, max: RATE_LIMIT_MAX.public };
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
+	// Rate limiting (except static assets)
+	if (!event.url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+		const { key, max } = getRateLimitKey(event);
+		const { success, remaining, resetAt } = rateLimit(key, max);
+
+		event.request.headers.set('X-RateLimit-Limit', max.toString());
+		event.request.headers.set('X-RateLimit-Remaining', remaining.toString());
+		event.request.headers.set('X-RateLimit-Reset', Math.ceil(resetAt / 1000).toString());
+
+		if (!success) {
+			return new Response('Too Many Requests', {
+				status: 429,
+				headers: {
+					'Retry-After': Math.ceil((resetAt - Date.now()) / 1000).toString(),
+					'Content-Type': 'text/plain'
+				}
+			});
+		}
+	}
+
 	const host = event.request.headers.get('host') || '';
 	let subdomain = '';
 
@@ -78,6 +155,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 				const refreshed = await refreshSession(sessionId, SESSION_EXPIRY_SECONDS);
 				event.locals.session = refreshed;
 			}
+
+			// Check if impersonating
+			const impersonatorSessionId = event.cookies.get('impersonator_session_id');
+			event.locals.isImpersonating = !!impersonatorSessionId;
+
 		} catch (error) {
 			if (error instanceof AuthError) {
 				event.cookies.delete('session_id', { path: '/' });

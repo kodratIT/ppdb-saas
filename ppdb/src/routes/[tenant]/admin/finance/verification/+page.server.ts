@@ -6,7 +6,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const auth = requireAuth(locals);
-	requireRole(auth, 'school_admin', 'super_admin', 'treasurer');
+	requireRole(auth, 'school_admin', 'treasurer');
 
 	const proofs = await db.query.paymentProofs.findMany({
 		where: and(eq(paymentProofs.tenantId, auth.tenantId), eq(paymentProofs.status, 'PENDING')),

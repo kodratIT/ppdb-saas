@@ -71,6 +71,13 @@
       "when": 1768811936287,
       "tag": "0009_red_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768921133779,
+      "tag": "0010_spicy_dragon_man",
+      "breakpoints": true
     }
   ]
 }

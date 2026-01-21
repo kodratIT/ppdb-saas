@@ -9,7 +9,7 @@ import { sendPaymentSuccessNotification } from '$lib/server/domain/payment/notif
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const auth = requireAuth(locals);
-	requireRole(auth, 'school_admin', 'super_admin', 'treasurer');
+	requireRole(auth, 'school_admin', 'treasurer');
 
 	const invoicesList = await db.query.invoices.findMany({
 		where: eq(invoices.tenantId, auth.tenantId),
@@ -60,7 +60,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	verify: async ({ request, locals }) => {
 		const auth = requireAuth(locals);
-		requireRole(auth, 'school_admin', 'super_admin', 'treasurer');
+		requireRole(auth, 'school_admin', 'treasurer');
 
 		const formData = await request.formData();
 		const proofId = formData.get('proofId') as string;

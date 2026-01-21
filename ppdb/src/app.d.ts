@@ -27,6 +27,7 @@ declare global {
 				uid: string;
 				email?: string;
 			};
+			isImpersonating?: boolean;
 		}
 		// interface PageData {}
 		// interface PageState {}

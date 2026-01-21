@@ -10,10 +10,12 @@ import {
 	boolean,
 	numeric,
 	varchar,
-	jsonb
+	jsonb,
+	index
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+export const tenantTypeEnum = pgEnum('tenant_type', ['single', 'foundation']);
 export const statusEnum = pgEnum('status', ['active', 'inactive']);
 export const schoolLevelEnum = pgEnum('school_level', [
 	'TK',
@@ -61,6 +63,8 @@ export const userRoleEnum = pgEnum('user_role', [
 export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);
 export const authTypeEnum = pgEnum('auth_type', ['firebase', 'waha']);
 
+export type UserRole = (typeof userRoleEnum.enumValues)[number];
+
 export const fieldTypeEnum = pgEnum('field_type', [
 	'text',
 	'textarea',
@@ -90,6 +94,14 @@ export const documentStatusEnum = pgEnum('document_status', [
 	'revision_requested'
 ]);
 
+export const payoutStatusEnum = pgEnum('payout_status', [
+	'pending',
+	'processed',
+	'completed',
+	'failed',
+	'rejected'
+]);
+
 // System Config Table for Global Settings
 export const systemConfigs = pgTable('system_configs', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -106,6 +118,7 @@ export const tenants = pgTable('tenants', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: text('name').notNull(),
 	slug: text('slug').notNull().unique(),
+	type: tenantTypeEnum('type').default('single').notNull(),
 	status: statusEnum('status').default('active').notNull(),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull()
@@ -150,7 +163,9 @@ export const users = pgTable(
 	},
 	(t) => ({
 		unq: unique().on(t.email, t.tenantId),
-		firebaseUidUnique: uniqueIndex('users_firebase_uid_unique').on(t.firebaseUid)
+		firebaseUidUnique: uniqueIndex('users_firebase_uid_unique').on(t.firebaseUid),
+		tenantIdx: index('users_tenant_idx').on(t.tenantId),
+		roleIdx: index('users_role_idx').on(t.role)
 	})
 );
 
@@ -342,53 +357,61 @@ export const fieldOptionsRelations = relations(fieldOptions, ({ one }) => ({
 }));
 
 // Epic 3: Registration & Data Collection
-export const applications = pgTable('applications', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	tenantId: uuid('tenant_id')
-		.references(() => tenants.id)
-		.notNull(),
-	userId: uuid('user_id')
-		.references(() => users.id)
-		.notNull(), // Parent who created the application
-	admissionPathId: uuid('admission_path_id')
-		.references(() => admissionPaths.id)
-		.notNull(),
-	unitId: uuid('unit_id').references(() => units.id),
-	status: applicationStatusEnum('status').default('draft').notNull(),
+export const applications = pgTable(
+	'applications',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		tenantId: uuid('tenant_id')
+			.references(() => tenants.id)
+			.notNull(),
+		userId: uuid('user_id')
+			.references(() => users.id)
+			.notNull(), // Parent who created the application
+		admissionPathId: uuid('admission_path_id')
+			.references(() => admissionPaths.id)
+			.notNull(),
+		unitId: uuid('unit_id').references(() => units.id),
+		status: applicationStatusEnum('status').default('draft').notNull(),
 
-	// Dynamic custom field values
-	customFieldValues: text('custom_field_values'), // JSONB: {"father_name": "Budi", "income": "5000000"}
-	answeredCustomFields: text('answered_custom_fields'), // JSON array
-	version: integer('version').default(1).notNull(),
+		// Dynamic custom field values
+		customFieldValues: text('custom_field_values'), // JSONB: {"father_name": "Budi", "income": "5000000"}
+		answeredCustomFields: text('answered_custom_fields'), // JSON array
+		version: integer('version').default(1).notNull(),
 
-	// Child information (filled in multi-step form)
-	childFullName: text('child_full_name'),
-	childNickname: text('child_nickname'),
-	childDob: timestamp('child_dob'),
-	childGender: text('child_gender'), // 'male' | 'female'
+		// Child information (filled in multi-step form)
+		childFullName: text('child_full_name'),
+		childNickname: text('child_nickname'),
+		childDob: timestamp('child_dob'),
+		childGender: text('child_gender'), // 'male' | 'female'
 
-	// Parent information
-	parentFullName: text('parent_full_name'),
-	parentPhone: text('parent_phone'),
-	parentEmail: text('parent_email'),
+		// Parent information
+		parentFullName: text('parent_full_name'),
+		parentPhone: text('parent_phone'),
+		parentEmail: text('parent_email'),
 
-	// Address
-	address: text('address'),
-	city: text('city'),
-	province: text('province'),
-	postalCode: text('postal_code'),
+		// Address
+		address: text('address'),
+		city: text('city'),
+		province: text('province'),
+		postalCode: text('postal_code'),
 
-	// Step tracking
-	currentStep: integer('current_step').default(1).notNull(),
-	completedSteps: text('completed_steps').default('[]').notNull(), // JSON array
-	submittedAt: timestamp('submitted_at'),
+		// Step tracking
+		currentStep: integer('current_step').default(1).notNull(),
+		completedSteps: text('completed_steps').default('[]').notNull(), // JSON array
+		submittedAt: timestamp('submitted_at'),
 
-	// Epic 4.3: Ranking - Distance in meters for Zonasi
-	distanceM: integer('distance_m'),
+		// Epic 4.3: Ranking - Distance in meters for Zonasi
+		distanceM: integer('distance_m'),
 
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(t) => ({
+		tenantIdx: index('applications_tenant_idx').on(t.tenantId),
+		pathIdx: index('applications_path_idx').on(t.admissionPathId),
+		statusIdx: index('applications_status_idx').on(t.status)
+	})
+);
 
 export const applicationsRelations = relations(applications, ({ one, many }) => ({
 	tenant: one(tenants, {
@@ -671,23 +694,31 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
 export const paymentStatusEnum = pgEnum('payment_status', ['PENDING', 'SUCCESS', 'FAILED']);
 export const proofStatusEnum = pgEnum('proof_status', ['PENDING', 'ACCEPTED', 'REJECTED']);
 
-export const invoices = pgTable('invoices', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	tenantId: uuid('tenant_id')
-		.references(() => tenants.id)
-		.notNull(),
-	applicationId: uuid('application_id')
-		.references(() => applications.id)
-		.notNull(),
-	unitId: uuid('unit_id').references(() => units.id),
-	externalId: text('external_id').notNull().unique(), // Xendit Invoice ID
-	amount: integer('amount').notNull(),
-	status: invoiceStatusEnum('status').notNull().default('PENDING'),
-	invoiceUrl: text('invoice_url').notNull(),
-	expiryDate: timestamp('expiry_date').notNull(),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
+export const invoices = pgTable(
+	'invoices',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		tenantId: uuid('tenant_id')
+			.references(() => tenants.id)
+			.notNull(),
+		applicationId: uuid('application_id')
+			.references(() => applications.id)
+			.notNull(),
+		unitId: uuid('unit_id').references(() => units.id),
+		externalId: text('external_id').notNull().unique(), // Xendit Invoice ID
+		amount: integer('amount').notNull(),
+		status: invoiceStatusEnum('status').notNull().default('PENDING'),
+		invoiceUrl: text('invoice_url').notNull(),
+		expiryDate: timestamp('expiry_date').notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(t) => ({
+		tenantIdx: index('invoices_tenant_idx').on(t.tenantId),
+		statusIdx: index('invoices_status_idx').on(t.status),
+		createdIdx: index('invoices_created_idx').on(t.createdAt)
+	})
+);
 
 export const invoicesRelations = relations(invoices, ({ one, many }) => ({
 	application: one(applications, {
@@ -780,6 +811,41 @@ export const broadcasts = pgTable('broadcasts', {
 	failedRecipients: text('failed_recipients'), // JSON string of phone numbers
 	createdAt: timestamp('created_at').defaultNow().notNull()
 });
+
+export const payouts = pgTable('payouts', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	tenantId: uuid('tenant_id')
+		.references(() => tenants.id)
+		.notNull(),
+	amount: integer('amount').notNull(),
+	status: payoutStatusEnum('status').default('pending').notNull(),
+	bankName: text('bank_name').notNull(),
+	accountNumber: text('account_number').notNull(),
+	accountName: text('account_name').notNull(),
+	reference: text('reference'), // Reference from bank transfer
+	requestedBy: uuid('requested_by')
+		.references(() => users.id)
+		.notNull(),
+	processedBy: uuid('processed_by').references(() => users.id),
+	processedAt: timestamp('processed_at'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const payoutsRelations = relations(payouts, ({ one }) => ({
+	tenant: one(tenants, {
+		fields: [payouts.tenantId],
+		references: [tenants.id]
+	}),
+	requester: one(users, {
+		fields: [payouts.requestedBy],
+		references: [users.id]
+	}),
+	processor: one(users, {
+		fields: [payouts.processedBy],
+		references: [users.id]
+	})
+}));
 
 export const broadcastsRelations = relations(broadcasts, ({ one }) => ({
 	tenant: one(tenants, {
@@ -913,23 +979,35 @@ export const saasInvoicesRelations = relations(saasInvoices, ({ one }) => ({
 }));
 
 // Support Tickets (Helpdesk)
-export const ticketStatusEnum = pgEnum('ticket_status', ['open', 'in_progress', 'resolved', 'closed']);
+export const ticketStatusEnum = pgEnum('ticket_status', [
+	'open',
+	'in_progress',
+	'resolved',
+	'closed'
+]);
 export const ticketPriorityEnum = pgEnum('ticket_priority', ['low', 'medium', 'high', 'critical']);
 
-export const tickets = pgTable('tickets', {
-	id: uuid('id').defaultRandom().primaryKey(),
-	tenantId: uuid('tenant_id')
-		.references(() => tenants.id)
-		.notNull(),
-	userId: uuid('user_id')
-		.references(() => users.id)
-		.notNull(), // Requester (School Admin)
-	subject: text('subject').notNull(),
-	status: ticketStatusEnum('status').default('open').notNull(),
-	priority: ticketPriorityEnum('priority').default('medium').notNull(),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
+export const tickets = pgTable(
+	'tickets',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		tenantId: uuid('tenant_id')
+			.references(() => tenants.id)
+			.notNull(),
+		userId: uuid('user_id')
+			.references(() => users.id)
+			.notNull(), // Requester (School Admin)
+		subject: text('subject').notNull(),
+		status: ticketStatusEnum('status').default('open').notNull(),
+		priority: ticketPriorityEnum('priority').default('medium').notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(t) => ({
+		tenantIdx: index('tickets_tenant_idx').on(t.tenantId),
+		statusIdx: index('tickets_status_idx').on(t.status)
+	})
+);
 
 export const ticketMessages = pgTable('ticket_messages', {
 	id: uuid('id').defaultRandom().primaryKey(),

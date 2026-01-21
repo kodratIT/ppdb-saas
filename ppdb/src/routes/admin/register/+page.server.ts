@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { createTenant } from '$lib/server/domain/admin';
+import { createTenantSchema } from '$lib/server/validators/admin';
 import { createFirebaseUser } from '$lib/server/auth/firebase';
 import { db } from '$lib/server/db';
 import { users } from '$lib/server/db/schema';
@@ -53,34 +54,46 @@ export const actions: Actions = {
 		const address = parsedData.address;
 		const postalCode = parsedData.postalCode;
 
-		// Admin fields
+		// Admin fields (need manual validation or separate schema)
 		const adminName = parsedData.adminName;
 		const adminEmail = (data.get('adminEmail') as string) || parsedData.email;
 		const adminPassword = (data.get('adminPassword') as string) || parsedData.password;
 		const whatsapp = parsedData.whatsapp;
 
-		// Validation
-		if (!name || typeof name !== 'string') {
-			return fail(400, { missing: true, message: 'Name is required' });
+		// 1. Validate Tenant Data with Zod
+		const tenantValidation = createTenantSchema.safeParse({
+			name,
+			slug,
+			type,
+			npsn: npsn || undefined,
+			level,
+			province,
+			city,
+			district,
+			address,
+			postalCode
+		});
+
+		if (!tenantValidation.success) {
+			return fail(400, {
+				missing: true,
+				message: 'Validation failed',
+				errors: tenantValidation.error.flatten().fieldErrors
+			});
 		}
-		if (!slug || typeof slug !== 'string') {
-			return fail(400, { missing: true, message: 'Slug is required' });
+
+		// 2. Validate Admin Data (minimal for now or create separate schema)
+		if (!adminEmail || !adminEmail.includes('@')) {
+			return fail(400, { missing: true, message: 'Invalid admin email format' });
 		}
-		if (!adminEmail || typeof adminEmail !== 'string') {
-			return fail(400, { missing: true, message: 'Admin email is required' });
-		}
-		if (!adminPassword || typeof adminPassword !== 'string') {
-			return fail(400, { missing: true, message: 'Admin password is required' });
-		}
-		if (!adminEmail.includes('@')) {
-			return fail(400, { missing: true, message: 'Invalid email format' });
-		}
-		if (adminPassword.length < 6) {
+		if (!adminPassword || adminPassword.length < 6) {
 			return fail(400, {
 				missing: true,
 				message: 'Password must be at least 6 characters'
 			});
 		}
+
+		const validatedTenant = tenantValidation.data;
 
 		try {
 			const actorId = locals.userId;

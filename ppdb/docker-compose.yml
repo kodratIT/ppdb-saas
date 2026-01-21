@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ppdb-db-local
+    restart: always
+    environment:
+      POSTGRES_USER: ppdb_user
+      POSTGRES_PASSWORD: ppdb_password
+      POSTGRES_DB: ppdb_local
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

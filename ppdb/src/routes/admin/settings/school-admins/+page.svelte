@@ -5,38 +5,49 @@
 	import Input from '$lib/components/ui/input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
 	import Badge from '$lib/components/ui/badge.svelte';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	let { data, form } = $props();
 
-	let showCreateForm = false;
-	let createEmail = '';
-	let createName = '';
-	let createRole: 'school_admin' | 'verifier' | 'treasurer' | 'interviewer' = 'school_admin';
+	let showCreateForm = $state(false);
+	let createEmail = $state('');
+	let createName = $state('');
+	let createRole: 'school_admin' | 'verifier' | 'treasurer' | 'interviewer' =
+		$state('school_admin');
+
+	const roleOptions = [
+		{ value: 'school_admin', label: i18n.t('admin.schoolAdmins.schoolAdmin') },
+		{ value: 'verifier', label: i18n.t('admin.schoolAdmins.verifier') },
+		{ value: 'treasurer', label: i18n.t('admin.schoolAdmins.treasurer') },
+		{ value: 'interviewer', label: i18n.t('admin.schoolAdmins.interviewer') }
+	];
 </script>
 
 <div class="container mx-auto py-6 space-y-6">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold text-gray-900">School Admin Management</h1>
-			<p class="text-gray-600 mt-1">Manage administrators and their access levels</p>
+			<h1 class="text-3xl font-bold text-gray-900">{i18n.t('admin.schoolAdmins.title')}</h1>
+			<p class="text-gray-600 mt-1">{i18n.t('admin.schoolAdmins.subtitle')}</p>
 		</div>
 		<button
 			onclick={() => (showCreateForm = !showCreateForm)}
 			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
 		>
-			<span>+ Add Admin</span>
+			<span>{i18n.t('admin.schoolAdmins.addAdmin')}</span>
 		</button>
 	</div>
 
 	<!-- Create Admin Form (Collapsible) -->
 	{#if showCreateForm}
 		<div class="bg-white shadow-md rounded-lg p-6 mb-6">
-			<h2 class="text-xl font-semibold mb-4">Invite New Admin</h2>
+			<h2 class="text-xl font-semibold mb-4">{i18n.t('admin.schoolAdmins.inviteNew')}</h2>
 			<form method="POST" action="?/createAdmin" use:enhance class="space-y-4">
 				<!-- Email -->
 				<div>
-					<Label for="email" class="block text-gray-700 mb-1">Email Address</Label>
+					<Label for="email" class="block text-gray-700 mb-1"
+						>{i18n.t('admin.schoolAdmins.emailAddress')}</Label
+					>
 					<Input
 						type="email"
 						id="email"
@@ -49,12 +60,14 @@
 
 				<!-- Name -->
 				<div>
-					<Label for="name" class="block text-gray-700 mb-1">Full Name</Label>
+					<Label for="name" class="block text-gray-700 mb-1"
+						>{i18n.t('admin.schoolAdmins.fullName')}</Label
+					>
 					<Input
 						type="text"
 						id="name"
 						name="name"
-						placeholder="Admin Name"
+						placeholder={i18n.t('admin.schoolAdmins.namePlaceholder')}
 						bind:value={createName}
 						required
 					/>
@@ -62,17 +75,18 @@
 
 				<!-- Role -->
 				<div>
-					<Label for="role" class="block text-gray-700 mb-1">Role</Label>
+					<Label for="role" class="block text-gray-700 mb-1"
+						>{i18n.t('admin.schoolAdmins.role')}</Label
+					>
 					<select
 						id="role"
 						name="role"
 						bind:value={createRole}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						<option value="school_admin">School Admin</option>
-						<option value="verifier">Verifier</option>
-						<option value="treasurer">Treasurer</option>
-						<option value="interviewer">Interviewer</option>
+						{#each roleOptions as option}
+							<option value={option.value}>{option.label}</option>
+						{/each}
 					</select>
 				</div>
 
@@ -83,13 +97,13 @@
 						onclick={() => (showCreateForm = false)}
 						class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
 					>
-						Cancel
+						{i18n.t('actions.cancel')}
 					</button>
 					<button
 						type="submit"
 						class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
 					>
-						Send Invite
+						{i18n.t('admin.schoolAdmins.sendInvite')}
 					</button>
 				</div>
 			</form>
@@ -113,8 +127,10 @@
 					d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
 				/>
 			</svg>
-			<span class="font-semibold">Current Administrators</span>
-			<span class="ml-auto text-sm text-gray-500">{data.admins.length} admin(s)</span>
+			<span class="font-semibold">{i18n.t('admin.schoolAdmins.currentAdmins')}</span>
+			<span class="ml-auto text-sm text-gray-500"
+				>{i18n.t('admin.schoolAdmins.adminCount', { count: data.admins.length })}</span
+			>
 		</div>
 
 		{#if data.admins.length === 0}
@@ -132,8 +148,10 @@
 						d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
 					/>
 				</svg>
-				<h3 class="mt-4 text-lg font-semibold text-gray-900">No administrators yet</h3>
-				<p class="mt-2 text-gray-600">Add your first administrator to get started.</p>
+				<h3 class="mt-4 text-lg font-semibold text-gray-900">
+					{i18n.t('admin.schoolAdmins.noAdmins')}
+				</h3>
+				<p class="mt-2 text-gray-600">{i18n.t('admin.schoolAdmins.startGuide')}</p>
 			</div>
 		{:else}
 			<div class="divide-y divide-gray-200">
@@ -150,7 +168,7 @@
 							<!-- Info -->
 							<div>
 								<div class="font-semibold text-gray-900">
-									{admin.name || 'Unknown'}
+									{admin.name || i18n.t('admin.schoolAdmins.unknown')}
 								</div>
 								<div class="text-sm text-gray-600">{admin.email}</div>
 								<div class="mt-1 flex gap-2">
@@ -174,14 +192,11 @@
 									class="h-8 px-2 border border-gray-300 rounded-md text-sm"
 									onchange={(e) => e.currentTarget.form?.requestSubmit()}
 								>
-									<option value="school_admin" selected={admin.role === 'school_admin'}
-										>School Admin</option
-									>
-									<option value="verifier" selected={admin.role === 'verifier'}>Verifier</option>
-									<option value="treasurer" selected={admin.role === 'treasurer'}>Treasurer</option>
-									<option value="interviewer" selected={admin.role === 'interviewer'}
-										>Interviewer</option
-									>
+									{#each roleOptions as option}
+										<option value={option.value} selected={admin.role === option.value}>
+											{option.label}
+										</option>
+									{/each}
 								</select>
 							</form>
 
@@ -192,9 +207,9 @@
 									<button
 										type="submit"
 										class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
-										title="Revoke Access"
+										title={i18n.t('admin.schoolAdmins.remove')}
 									>
-										Remove
+										{i18n.t('admin.schoolAdmins.remove')}
 									</button>
 								</form>
 							{/if}
@@ -207,42 +222,41 @@
 
 	<!-- Role Descriptions -->
 	<div class="bg-white shadow-md rounded-lg p-6 mt-6">
-		<h2 class="text-xl font-semibold mb-4">Role Permissions</h2>
+		<h2 class="text-xl font-semibold mb-4">{i18n.t('admin.schoolAdmins.rolePermissions')}</h2>
 		<div class="grid gap-4 md:grid-cols-2">
 			<div class="space-y-2">
-				<h4 class="font-semibold text-blue-600">School Admin</h4>
+				<h4 class="font-semibold text-blue-600">{i18n.t('admin.schoolAdmins.schoolAdmin')}</h4>
 				<ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
-					<li>Full access to school settings</li>
-					<li>Manage other administrators</li>
-					<li>Access verification workflow</li>
-					<li>Access finance pages</li>
+					{#each (i18n.t('admin.schoolAdmins.schoolAdminDesc') || '').split(',') as item}
+						<li>{item.trim()}</li>
+					{/each}
 				</ul>
 			</div>
 
 			<div class="space-y-2">
-				<h4 class="font-semibold text-green-600">Verifier</h4>
+				<h4 class="font-semibold text-green-600">{i18n.t('admin.schoolAdmins.verifier')}</h4>
 				<ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
-					<li>Access verification workflow</li>
-					<li>Review applicant documents</li>
-					<li>Update verification status</li>
+					{#each (i18n.t('admin.schoolAdmins.verifierDesc') || '').split(',') as item}
+						<li>{item.trim()}</li>
+					{/each}
 				</ul>
 			</div>
 
 			<div class="space-y-2">
-				<h4 class="font-semibold text-orange-600">Treasurer</h4>
+				<h4 class="font-semibold text-orange-600">{i18n.t('admin.schoolAdmins.treasurer')}</h4>
 				<ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
-					<li>Access finance pages</li>
-					<li>Verify manual payments</li>
-					<li>Generate invoices</li>
+					{#each (i18n.t('admin.schoolAdmins.treasurerDesc') || '').split(',') as item}
+						<li>{item.trim()}</li>
+					{/each}
 				</ul>
 			</div>
 
 			<div class="space-y-2">
-				<h4 class="font-semibold text-purple-600">Super Admin</h4>
+				<h4 class="font-semibold text-purple-600">{i18n.t('admin.schoolAdmins.superAdmin')}</h4>
 				<ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
-					<li>Manage all tenants</li>
-					<li>Access global platform metrics</li>
-					<li>System configuration</li>
+					{#each (i18n.t('admin.schoolAdmins.superAdminDesc') || '').split(',') as item}
+						<li>{item.trim()}</li>
+					{/each}
 				</ul>
 			</div>
 		</div>

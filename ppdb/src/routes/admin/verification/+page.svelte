@@ -5,13 +5,16 @@
 	import Badge from '$lib/components/ui/badge.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui';
 	import { goto } from '$app/navigation';
+	import AdminPageHeader from '$lib/components/admin/AdminPageHeader.svelte';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let selectedUnitId = $state(data.selectedUnitId);
 
 	let selectedUnitLabel = $derived(
-		data.units.find((u: any) => u.id === selectedUnitId)?.name || 'Semua Unit'
+		data.units.find((u: any) => u.id === selectedUnitId)?.name ||
+			i18n.t('admin.verification.allUnits')
 	);
 
 	function handleUnitChange(value: string | undefined) {
@@ -27,74 +30,104 @@
 	}
 </script>
 
-<div class="container mx-auto py-6 space-y-6">
-	<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Verification Queue</h1>
-			<p class="text-gray-600 mt-1">Review and verify applicant documents</p>
-		</div>
-
+<AdminPageHeader
+	title={i18n.t('admin.verification.title')}
+	description={i18n.t('admin.verification.subtitle')}
+>
+	{#snippet actions()}
 		<div class="flex items-center gap-2">
-			<span class="text-sm font-medium text-gray-700 whitespace-nowrap">Filter Unit:</span>
+			<span class="text-sm font-medium text-muted-foreground whitespace-nowrap"
+				>{i18n.t('admin.verification.filterUnit')}</span
+			>
 			<Select type="single" value={selectedUnitId} onValueChange={handleUnitChange}>
 				<SelectTrigger class="w-[200px]">
 					{selectedUnitLabel}
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="all">Semua Unit</SelectItem>
+					<SelectItem value="all">{i18n.t('admin.verification.allUnits')}</SelectItem>
 					{#each data.units as unit}
 						<SelectItem value={unit.id}>{unit.name}</SelectItem>
 					{/each}
 				</SelectContent>
 			</Select>
 		</div>
-	</div>
+	{/snippet}
+</AdminPageHeader>
 
-	<div class="bg-white shadow-md rounded-lg overflow-hidden">
+<div class="space-y-6">
+	<div
+		class="bg-card/50 backdrop-blur-sm shadow-premium rounded-xl overflow-hidden border-none ring-1 ring-border"
+	>
 		{#if data.queue.length === 0}
-			<div class="py-12 text-center text-gray-500">
-				<p>No applications pending verification.</p>
+			<div class="py-20 text-center text-slate-500">
+				<p class="font-medium text-lg">{i18n.t('admin.verification.noPending')}</p>
+				<p class="text-sm">{i18n.t('admin.verification.everythingUpToDate')}</p>
 			</div>
 		{:else}
-			<table class="w-full text-left border-collapse">
+			<table class="table-modern">
 				<thead>
-					<tr class="bg-gray-50 border-b border-gray-200">
-						<th class="px-6 py-4 font-semibold text-gray-700">Date</th>
-						<th class="px-6 py-4 font-semibold text-gray-700">Applicant</th>
-						<th class="px-6 py-4 font-semibold text-gray-700">Path</th>
-						<th class="px-6 py-4 font-semibold text-gray-700">Status</th>
-						<th class="px-6 py-4 font-semibold text-gray-700">Documents</th>
-						<th class="px-6 py-4 font-semibold text-gray-700 text-right">Action</th>
+					<tr>
+						<th class="pl-8">{i18n.t('admin.verification.submissionDate')}</th>
+						<th>{i18n.t('admin.verification.applicantDetails')}</th>
+						<th>{i18n.t('admin.verification.programPath')}</th>
+						<th>{i18n.t('admin.verification.status')}</th>
+						<th>{i18n.t('admin.verification.documents')}</th>
+						<th class="text-right pr-8">{i18n.t('admin.verification.actions')}</th>
 					</tr>
 				</thead>
-				<tbody class="divide-y divide-gray-200">
-					{#each data.queue as app}
-						<tr class="hover:bg-gray-50">
-							<td class="px-6 py-4 text-sm text-gray-600">
-								{new Date(app.submittedAt || app.updatedAt).toLocaleDateString()}
+				<tbody>
+					{#each data.queue as app, i}
+						<tr class="animate-in-fade" style="animation-delay: {i * 40}ms">
+							<td class="pl-8 text-sm text-slate-600 font-medium">
+								{new Date(app.submittedAt || app.updatedAt).toLocaleDateString(
+									i18n.language === 'id' ? 'id-ID' : 'en-US',
+									{
+										day: 'numeric',
+										month: 'short',
+										year: 'numeric'
+									}
+								)}
 							</td>
-							<td class="px-6 py-4">
-								<div class="font-medium text-gray-900">{app.childFullName}</div>
-								<div class="text-xs text-gray-500">{app.parentFullName}</div>
+							<td>
+								<div class="font-bold text-slate-900">{app.childFullName}</div>
+								<div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+									{i18n.t('admin.verification.by', { parent: app.parentFullName })}
+								</div>
 							</td>
-							<td class="px-6 py-4 text-sm text-gray-600">
-								{app.admissionPath.name}
+							<td>
+								<Badge
+									variant="secondary"
+									class="bg-blue-50 text-blue-700 border-none font-bold uppercase text-[10px] px-2.5 py-1"
+								>
+									{app.admissionPath.name}
+								</Badge>
 							</td>
-							<td class="px-6 py-4">
-								<Badge variant="outline">{app.status}</Badge>
+							<td>
+								<Badge
+									variant="outline"
+									class="border-slate-200 text-slate-600 font-bold uppercase text-[10px] px-2.5 py-1"
+								>
+									{app.status}
+								</Badge>
 							</td>
-							<td class="px-6 py-4 text-sm text-gray-600">
-								{app.documents.length} docs
-								<span class="text-xs text-gray-400">
-									({app.documents.filter((d: any) => d.status === 'verified').length} verified)
-								</span>
+							<td>
+								<div class="flex flex-col">
+									<span class="text-sm font-bold text-slate-700"
+										>{i18n.t('admin.verification.files', { count: app.documents.length })}</span
+									>
+									<span class="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">
+										{i18n.t('admin.verification.verified', {
+											count: app.documents.filter((d: any) => d.status === 'verified').length
+										})}
+									</span>
+								</div>
 							</td>
-							<td class="px-6 py-4 text-right">
+							<td class="text-right pr-8">
 								<a
 									href="/admin/verification/{app.id}"
-									class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition"
+									class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-md shadow-blue-500/10 transition-all uppercase tracking-wider"
 								>
-									Verify
+									{i18n.t('admin.verification.process')}
 								</a>
 							</td>
 						</tr>

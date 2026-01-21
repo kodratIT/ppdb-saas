@@ -1,6 +1,6 @@
 <script lang="ts">
 	/* eslint-disable svelte/no-navigation-without-resolve */
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import {
 		LayoutDashboard,
 		FileCheck,
@@ -19,25 +19,25 @@
 
 	let { children } = $props();
 
-	const sidebarItems = [
+	const baseSidebarItems = [
 		{
 			title: 'Dashboard',
-			href: `/${$page.params.tenant}/admin`,
+			href: `/${page.params.tenant}/admin`,
 			icon: LayoutDashboard
 		},
 		{
 			title: 'Verification',
-			href: `/${$page.params.tenant}/admin/verify`,
+			href: `/${page.params.tenant}/admin/verify`,
 			icon: FileCheck
 		},
 		{
 			title: 'Ranking',
-			href: `/${$page.params.tenant}/admin/ranking`,
+			href: `/${page.params.tenant}/admin/ranking`,
 			icon: Trophy
 		},
 		{
 			title: 'Finance',
-			href: `/${$page.params.tenant}/admin/finance`,
+			href: `/${page.params.tenant}/admin/finance`,
 			icon: CreditCard
 		}
 	];
@@ -45,32 +45,40 @@
 	const settingsItems = [
 		{
 			title: 'Admission Paths',
-			href: `/${$page.params.tenant}/admin/settings/admission-paths`,
+			href: `/${page.params.tenant}/admin/settings/admission-paths`,
 			icon: School
 		},
 		{
 			title: 'Fee Structures',
-			href: `/${$page.params.tenant}/admin/settings/fee-structures`,
+			href: `/${page.params.tenant}/admin/settings/fee-structures`,
 			icon: CreditCard
 		},
 		{
 			title: 'School Admins',
-			href: `/${$page.params.tenant}/admin/settings/school-admins`,
+			href: `/${page.params.tenant}/admin/settings/school-admins`,
 			icon: Users
 		},
 		{
 			title: 'Payment Config',
-			href: `/${$page.params.tenant}/admin/settings/payments`,
+			href: `/${page.params.tenant}/admin/settings/payments`,
 			icon: Settings
 		},
 		{
 			title: 'Audit Logs',
-			href: `/${$page.params.tenant}/admin/settings/audit-logs`,
+			href: `/${page.params.tenant}/admin/settings/audit-logs`,
 			icon: FileCheck
 		}
 	];
 
 	let isSidebarOpen = $state(false);
+
+	let role = $derived(page.data.session?.role);
+	let sidebarItems = $derived(
+		baseSidebarItems.filter((item) => {
+			if (item.title === 'Verification' && role === 'super_admin') return false;
+			return true;
+		})
+	);
 </script>
 
 <div class="min-h-screen bg-gray-50 flex flex-col md:flex-row">
@@ -112,7 +120,7 @@
 								<a
 									href={item.href}
 									class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-										{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
+										{page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 									onclick={() => (isSidebarOpen = false)}
 								>
 									<item.icon class="h-5 w-5" />
@@ -131,7 +139,7 @@
 								<a
 									href={item.href}
 									class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-										{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
+										{page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 									onclick={() => (isSidebarOpen = false)}
 								>
 									<item.icon class="h-5 w-5" />
@@ -169,7 +177,7 @@
 						<a
 							href={item.href}
 							class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-								{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
+								{page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 						>
 							<item.icon class="h-5 w-5" />
 							{item.title}
@@ -187,7 +195,7 @@
 						<a
 							href={item.href}
 							class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition-colors
-								{$page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
+								{page.url.pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}"
 						>
 							<item.icon class="h-5 w-5" />
 							{item.title}

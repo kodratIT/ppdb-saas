@@ -18,7 +18,13 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
 		depends('admin:tenants');
 
 		const search = url.searchParams.get('search') || undefined;
+		const searchField = (url.searchParams.get('searchField') as 'all' | 'name' | 'slug') || 'all';
+		const searchOperator =
+			(url.searchParams.get('searchOperator') as 'contains' | 'starts_with' | 'exact') ||
+			'contains';
 		const status = url.searchParams.get('status') || 'all';
+		const type = url.searchParams.get('type') || 'all';
+		const timeframe = url.searchParams.get('timeframe') || 'all';
 		const page = Number(url.searchParams.get('page')) || 1;
 		const limit = Number(url.searchParams.get('limit')) || PAGINATION_LIMIT;
 		const sortBy = url.searchParams.get('sortBy') || 'createdAt';
@@ -27,7 +33,11 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
 		const [tenants, enhancedStats] = await Promise.all([
 			listTenantsWithStats({
 				search,
+				searchField,
+				searchOperator,
 				status,
+				type,
+				timeframe,
 				page,
 				limit,
 				sortBy,
@@ -145,11 +155,17 @@ export const actions: Actions = {
 
 			// Get current filters from URL
 			const search = url.searchParams.get('search') || undefined;
+			const searchField = (url.searchParams.get('searchField') as 'all' | 'name' | 'slug') || 'all';
+			const searchOperator =
+				(url.searchParams.get('searchOperator') as 'contains' | 'starts_with' | 'exact') ||
+				'contains';
 			const status = url.searchParams.get('status') || 'all';
 
 			// Fetch all schools matching filters (no pagination for export)
 			const result = await listTenantsWithStats({
 				search,
+				searchField,
+				searchOperator,
 				status,
 				page: 1,
 				limit: 10000, // Large limit to get all schools
@@ -167,6 +183,35 @@ export const actions: Actions = {
 			return fail(
 				500,
 				createErrorResponse('Failed to export schools', 'SERVER_ERROR', {
+					error: error instanceof Error ? error.message : 'Unknown error'
+				})
+			);
+		}
+	},
+
+	deleteTenant: async ({ request, locals }) => {
+		try {
+			const auth = await requireAuth(locals);
+			requireSuperAdmin(auth);
+
+			const formData = await request.formData();
+			const tenantId = formData.get('tenantId')?.toString();
+
+			if (!tenantId) {
+				return fail(400, createErrorResponse(ERROR_MESSAGES.MISSING_DATA, 'VALIDATION_ERROR'));
+			}
+
+			await deleteTenant(tenantId, auth.userId);
+
+			return {
+				success: true,
+				message: 'School deleted successfully'
+			};
+		} catch (error) {
+			console.error('Delete school failed:', error);
+			return fail(
+				500,
+				createErrorResponse('Failed to delete school', 'SERVER_ERROR', {
 					error: error instanceof Error ? error.message : 'Unknown error'
 				})
 			);

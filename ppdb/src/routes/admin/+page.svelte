@@ -10,6 +10,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import Badge from '$lib/components/ui/badge.svelte';
 	import { formatCurrency } from '$lib/utils';
+	import { i18n } from '$lib/i18n/index.svelte';
 	import {
 		Users,
 		CreditCard,
@@ -22,6 +23,7 @@
 		CalendarDays
 	} from 'lucide-svelte';
 	import Button from '$lib/components/ui/button.svelte';
+	import AdminPageHeader from '$lib/components/admin/AdminPageHeader.svelte';
 
 	let { data } = $props<{ data: PageData }>();
 	let stats = $derived(data.stats);
@@ -35,33 +37,31 @@
 	);
 </script>
 
-<div class="space-y-8 p-8 pt-6">
-	<!-- Header -->
-	<div class="flex items-center justify-between space-y-2">
-		<div>
-			<h2 class="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
-			<p class="text-muted-foreground">System overview and performance metrics.</p>
-		</div>
-		<div class="flex items-center space-x-2">
-			<Button variant="outline" size="sm" class="hidden md:flex">
-				<CalendarDays class="mr-2 h-4 w-4" />
-				{new Date().toLocaleDateString('id-ID', {
-					weekday: 'long',
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
-				})}
-			</Button>
-			<Button size="sm">Download Report</Button>
-		</div>
-	</div>
+<AdminPageHeader
+	title={i18n.t('admin.dashboard.title')}
+	description={i18n.t('admin.dashboard.subtitle')}
+>
+	{#snippet actions()}
+		<Button variant="outline" size="sm" class="hidden md:flex">
+			<CalendarDays class="mr-2 h-4 w-4" />
+			{new Date().toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US', {
+				weekday: 'long',
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric'
+			})}
+		</Button>
+		<Button size="sm">{i18n.t('admin.dashboard.downloadReport')}</Button>
+	{/snippet}
+</AdminPageHeader>
 
+<div class="space-y-8">
 	<!-- KPI Grid -->
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 		<KPICard
-			title="Total Revenue"
+			title={i18n.t('admin.dashboard.totalRevenue')}
 			value={formatCurrency(stats.financial.totalRevenue)}
-			subtitle="Gross processed"
+			subtitle={i18n.t('admin.dashboard.grossProcessed')}
 			trend={12.5}
 			trendDirection="up"
 		>
@@ -69,9 +69,9 @@
 		</KPICard>
 
 		<KPICard
-			title="Active Schools"
+			title={i18n.t('admin.dashboard.organizations')}
 			value={stats.tenants.active}
-			subtitle="of {stats.tenants.total} total"
+			subtitle={i18n.t('admin.dashboard.activeTotal', { total: stats.tenants.total })}
 			trend={4.2}
 			trendDirection="up"
 		>
@@ -79,9 +79,9 @@
 		</KPICard>
 
 		<KPICard
-			title="Total Parents"
+			title={i18n.t('admin.dashboard.totalParents')}
 			value={stats.users.totalParents.toLocaleString()}
-			subtitle="Registered users"
+			subtitle={i18n.t('admin.dashboard.registeredUsers')}
 			trend={8.1}
 			trendDirection="up"
 		>
@@ -89,9 +89,9 @@
 		</KPICard>
 
 		<KPICard
-			title="Transactions"
+			title={i18n.t('admin.dashboard.transactions')}
 			value={stats.financial.totalTransactions}
-			subtitle="Successful count"
+			subtitle={i18n.t('admin.dashboard.successfulCount')}
 			trend={-2.4}
 			trendDirection="down"
 		>
@@ -99,18 +99,18 @@
 		</KPICard>
 
 		<KPICard
-			title="Verification Queue"
+			title={i18n.t('admin.dashboard.verificationQueue')}
 			value={pendingVerifications}
-			subtitle="Pending schools"
+			subtitle={i18n.t('admin.dashboard.pendingOrgs')}
 			trendDirection="neutral"
 		>
 			{#snippet icon()}<Clock class="w-4 h-4" />{/snippet}
 		</KPICard>
 
 		<KPICard
-			title="Success Rate"
+			title={i18n.t('admin.dashboard.successRate')}
 			value="98.2%"
-			subtitle="Payment gateway"
+			subtitle={i18n.t('admin.dashboard.paymentGateway')}
 			trend={0.5}
 			trendDirection="up"
 		>
@@ -118,9 +118,9 @@
 		</KPICard>
 
 		<KPICard
-			title="Conversion"
+			title={i18n.t('admin.dashboard.conversion')}
 			value="14.2%"
-			subtitle="Visit to Lead"
+			subtitle={i18n.t('admin.dashboard.visitToLead')}
 			trend={1.2}
 			trendDirection="up"
 		>
@@ -128,9 +128,9 @@
 		</KPICard>
 
 		<KPICard
-			title="Avg Rev/School"
+			title={i18n.t('admin.dashboard.avgRevOrg')}
 			value={formatCurrency(stats.financial.totalRevenue / (stats.tenants.active || 1))}
-			subtitle="Monthly average"
+			subtitle={i18n.t('admin.dashboard.monthlyAverage')}
 			trend={3.8}
 			trendDirection="up"
 		>
@@ -148,24 +148,24 @@
 			<!-- Units Breakdown -->
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Performa Per Unit</Card.Title>
-					<Card.Description>Breakdown pendaftar dan pendapatan tiap jenjang.</Card.Description>
+					<Card.Title>{i18n.t('admin.dashboard.performaPerUnit')}</Card.Title>
+					<Card.Description>{i18n.t('admin.dashboard.breakdownPendaftaran')}</Card.Description>
 				</Card.Header>
 				<Card.Content>
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>Unit</Table.Head>
-								<Table.Head>Jenjang</Table.Head>
-								<Table.Head class="text-right">Pendaftar</Table.Head>
-								<Table.Head class="text-right">Pendapatan</Table.Head>
+								<Table.Head>{i18n.t('admin.dashboard.unit')}</Table.Head>
+								<Table.Head>{i18n.t('admin.dashboard.jenjang')}</Table.Head>
+								<Table.Head class="text-right">{i18n.t('admin.dashboard.applicants')}</Table.Head>
+								<Table.Head class="text-right">{i18n.t('admin.dashboard.pendapatan')}</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
 							{#if stats.unitStats.length === 0}
 								<Table.Row>
 									<Table.Cell colspan={4} class="h-24 text-center text-muted-foreground">
-										Belum ada data unit.
+										{i18n.t('common.none')}
 									</Table.Cell>
 								</Table.Row>
 							{:else}

@@ -6,8 +6,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.session) throw redirect(302, '/auth/login');
 
 	// Check permissions
-	const allowedRoles = ['verifier', 'school_admin', 'super_admin'];
-	if (!allowedRoles.includes(locals.session.role)) {
+	const allowedRoles = ['verifier', 'school_admin'];
+	const role = locals.session.role;
+	if (!role || !allowedRoles.includes(role)) {
 		throw error(403, 'Unauthorized access to verification');
 	}
 

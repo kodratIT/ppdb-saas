@@ -1,15 +1,11 @@
 <script lang="ts">
-	import {
-		Input,
-		Label,
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger
-	} from '$lib/components/ui';
+	import { Input } from '$lib/components/ui/input';
+	import { FormField, SelectField, SlugInput, RadioCardGroup } from '$lib/components/ui/form';
 	import { RadioGroup, RadioGroupItem } from '$lib/components/ui/radio-group';
+	import { Label } from '$lib/components/ui/label';
 	import Alert from '$lib/components/ui/alert.svelte';
 	import type { IdentityFormData } from '../schema';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	interface Props {
 		formData: Partial<IdentityFormData>;
@@ -19,46 +15,40 @@
 
 	let { formData = $bindable(), errors = {}, onUpdate }: Props = $props();
 
-	const schoolLevels = [
-		{ value: 'TK', label: 'TK (Taman Kanak-Kanak)' },
-		{ value: 'SD', label: 'SD (Sekolah Dasar)' },
-		{ value: 'SMP', label: 'SMP (Sekolah Menengah Pertama)' },
-		{ value: 'SMA', label: 'SMA (Sekolah Menengah Atas)' },
-		{ value: 'SMK', label: 'SMK (Sekolah Menengah Kejuruan)' },
-		{ value: 'Universitas', label: 'Universitas' },
-		{ value: 'Lainnya', label: 'Lainnya' }
-	];
+	const schoolLevels = $derived([
+		{ value: 'TK', label: i18n.t('admin.register.tk' as any) || 'TK (Taman Kanak-Kanak)' },
+		{ value: 'SD', label: i18n.t('admin.register.sd' as any) || 'SD (Sekolah Dasar)' },
+		{
+			value: 'SMP',
+			label: i18n.t('admin.register.smp' as any) || 'SMP (Sekolah Menengah Pertama)'
+		},
+		{ value: 'SMA', label: i18n.t('admin.register.sma' as any) || 'SMA (Sekolah Menengah Atas)' },
+		{
+			value: 'SMK',
+			label: i18n.t('admin.register.smk' as any) || 'SMK (Sekolah Menengah Kejuruan)'
+		},
+		{ value: 'Universitas', label: i18n.t('admin.register.universitas' as any) || 'Universitas' },
+		{ value: 'Lainnya', label: i18n.t('admin.register.lainnya' as any) || 'Lainnya' }
+	]);
 
-	function getLevelLabel(value: string | undefined) {
-		return schoolLevels.find((l) => l.value === value)?.label;
-	}
-
-	// Auto-generate slug from name
-	function slugify(text: string): string {
-		return text
-			.toLowerCase()
-			.trim()
-			.replace(/[^\w\s-]/g, '') // Remove special characters
-			.replace(/[\s_-]+/g, '-') // Replace spaces, underscores with hyphens
-			.replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-	}
-
-	let slugDebounceTimer: ReturnType<typeof setTimeout>;
+	const institutionTypes = $derived([
+		{
+			value: 'single',
+			label: i18n.t('admin.register.singleSchool'),
+			description: i18n.t('admin.register.singleDescription' as any) || 'Single school registration'
+		},
+		{
+			value: 'foundation',
+			label: i18n.t('admin.register.foundation'),
+			description:
+				i18n.t('admin.register.foundationDescription' as any) ||
+				'Foundation with multiple school units'
+		}
+	]);
 
 	function handleNameChange(e: Event) {
 		const target = e.target as HTMLInputElement;
-		const name = target.value;
-		formData.name = name;
-
-		// Auto-generate slug with debounce
-		clearTimeout(slugDebounceTimer);
-		slugDebounceTimer = setTimeout(() => {
-			if (name) {
-				formData.slug = slugify(name);
-				onUpdate(formData);
-			}
-		}, 300);
-
+		formData.name = target.value;
 		onUpdate(formData);
 	}
 
@@ -88,77 +78,79 @@
 		formData.type = value as IdentityFormData['type'];
 		onUpdate(formData);
 	}
+
+	// Slug availability check using the API
+	async function checkSlugAvailability(slug: string): Promise<boolean> {
+		if (!slug || slug.length < 3) return true; // Skip check for short slugs
+
+		try {
+			const response = await fetch(
+				`/admin/api/check-duplicate?field=slug&value=${encodeURIComponent(slug)}`
+			);
+			if (!response.ok) {
+				console.error('Slug check failed:', response.statusText);
+				return true; // Assume available on error
+			}
+			const data = (await response.json()) as { available: boolean };
+			return data.available;
+		} catch (error) {
+			console.error('Slug check error:', error);
+			return true; // Assume available on error
+		}
+	}
 </script>
 
-<div class="space-y-6">
+<div class="space-y-8">
 	<div>
-		<h2 class="text-xl font-semibold mb-2">School Identity 🏫</h2>
-		<p class="text-sm text-muted-foreground">Enter the basic information about your school.</p>
+		<h2 class="text-xl font-semibold mb-2">{i18n.t('admin.register.stepIdentity')} 🏫</h2>
+		<p class="text-sm text-muted-foreground">{i18n.t('admin.register.enterBasicInfo')}</p>
 	</div>
 
 	<!-- Institution Type -->
-	<div class="space-y-3">
-		<Label>Tipe Institusi *</Label>
-		<RadioGroup
-			value={formData.type || 'single'}
-			onValueChange={handleTypeChange}
-			class="flex flex-col sm:flex-row gap-4"
-		>
-			<div
-				class="flex items-center space-x-2 border rounded-md p-3 px-4 cursor-pointer hover:bg-accent transition-colors {formData.type ===
-					'single' || !formData.type
-					? 'border-primary bg-primary/5'
-					: ''}"
-			>
-				<RadioGroupItem value="single" id="type-single" />
-				<Label for="type-single" class="font-medium cursor-pointer">Sekolah Satuan</Label>
-			</div>
-			<div
-				class="flex items-center space-x-2 border rounded-md p-3 px-4 cursor-pointer hover:bg-accent transition-colors {formData.type ===
-				'foundation'
-					? 'border-primary bg-primary/5'
-					: ''}"
-			>
-				<RadioGroupItem value="foundation" id="type-foundation" />
-				<Label for="type-foundation" class="font-medium cursor-pointer">Yayasan / Institusi</Label>
-			</div>
-		</RadioGroup>
-		{#if formData.type === 'foundation'}
-			<Alert
-				variant="info"
-				message="Anda dapat menambahkan unit sekolah (TK, SD, SMP, SMA) di bawah Yayasan ini setelah pendaftaran selesai."
-			/>
-		{/if}
-	</div>
+	<RadioCardGroup
+		label={i18n.t('admin.register.institutionType')}
+		value={formData.type || 'single'}
+		options={institutionTypes}
+		required
+		error={errors.type}
+		onValueChange={handleTypeChange}
+	/>
+
+	{#if formData.type === 'foundation'}
+		<Alert variant="info" message={i18n.t('admin.register.foundationNote')} />
+	{/if}
 
 	<!-- School Name -->
-	<div class="space-y-2">
-		<Label for="name">{formData.type === 'foundation' ? 'Foundation Name' : 'School Name'} *</Label>
+	<FormField
+		label={formData.type === 'foundation'
+			? i18n.t('admin.register.foundationName')
+			: i18n.t('admin.register.schoolName')}
+		required
+		error={errors.name}
+		id="name"
+	>
 		<Input
 			id="name"
 			type="text"
 			placeholder={formData.type === 'foundation'
-				? 'e.g., Yayasan Pendidikan Indonesia'
-				: 'e.g., SMA Negeri 1 Jakarta'}
+				? `e.g., ${i18n.t('admin.register.foundationName')}`
+				: `e.g., ${i18n.t('admin.register.schoolName')}`}
 			value={formData.name || ''}
 			oninput={handleNameChange}
 			class={errors.name ? 'border-destructive' : ''}
 		/>
-		{#if errors.name}
-			<p class="text-sm text-destructive">{errors.name[0]}</p>
-		{/if}
-	</div>
+	</FormField>
 
 	<!-- NPSN -->
-	<div class="space-y-2">
-		<Label for="npsn">
-			NPSN (Nomor Pokok Sekolah Nasional)
-			{#if formData.type === 'foundation'}
-				<span class="text-muted-foreground font-normal">(Opsional)</span>
-			{:else}
-				*
-			{/if}
-		</Label>
+	<FormField
+		label={i18n.t('admin.register.npsn')}
+		required={formData.type !== 'foundation'}
+		error={errors.npsn}
+		helpText={formData.type === 'foundation'
+			? i18n.t('admin.register.foundationNpsnHelper')
+			: i18n.t('admin.register.npsnHelper')}
+		id="npsn"
+	>
 		<Input
 			id="npsn"
 			type="text"
@@ -168,77 +160,56 @@
 			oninput={handleNpsnChange}
 			class={errors.npsn ? 'border-destructive' : ''}
 		/>
-		{#if errors.npsn}
-			<p class="text-sm text-destructive">{errors.npsn[0]}</p>
-		{/if}
-		<p class="text-xs text-muted-foreground">
-			{formData.type === 'foundation'
-				? 'Masukkan NPSN jika yayasan memiliki NPSN induk, atau kosongkan jika tidak ada.'
-				: "Enter your school's 8-digit NPSN number from Kemdikbud."}
-		</p>
-	</div>
+	</FormField>
 
 	<!-- Slug -->
-	<div class="space-y-2">
-		<Label for="slug">{formData.type === 'foundation' ? 'Foundation Slug' : 'School Slug'} *</Label>
-		<Input
-			id="slug"
-			type="text"
-			placeholder={formData.type === 'foundation'
-				? 'e.g., yayasan-pendidikan'
-				: 'e.g., sma-negeri-1-jakarta'}
-			value={formData.slug || ''}
-			oninput={handleSlugChange}
-			class={errors.slug ? 'border-destructive' : ''}
-		/>
-		{#if errors.slug}
-			<p class="text-sm text-destructive">{errors.slug[0]}</p>
-		{/if}
-		<p class="text-xs text-muted-foreground">
-			This will be your {formData.type === 'foundation' ? "foundation's" : "school's"} subdomain:
-			<strong
-				>{formData.slug ||
-					(formData.type === 'foundation' ? 'your-foundation' : 'your-school')}.ppdb.id</strong
-			>
-		</p>
-	</div>
+	<SlugInput
+		label={formData.type === 'foundation'
+			? i18n.t('admin.register.foundationSlug')
+			: i18n.t('admin.register.slug')}
+		value={formData.slug || ''}
+		sourceValue={formData.name || ''}
+		type={formData.type === 'foundation' ? 'foundation' : 'school'}
+		required
+		error={errors.slug}
+		onCheck={checkSlugAvailability}
+		oninput={handleSlugChange}
+	/>
 
 	<!-- Level -->
-	<div class="space-y-2">
-		<Label for="level">
-			{formData.type === 'foundation' ? 'First Unit Level' : 'School Level'} *
-		</Label>
-		<Select type="single" value={formData.level || 'SMA'} onValueChange={handleLevelChange}>
-			<SelectTrigger id="level" class={errors.level ? 'border-destructive' : ''}>
-				{getLevelLabel(formData.level || 'SMA') || 'Select level'}
-			</SelectTrigger>
-			<SelectContent>
-				{#each schoolLevels as level}
-					<SelectItem value={level.value}>{level.label}</SelectItem>
-				{/each}
-			</SelectContent>
-		</Select>
-		{#if errors.level}
-			<p class="text-sm text-destructive">{errors.level[0]}</p>
-		{/if}
-		{#if formData.type === 'foundation'}
-			<p class="text-xs text-muted-foreground">
-				Pilih jenjang untuk unit sekolah pertama yang akan dibuat otomatis.
-			</p>
-		{/if}
-	</div>
+	<SelectField
+		label={formData.type === 'foundation'
+			? i18n.t('admin.register.firstUnitLevel')
+			: i18n.t('admin.register.level')}
+		value={formData.level || 'SMA'}
+		options={schoolLevels}
+		placeholder={i18n.t('admin.register.selectLevel')}
+		required
+		error={errors.level}
+		helpText={formData.type === 'foundation' ? i18n.t('admin.register.foundationNote') : undefined}
+		onValueChange={handleLevelChange}
+	/>
 
 	<!-- Status -->
-	<div class="space-y-2">
-		<Label>School Status *</Label>
+	<div class="space-y-3">
+		<Label class="flex items-center gap-1">
+			{i18n.t('admin.register.status')}
+			<span class="text-destructive">*</span>
+		</Label>
 		<RadioGroup value={formData.status || 'active'} onValueChange={handleStatusChange}>
-			<div class="flex items-center space-x-2">
-				<RadioGroupItem value="active" id="active" />
-				<Label for="active" class="font-normal cursor-pointer">Active</Label>
-			</div>
-			<div class="flex items-center space-x-2">
-				<RadioGroupItem value="inactive" id="inactive" />
-				<Label for="inactive" class="font-normal cursor-pointer">Inactive</Label>
+			<div class="flex items-center space-x-4">
+				<div class="flex items-center space-x-2">
+					<RadioGroupItem value="active" id="active" />
+					<Label for="active" class="font-normal cursor-pointer"
+						>{i18n.t('admin.register.active')}</Label
+					>
+				</div>
+				<div class="flex items-center space-x-2">
+					<RadioGroupItem value="inactive" id="inactive" />
+					<Label for="inactive" class="font-normal cursor-pointer"
+						>{i18n.t('admin.register.inactive')}</Label
+					>
+				</div>
 			</div>
 		</RadioGroup>
 		{#if errors.status}

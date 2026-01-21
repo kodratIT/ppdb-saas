@@ -3,6 +3,7 @@
 	/* eslint-disable svelte/prefer-svelte-reactivity */
 	/* eslint-disable svelte/require-each-key */
 	/* eslint-disable svelte/no-navigation-without-resolve */
+	import { page } from '$app/stores';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
@@ -19,6 +20,8 @@
 	let showProofModal = false;
 	let rejectReason = '';
 	let processing = false;
+
+	$: role = $page.data.session?.role;
 
 	$: filteredInvoices = data.invoices.filter((inv) => {
 		const matchesSearch =
@@ -206,7 +209,7 @@
 								{/if}
 							</td>
 							<td class="p-4 text-right">
-								{#if invoice.status === 'VERIFYING' && invoice.latestProof}
+								{#if invoice.status === 'VERIFYING' && invoice.latestProof && role !== 'super_admin'}
 									<Button size="sm" onclick={() => openProofModal(invoice.latestProof)}>
 										Verify Proof
 									</Button>

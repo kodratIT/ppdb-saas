@@ -30,6 +30,7 @@
 			icon: ShieldAlert
 		}
 	);
+	const Icon = $derived(currentError.icon);
 </script>
 
 <svelte:head>
@@ -48,7 +49,7 @@
 		<div
 			class="w-24 h-24 bg-white border-4 border-[#002C5F] shadow-[8px_8px_0px_0px_rgba(0,44,95,0.1)] rounded-3xl flex items-center justify-center mx-auto mb-10 transform -rotate-3 hover:rotate-0 transition-transform duration-500"
 		>
-			<svelte:component this={currentError.icon} class="w-12 h-12 text-[#002C5F]" />
+			<Icon class="w-12 h-12 text-[#002C5F]" />
 		</div>
 
 		<!-- Error Code -->

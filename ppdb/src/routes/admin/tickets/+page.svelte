@@ -9,6 +9,8 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Search, Filter, Ticket, AlertCircle, CheckCircle2, Clock } from 'lucide-svelte';
 	import { formatDistanceToNow } from 'date-fns';
+	import { id as idLocale, enUS } from 'date-fns/locale';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -49,13 +51,24 @@
 			return matchesTab && matchesSearch && matchesPriority;
 		})
 	);
+
+	const getPriorityText = (priority: string) => {
+		const key = `admin.tickets.${priority.toLowerCase()}` as any;
+		return i18n.t(key);
+	};
+
+	const getStatusText = (status: string) => {
+		const key = `admin.tickets.${status.toLowerCase().replace('_', '')}` as any;
+		if (status === 'in_progress') return i18n.t('admin.tickets.inProgress');
+		return i18n.t(key);
+	};
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-6xl">
 	<div class="flex items-center justify-between mb-8">
 		<div>
-			<h1 class="text-3xl font-bold tracking-tight">Support Tickets</h1>
-			<p class="text-muted-foreground mt-1">Manage help requests from schools.</p>
+			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.tickets.title')}</h1>
+			<p class="text-muted-foreground mt-1">{i18n.t('admin.tickets.subtitle')}</p>
 		</div>
 	</div>
 
@@ -63,32 +76,34 @@
 	<div class="grid gap-4 md:grid-cols-3 mb-8">
 		<Card.Root>
 			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Total Tickets</Card.Title>
+				<Card.Title class="text-sm font-medium">{i18n.t('admin.tickets.totalTickets')}</Card.Title>
 				<Ticket class="h-4 w-4 text-muted-foreground" />
 			</Card.Header>
 			<Card.Content>
 				<div class="text-2xl font-bold">{totalTickets}</div>
-				<p class="text-xs text-muted-foreground">All time</p>
+				<p class="text-xs text-muted-foreground">{i18n.t('admin.tickets.allTime')}</p>
 			</Card.Content>
 		</Card.Root>
 		<Card.Root>
 			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Open Tickets</Card.Title>
+				<Card.Title class="text-sm font-medium">{i18n.t('admin.tickets.openTickets')}</Card.Title>
 				<AlertCircle class="h-4 w-4 text-red-500" />
 			</Card.Header>
 			<Card.Content>
 				<div class="text-2xl font-bold">{openTickets}</div>
-				<p class="text-xs text-muted-foreground">Need attention</p>
+				<p class="text-xs text-muted-foreground">{i18n.t('admin.tickets.needAttention')}</p>
 			</Card.Content>
 		</Card.Root>
 		<Card.Root>
 			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Avg Response Time</Card.Title>
+				<Card.Title class="text-sm font-medium"
+					>{i18n.t('admin.tickets.avgResponseTime')}</Card.Title
+				>
 				<Clock class="h-4 w-4 text-muted-foreground" />
 			</Card.Header>
 			<Card.Content>
 				<div class="text-2xl font-bold">{avgResponseTime}</div>
-				<p class="text-xs text-muted-foreground">Last 30 days</p>
+				<p class="text-xs text-muted-foreground">{i18n.t('admin.tickets.last30Days')}</p>
 			</Card.Content>
 		</Card.Root>
 	</div>
@@ -97,9 +112,9 @@
 	<Tabs.Root value="all" class="w-full" onValueChange={(v) => (activeTab = v)}>
 		<div class="flex items-center justify-between mb-4">
 			<Tabs.List>
-				<Tabs.Trigger value="all">All Tickets</Tabs.Trigger>
-				<Tabs.Trigger value="open">Open & In Progress</Tabs.Trigger>
-				<Tabs.Trigger value="resolved">Resolved</Tabs.Trigger>
+				<Tabs.Trigger value="all">{i18n.t('admin.tickets.allTickets')}</Tabs.Trigger>
+				<Tabs.Trigger value="open">{i18n.t('admin.tickets.openInProgress')}</Tabs.Trigger>
+				<Tabs.Trigger value="resolved">{i18n.t('admin.tickets.resolved')}</Tabs.Trigger>
 			</Tabs.List>
 
 			<div class="flex items-center gap-2">
@@ -107,7 +122,7 @@
 					<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 					<Input
 						type="search"
-						placeholder="Search tickets..."
+						placeholder={i18n.t('admin.tickets.searchPlaceholder')}
 						class="pl-9 w-[250px]"
 						bind:value={searchQuery}
 					/>
@@ -117,17 +132,29 @@
 						{#snippet child({ props })}
 							<Button variant="outline" class="gap-2" {...props}>
 								<Filter class="h-4 w-4" />
-								{priorityFilter ? `Priority: ${priorityFilter}` : 'Filter'}
+								{priorityFilter
+									? i18n.t('admin.tickets.priorityFilter', {
+											priority: getPriorityText(priorityFilter)
+										})
+									: i18n.t('common.filter')}
 							</Button>
 						{/snippet}
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content align="end">
-						<DropdownMenu.Label>Filter by Priority</DropdownMenu.Label>
+						<DropdownMenu.Label>{i18n.t('admin.tickets.filterByPriority')}</DropdownMenu.Label>
 						<DropdownMenu.Separator />
-						<DropdownMenu.Item on:click={() => (priorityFilter = null)}>All</DropdownMenu.Item>
-						<DropdownMenu.Item on:click={() => (priorityFilter = 'high')}>High</DropdownMenu.Item>
-						<DropdownMenu.Item on:click={() => (priorityFilter = 'medium')}>Medium</DropdownMenu.Item>
-						<DropdownMenu.Item on:click={() => (priorityFilter = 'low')}>Low</DropdownMenu.Item>
+						<DropdownMenu.Item on:click={() => (priorityFilter = null)}
+							>{i18n.t('common.all')}</DropdownMenu.Item
+						>
+						<DropdownMenu.Item on:click={() => (priorityFilter = 'high')}
+							>{i18n.t('admin.tickets.high')}</DropdownMenu.Item
+						>
+						<DropdownMenu.Item on:click={() => (priorityFilter = 'medium')}
+							>{i18n.t('admin.tickets.medium')}</DropdownMenu.Item
+						>
+						<DropdownMenu.Item on:click={() => (priorityFilter = 'low')}
+							>{i18n.t('admin.tickets.low')}</DropdownMenu.Item
+						>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>
 			</div>
@@ -139,20 +166,20 @@
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>ID</Table.Head>
-								<Table.Head>School</Table.Head>
-								<Table.Head>Subject</Table.Head>
-								<Table.Head>Priority</Table.Head>
-								<Table.Head>Status</Table.Head>
-								<Table.Head>Last Update</Table.Head>
-								<Table.Head class="text-right">Action</Table.Head>
+								<Table.Head>{i18n.t('common.id')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.school')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.subject')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.priority')}</Table.Head>
+								<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.lastUpdate')}</Table.Head>
+								<Table.Head class="text-right">{i18n.t('admin.announcements.action')}</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
 							{#if filteredTickets.length === 0}
 								<Table.Row>
 									<Table.Cell colspan={7} class="text-center py-8 text-muted-foreground">
-										No tickets found matching your filters.
+										{i18n.t('admin.tickets.noTickets')}
 									</Table.Cell>
 								</Table.Row>
 							{:else}
@@ -169,7 +196,7 @@
 														? 'default'
 														: 'outline'}
 											>
-												{ticket.priority}
+												{getPriorityText(ticket.priority)}
 											</Badge>
 										</Table.Cell>
 										<Table.Cell>
@@ -181,15 +208,18 @@
 															? 'bg-green-500'
 															: 'bg-yellow-500'}"
 												></div>
-												{ticket.status}
+												{getStatusText(ticket.status)}
 											</div>
 										</Table.Cell>
 										<Table.Cell class="text-muted-foreground text-sm">
-											{formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true })}
+											{formatDistanceToNow(new Date(ticket.updatedAt), {
+												addSuffix: true,
+												locale: i18n.language === 'id' ? idLocale : enUS
+											})}
 										</Table.Cell>
 										<Table.Cell class="text-right">
 											<Button variant="outline" size="sm" href="/admin/tickets/{ticket.id}">
-												View
+												{i18n.t('common.view')}
 											</Button>
 										</Table.Cell>
 									</Table.Row>
@@ -200,7 +230,7 @@
 				</Card.Content>
 			</Card.Root>
 		</Tabs.Content>
-		
+
 		<!-- Re-use same table structure for other tabs for now -->
 		<Tabs.Content value="open" class="m-0">
 			<Card.Root>
@@ -209,20 +239,20 @@
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>ID</Table.Head>
-								<Table.Head>School</Table.Head>
-								<Table.Head>Subject</Table.Head>
-								<Table.Head>Priority</Table.Head>
-								<Table.Head>Status</Table.Head>
-								<Table.Head>Last Update</Table.Head>
-								<Table.Head class="text-right">Action</Table.Head>
+								<Table.Head>{i18n.t('common.id')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.school')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.subject')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.priority')}</Table.Head>
+								<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.lastUpdate')}</Table.Head>
+								<Table.Head class="text-right">{i18n.t('admin.announcements.action')}</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
 							{#if filteredTickets.length === 0}
 								<Table.Row>
 									<Table.Cell colspan={7} class="text-center py-8 text-muted-foreground">
-										No open tickets found.
+										{i18n.t('admin.tickets.noOpenTickets')}
 									</Table.Cell>
 								</Table.Row>
 							{:else}
@@ -239,7 +269,7 @@
 														? 'default'
 														: 'outline'}
 											>
-												{ticket.priority}
+												{getPriorityText(ticket.priority)}
 											</Badge>
 										</Table.Cell>
 										<Table.Cell>
@@ -251,15 +281,18 @@
 															? 'bg-green-500'
 															: 'bg-yellow-500'}"
 												></div>
-												{ticket.status}
+												{getStatusText(ticket.status)}
 											</div>
 										</Table.Cell>
 										<Table.Cell class="text-muted-foreground text-sm">
-											{formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true })}
+											{formatDistanceToNow(new Date(ticket.updatedAt), {
+												addSuffix: true,
+												locale: i18n.language === 'id' ? idLocale : enUS
+											})}
 										</Table.Cell>
 										<Table.Cell class="text-right">
 											<Button variant="outline" size="sm" href="/admin/tickets/{ticket.id}">
-												View
+												{i18n.t('common.view')}
 											</Button>
 										</Table.Cell>
 									</Table.Row>
@@ -278,20 +311,20 @@
 					<Table.Root>
 						<Table.Header>
 							<Table.Row>
-								<Table.Head>ID</Table.Head>
-								<Table.Head>School</Table.Head>
-								<Table.Head>Subject</Table.Head>
-								<Table.Head>Priority</Table.Head>
-								<Table.Head>Status</Table.Head>
-								<Table.Head>Last Update</Table.Head>
-								<Table.Head class="text-right">Action</Table.Head>
+								<Table.Head>{i18n.t('common.id')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.school')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.subject')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.priority')}</Table.Head>
+								<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
+								<Table.Head>{i18n.t('admin.tickets.lastUpdate')}</Table.Head>
+								<Table.Head class="text-right">{i18n.t('admin.announcements.action')}</Table.Head>
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
 							{#if filteredTickets.length === 0}
 								<Table.Row>
 									<Table.Cell colspan={7} class="text-center py-8 text-muted-foreground">
-										No resolved tickets found.
+										{i18n.t('admin.tickets.noResolvedTickets')}
 									</Table.Cell>
 								</Table.Row>
 							{:else}
@@ -308,7 +341,7 @@
 														? 'default'
 														: 'outline'}
 											>
-												{ticket.priority}
+												{getPriorityText(ticket.priority)}
 											</Badge>
 										</Table.Cell>
 										<Table.Cell>
@@ -320,15 +353,18 @@
 															? 'bg-green-500'
 															: 'bg-yellow-500'}"
 												></div>
-												{ticket.status}
+												{getStatusText(ticket.status)}
 											</div>
 										</Table.Cell>
 										<Table.Cell class="text-muted-foreground text-sm">
-											{formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true })}
+											{formatDistanceToNow(new Date(ticket.updatedAt), {
+												addSuffix: true,
+												locale: i18n.language === 'id' ? idLocale : enUS
+											})}
 										</Table.Cell>
 										<Table.Cell class="text-right">
 											<Button variant="outline" size="sm" href="/admin/tickets/{ticket.id}">
-												View
+												{i18n.t('common.view')}
 											</Button>
 										</Table.Cell>
 									</Table.Row>

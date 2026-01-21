@@ -10,6 +10,7 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Plus, Pencil, Check, X } from 'lucide-svelte';
 	import type { PageData } from './$types';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -30,29 +31,29 @@
 <div class="flex flex-col gap-6 p-6">
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold tracking-tight">SaaS Packages</h1>
-			<p class="text-muted-foreground">Manage subscription packages and pricing.</p>
+			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.packages.title')}</h1>
+			<p class="text-muted-foreground">{i18n.t('admin.packages.subtitle')}</p>
 		</div>
 		<Button onclick={openCreateDialog}>
 			<Plus class="mr-2 h-4 w-4" />
-			Add Package
+			{i18n.t('admin.packages.addPackage')}
 		</Button>
 	</div>
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Packages</Card.Title>
+			<Card.Title>{i18n.t('admin.packages.title')}</Card.Title>
 		</Card.Header>
 		<Card.Content>
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>Name</Table.Head>
-						<Table.Head>Slug</Table.Head>
-						<Table.Head>Price (Monthly)</Table.Head>
-						<Table.Head>Price (Yearly)</Table.Head>
-						<Table.Head>Status</Table.Head>
-						<Table.Head class="text-right">Actions</Table.Head>
+						<Table.Head>{i18n.t('admin.packages.name')}</Table.Head>
+						<Table.Head>{i18n.t('admin.packages.slug')}</Table.Head>
+						<Table.Head>{i18n.t('admin.packages.priceMonthly')}</Table.Head>
+						<Table.Head>{i18n.t('admin.packages.priceYearly')}</Table.Head>
+						<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
+						<Table.Head class="text-right">{i18n.t('common.actions')}</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -64,7 +65,9 @@
 							<Table.Cell>Rp {pkg.priceYearly.toLocaleString('id-ID')}</Table.Cell>
 							<Table.Cell>
 								<Badge variant={pkg.isActive ? 'default' : 'secondary'}>
-									{pkg.isActive ? 'Active' : 'Inactive'}
+									{pkg.isActive
+										? i18n.t('admin.packages.active')
+										: i18n.t('admin.packages.inactive')}
 								</Badge>
 							</Table.Cell>
 							<Table.Cell class="text-right">
@@ -95,7 +98,11 @@
 	<Dialog.Root bind:open={isDialogOpen}>
 		<Dialog.Content class="sm:max-w-[500px]">
 			<Dialog.Header>
-				<Dialog.Title>{editingPackage ? 'Edit Package' : 'Create Package'}</Dialog.Title>
+				<Dialog.Title
+					>{editingPackage
+						? i18n.t('admin.packages.editPackage')
+						: i18n.t('admin.packages.createPackage')}</Dialog.Title
+				>
 			</Dialog.Header>
 			<form
 				action={editingPackage ? '?/update' : '?/create'}
@@ -108,27 +115,17 @@
 				{/if}
 				<div class="grid gap-4 py-4">
 					<div class="grid grid-cols-4 items-center gap-4">
-						<Label for="name" class="text-right">Name</Label>
-						<Input
-							id="name"
-							name="name"
-							value={editingPackage?.name}
-							class="col-span-3"
-							required
-						/>
+						<Label for="name" class="text-right">{i18n.t('admin.packages.name')}</Label>
+						<Input id="name" name="name" value={editingPackage?.name} class="col-span-3" required />
 					</div>
 					<div class="grid grid-cols-4 items-center gap-4">
-						<Label for="slug" class="text-right">Slug</Label>
-						<Input
-							id="slug"
-							name="slug"
-							value={editingPackage?.slug}
-							class="col-span-3"
-							required
-						/>
+						<Label for="slug" class="text-right">{i18n.t('admin.packages.slug')}</Label>
+						<Input id="slug" name="slug" value={editingPackage?.slug} class="col-span-3" required />
 					</div>
 					<div class="grid grid-cols-4 items-center gap-4">
-						<Label for="description" class="text-right">Description</Label>
+						<Label for="description" class="text-right"
+							>{i18n.t('admin.packages.description')}</Label
+						>
 						<Textarea
 							id="description"
 							name="description"
@@ -137,7 +134,7 @@
 						/>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-4">
-						<Label for="priceMonthly" class="text-right">Price (Mo)</Label>
+						<Label for="priceMonthly" class="text-right">{i18n.t('admin.packages.priceMo')}</Label>
 						<Input
 							type="number"
 							id="priceMonthly"
@@ -148,7 +145,7 @@
 						/>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-4">
-						<Label for="priceYearly" class="text-right">Price (Yr)</Label>
+						<Label for="priceYearly" class="text-right">{i18n.t('admin.packages.priceYr')}</Label>
 						<Input
 							type="number"
 							id="priceYearly"
@@ -159,7 +156,7 @@
 						/>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-4">
-						<Label for="limits" class="text-right">Limits (JSON)</Label>
+						<Label for="limits" class="text-right">{i18n.t('admin.packages.limitsJson')}</Label>
 						<Textarea
 							id="limits"
 							name="limits"
@@ -168,7 +165,7 @@
 						/>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-4">
-						<Label for="features" class="text-right">Features (JSON)</Label>
+						<Label for="features" class="text-right">{i18n.t('admin.packages.featuresJson')}</Label>
 						<Textarea
 							id="features"
 							name="features"
@@ -178,7 +175,7 @@
 					</div>
 				</div>
 				<Dialog.Footer>
-					<Button type="submit">Save changes</Button>
+					<Button type="submit">{i18n.t('admin.packages.saveChanges')}</Button>
 				</Dialog.Footer>
 			</form>
 		</Dialog.Content>

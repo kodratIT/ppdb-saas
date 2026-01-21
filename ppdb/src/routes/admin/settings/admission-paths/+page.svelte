@@ -6,6 +6,8 @@
 	import Label from '$lib/components/ui/label.svelte';
 	import Textarea from '$lib/components/ui/textarea.svelte';
 
+	import { i18n } from '$lib/i18n/index.svelte';
+
 	let { data }: { data: PageData } = $props();
 
 	let showCreateModal = $state(false);
@@ -21,6 +23,11 @@
 		archived: 'bg-purple-100 text-purple-800'
 	};
 
+	const getStatusText = (status: string) => {
+		const key = `admin.admissionPaths.${status}` as any;
+		const translated = i18n.t(key);
+		return translated !== key ? translated : status.toUpperCase();
+	};
 	// Calculate progress percentage
 	function getProgress(filledSlots: number, quota: number): number {
 		return (filledSlots / quota) * 100;
@@ -46,14 +53,14 @@
 <div class="container mx-auto px-4 py-8 max-w-6xl">
 	<div class="flex justify-between items-center mb-8">
 		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Admission Paths & Quota</h1>
-			<p class="text-gray-600 mt-2">Manage admission paths and track quota allocation</p>
+			<h1 class="text-3xl font-bold text-gray-900">{i18n.t('admin.admissionPaths.title')}</h1>
+			<p class="text-gray-600 mt-2">{i18n.t('admin.admissionPaths.subtitle')}</p>
 		</div>
 		<button
 			onclick={() => (showCreateModal = true)}
 			class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
 		>
-			+ Create New Path
+			{i18n.t('admin.admissionPaths.createNew')}
 		</button>
 	</div>
 
@@ -67,8 +74,8 @@
 	<div class="space-y-4">
 		{#if data.paths.length === 0}
 			<div class="text-center py-12 bg-gray-50 rounded-lg">
-				<p class="text-gray-500 text-lg">No admission paths configured yet.</p>
-				<p class="text-gray-400 mt-2">Create your first admission path to get started.</p>
+				<p class="text-gray-500 text-lg">{i18n.t('admin.admissionPaths.noPaths')}</p>
+				<p class="text-gray-400 mt-2">{i18n.t('admin.admissionPaths.startGuide')}</p>
 			</div>
 		{:else}
 			{#each data.paths as path}
@@ -82,7 +89,7 @@
 								<span
 									class="px-3 py-1 rounded-full text-xs font-medium {statusColors[path.status]}"
 								>
-									{path.status.toUpperCase()}
+									{getStatusText(path.status)}
 								</span>
 							</div>
 							{#if path.description}
@@ -99,7 +106,7 @@
 										type="submit"
 										class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
 									>
-										Publish
+										{i18n.t('admin.admissionPaths.publish')}
 									</button>
 								</form>
 							{/if}
@@ -111,7 +118,7 @@
 										type="submit"
 										class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
 									>
-										Close
+										{i18n.t('admin.admissionPaths.close')}
 									</button>
 								</form>
 							{/if}
@@ -123,7 +130,7 @@
 										type="submit"
 										class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
 									>
-										Reopen
+										{i18n.t('admin.admissionPaths.reopen')}
 									</button>
 								</form>
 							{/if}
@@ -135,7 +142,7 @@
 										type="submit"
 										class="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
 									>
-										Archive
+										{i18n.t('admin.admissionPaths.archive')}
 									</button>
 								</form>
 							{/if}
@@ -145,7 +152,7 @@
 									onclick={() => (editingPath = path)}
 									class="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
 								>
-									Edit
+									{i18n.t('actions.edit')}
 								</button>
 							{/if}
 
@@ -154,7 +161,7 @@
 									onclick={() => (showDeleteConfirm = path.id)}
 									class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
 								>
-									Delete
+									{i18n.t('actions.delete')}
 								</button>
 							{/if}
 						</div>
@@ -163,9 +170,12 @@
 					<!-- Quota Progress -->
 					<div class="mt-4">
 						<div class="flex justify-between text-sm mb-2">
-							<span class="text-gray-600">Quota Utilization</span>
+							<span class="text-gray-600">{i18n.t('admin.admissionPaths.quotaUtilization')}</span>
 							<span class="font-medium text-gray-900">
-								{path.filledSlots} / {path.quota} slots
+								{i18n.t('admin.admissionPaths.slots', {
+									filled: path.filledSlots,
+									total: path.quota
+								})}
 							</span>
 						</div>
 						<div class="w-full bg-gray-200 rounded-full h-2.5">
@@ -185,26 +195,38 @@
 {#if showCreateModal}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 		<div class="bg-white rounded-lg max-w-md w-full p-6">
-			<h2 class="text-2xl font-bold mb-4">Create Admission Path</h2>
+			<h2 class="text-2xl font-bold mb-4">{i18n.t('admin.admissionPaths.createPath')}</h2>
 			<form method="POST" action="?/create" use:enhance>
 				<div class="space-y-4">
 					<div>
-						<Label for="name" class="block text-gray-700 mb-1">Path Name *</Label>
-						<Input type="text" id="name" name="name" required placeholder="e.g., Jalur Prestasi" />
-					</div>
-
-					<div>
-						<Label for="description" class="block text-gray-700 mb-1">Description</Label>
-						<Textarea
-							id="description"
-							name="description"
-							rows={3}
-							placeholder="Optional description..."
+						<Label for="name" class="block text-gray-700 mb-1"
+							>{i18n.t('admin.admissionPaths.pathName')}</Label
+						>
+						<Input
+							type="text"
+							id="name"
+							name="name"
+							required
+							placeholder={i18n.t('admin.admissionPaths.namePlaceholder')}
 						/>
 					</div>
 
 					<div>
-						<Label for="quota" class="block text-gray-700 mb-1">Quota *</Label>
+						<Label for="description" class="block text-gray-700 mb-1"
+							>{i18n.t('admin.admissionPaths.description')}</Label
+						>
+						<Textarea
+							id="description"
+							name="description"
+							rows={3}
+							placeholder={i18n.t('admin.admissionPaths.descPlaceholder')}
+						/>
+					</div>
+
+					<div>
+						<Label for="quota" class="block text-gray-700 mb-1"
+							>{i18n.t('admin.admissionPaths.quota')}</Label
+						>
 						<Input
 							type="number"
 							id="quota"
@@ -212,7 +234,7 @@
 							required
 							min="1"
 							max="10000"
-							placeholder="e.g., 50"
+							placeholder={i18n.t('admin.admissionPaths.quotaPlaceholder')}
 						/>
 					</div>
 				</div>
@@ -222,14 +244,14 @@
 						type="submit"
 						class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
 					>
-						Create
+						{i18n.t('actions.create')}
 					</button>
 					<button
 						type="button"
 						onclick={() => (showCreateModal = false)}
 						class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
 					>
-						Cancel
+						{i18n.t('actions.cancel')}
 					</button>
 				</div>
 			</form>
@@ -241,17 +263,21 @@
 {#if editingPath}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 		<div class="bg-white rounded-lg max-w-md w-full p-6">
-			<h2 class="text-2xl font-bold mb-4">Edit Admission Path</h2>
+			<h2 class="text-2xl font-bold mb-4">{i18n.t('admin.admissionPaths.editPath')}</h2>
 			<form method="POST" action="?/update" use:enhance>
 				<input type="hidden" name="pathId" value={editingPath.id} />
 				<div class="space-y-4">
 					<div>
-						<Label for="edit-name" class="block text-gray-700 mb-1">Path Name *</Label>
+						<Label for="edit-name" class="block text-gray-700 mb-1"
+							>{i18n.t('admin.admissionPaths.pathName')}</Label
+						>
 						<Input type="text" id="edit-name" name="name" required value={editingPath.name} />
 					</div>
 
 					<div>
-						<Label for="edit-description" class="block text-gray-700 mb-1">Description</Label>
+						<Label for="edit-description" class="block text-gray-700 mb-1"
+							>{i18n.t('admin.admissionPaths.description')}</Label
+						>
 						<Textarea
 							id="edit-description"
 							name="description"
@@ -261,7 +287,9 @@
 					</div>
 
 					<div>
-						<Label for="edit-quota" class="block text-gray-700 mb-1">Quota *</Label>
+						<Label for="edit-quota" class="block text-gray-700 mb-1"
+							>{i18n.t('admin.admissionPaths.quota')}</Label
+						>
 						<Input
 							type="number"
 							id="edit-quota"
@@ -272,7 +300,7 @@
 							value={editingPath.quota}
 						/>
 						<p class="text-xs text-gray-500 mt-1">
-							Current filled slots: {editingPath.filledSlots}
+							{i18n.t('admin.admissionPaths.filledSlots', { count: editingPath.filledSlots })}
 						</p>
 					</div>
 				</div>
@@ -282,14 +310,14 @@
 						type="submit"
 						class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
 					>
-						Update
+						{i18n.t('actions.update')}
 					</button>
 					<button
 						type="button"
 						onclick={() => (editingPath = null)}
 						class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
 					>
-						Cancel
+						{i18n.t('actions.cancel')}
 					</button>
 				</div>
 			</form>
@@ -301,9 +329,11 @@
 {#if showDeleteConfirm}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 		<div class="bg-white rounded-lg max-w-md w-full p-6">
-			<h2 class="text-2xl font-bold mb-4 text-red-600">Confirm Delete</h2>
+			<h2 class="text-2xl font-bold mb-4 text-red-600">
+				{i18n.t('admin.admissionPaths.confirmDelete')}
+			</h2>
 			<p class="text-gray-700 mb-6">
-				Are you sure you want to delete this admission path? This action cannot be undone.
+				{i18n.t('admin.admissionPaths.deleteWarning')}
 			</p>
 			<form method="POST" action="?/delete" use:enhance>
 				<input type="hidden" name="pathId" value={showDeleteConfirm} />
@@ -312,14 +342,14 @@
 						type="submit"
 						class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
 					>
-						Delete
+						{i18n.t('actions.delete')}
 					</button>
 					<button
 						type="button"
 						onclick={() => (showDeleteConfirm = null)}
 						class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
 					>
-						Cancel
+						{i18n.t('actions.cancel')}
 					</button>
 				</div>
 			</form>

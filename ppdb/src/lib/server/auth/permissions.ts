@@ -1,154 +1,173 @@
-import type { userRoleEnum } from '$lib/server/db/schema';
+import type { UserRole } from '$lib/server/db/schema';
 
-export type UserRole = (typeof userRoleEnum.enumValues)[number];
+// Define all available permissions
+export type Permission =
+	// Tenant Management
+	| 'tenant:read'
+	| 'tenant:create'
+	| 'tenant:update'
+	| 'tenant:delete'
+	| 'tenant:manage_status'
 
-export const PERMISSIONS = {
-	TENANT_CREATE: 'tenant:create',
-	TENANT_UPDATE: 'tenant:update',
-	TENANT_DELETE: 'tenant:delete',
-	TENANT_READ_ALL: 'tenant:read:all',
+	// User Management
+	| 'user:read'
+	| 'user:create'
+	| 'user:update'
+	| 'user:delete'
+	| 'user:invite'
+	| 'user:manage_roles'
 
-	ADMISSION_PATHS_READ: 'admission_paths:read',
-	ADMISSION_PATHS_CREATE: 'admission_paths:create',
-	ADMISSION_PATHS_UPDATE: 'admission_paths:update',
-	ADMISSION_PATHS_DELETE: 'admission_paths:delete',
-	ADMISSION_PATHS_PUBLISH: 'admission_paths:publish',
-	ADMISSION_PATHS_CLOSE: 'admission_paths:close',
-	ADMISSION_PATHS_ARCHIVE: 'admission_paths:archive',
+	// School Configuration
+	| 'settings:read'
+	| 'settings:manage'
+	| 'branding:manage'
+	| 'admission_paths:manage'
+	| 'fee_structures:manage'
 
-	FEES_READ: 'fees:read',
-	FEES_CREATE: 'fees:create',
-	FEES_UPDATE: 'fees:update',
-	FEES_DELETE: 'fees:delete',
+	// Verification
+	| 'verification:read'
+	| 'verification:manage'
+	| 'documents:verify'
 
-	ADMIN_USERS_READ: 'admin_users:read',
-	ADMIN_USERS_CREATE: 'admin_users:create',
-	ADMIN_USERS_ASSIGN_ROLE: 'admin_users:assign_role',
-	ADMIN_USERS_REVOKE_ACCESS: 'admin_users:revoke_access',
+	// Scoring & Ranking
+	| 'scoring:read'
+	| 'scoring:input'
+	| 'scoring:finalize'
+	| 'ranking:view'
+	| 'ranking:finalize'
 
-	APPLICATIONS_READ: 'applications:read',
-	APPLICATIONS_VERIFY: 'applications:verify',
-	APPLICATIONS_REJECT: 'applications:reject',
+	// Finance
+	| 'finance:view'
+	| 'finance:verify_manual'
+	| 'finance:payout'
+	| 'finance:export'
 
-	SCORES_INPUT: 'scores:input',
-	SCORES_UPDATE: 'scores:update',
+	// Communication
+	| 'broadcast:view'
+	| 'broadcast:create'
+	| 'notification:manage'
 
-	// Epic 4.2: Scoring & Interview Input
-	SCORE_CREATE: 'score:create',
-	SCORE_READ: 'score:read',
-	SCORE_UPDATE: 'score:update',
-	SCORE_FINALIZE: 'score:finalize',
-	SCORE_UNLOCK: 'score:unlock',
+	// Reports & Analytics
+	| 'reports:view'
+	| 'reports:export'
+	| 'reports:dapodik'
 
-	PAYMENTS_READ: 'payments:read',
-	PAYMENTS_VERIFY_MANUAL: 'payments:verify_manual',
-	PAYMENTS_MANAGE: 'payments:manage',
+	// Super Admin Only
+	| 'super_admin:access'
+	| 'super_admin:platform_settings'
+	| 'super_admin:impersonate'
+	| 'super_admin:view_audit_logs'
+	| 'super_admin:health_monitoring';
 
-	REPORTS_READ: 'reports:read',
-	REPORTS_EXPORT: 'reports:export'
-} as const;
-
-export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
-
-export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+// Role-Permission mapping
+export const rolePermissions: Record<UserRole, Permission[]> = {
 	super_admin: [
-		PERMISSIONS.TENANT_CREATE,
-		PERMISSIONS.TENANT_UPDATE,
-		PERMISSIONS.TENANT_DELETE,
-		PERMISSIONS.TENANT_READ_ALL,
-		PERMISSIONS.ADMISSION_PATHS_READ,
-		PERMISSIONS.ADMISSION_PATHS_CREATE,
-		PERMISSIONS.ADMISSION_PATHS_UPDATE,
-		PERMISSIONS.ADMISSION_PATHS_DELETE,
-		PERMISSIONS.ADMISSION_PATHS_PUBLISH,
-		PERMISSIONS.ADMISSION_PATHS_CLOSE,
-		PERMISSIONS.ADMISSION_PATHS_ARCHIVE,
-		PERMISSIONS.FEES_READ,
-		PERMISSIONS.FEES_CREATE,
-		PERMISSIONS.FEES_UPDATE,
-		PERMISSIONS.FEES_DELETE,
-		PERMISSIONS.ADMIN_USERS_READ,
-		PERMISSIONS.ADMIN_USERS_CREATE,
-		PERMISSIONS.ADMIN_USERS_ASSIGN_ROLE,
-		PERMISSIONS.ADMIN_USERS_REVOKE_ACCESS,
-		PERMISSIONS.APPLICATIONS_READ,
-		PERMISSIONS.APPLICATIONS_VERIFY,
-		PERMISSIONS.APPLICATIONS_REJECT,
-		PERMISSIONS.SCORES_INPUT,
-		PERMISSIONS.SCORES_UPDATE,
-		PERMISSIONS.PAYMENTS_READ,
-		PERMISSIONS.PAYMENTS_VERIFY_MANUAL,
-		PERMISSIONS.PAYMENTS_MANAGE,
-		PERMISSIONS.REPORTS_READ,
-		PERMISSIONS.REPORTS_EXPORT
+		'tenant:read',
+		'tenant:create',
+		'tenant:update',
+		'tenant:delete',
+		'tenant:manage_status',
+		'user:read',
+		'user:create',
+		'user:update',
+		'user:delete',
+		'user:invite',
+		'user:manage_roles',
+		'settings:read',
+		'settings:manage',
+		'branding:manage',
+		'admission_paths:manage',
+		'fee_structures:manage',
+		'verification:read',
+		'verification:manage',
+		'documents:verify',
+		'scoring:read',
+		'scoring:input',
+		'scoring:finalize',
+		'ranking:view',
+		'ranking:finalize',
+		'finance:view',
+		'finance:verify_manual',
+		'finance:payout',
+		'finance:export',
+		'broadcast:view',
+		'broadcast:create',
+		'notification:manage',
+		'reports:view',
+		'reports:export',
+		'reports:dapodik',
+		'super_admin:access',
+		'super_admin:platform_settings',
+		'super_admin:impersonate',
+		'super_admin:view_audit_logs',
+		'super_admin:health_monitoring'
 	],
 
 	school_admin: [
-		PERMISSIONS.ADMISSION_PATHS_READ,
-		PERMISSIONS.ADMISSION_PATHS_CREATE,
-		PERMISSIONS.ADMISSION_PATHS_UPDATE,
-		PERMISSIONS.ADMISSION_PATHS_DELETE,
-		PERMISSIONS.ADMISSION_PATHS_PUBLISH,
-		PERMISSIONS.ADMISSION_PATHS_CLOSE,
-		PERMISSIONS.ADMISSION_PATHS_ARCHIVE,
-		PERMISSIONS.FEES_READ,
-		PERMISSIONS.FEES_CREATE,
-		PERMISSIONS.FEES_UPDATE,
-		PERMISSIONS.FEES_DELETE,
-		PERMISSIONS.ADMIN_USERS_READ,
-		PERMISSIONS.ADMIN_USERS_CREATE,
-		PERMISSIONS.ADMIN_USERS_ASSIGN_ROLE,
-		PERMISSIONS.ADMIN_USERS_REVOKE_ACCESS,
-		PERMISSIONS.APPLICATIONS_READ,
-		PERMISSIONS.APPLICATIONS_VERIFY,
-		PERMISSIONS.APPLICATIONS_REJECT,
-		PERMISSIONS.SCORES_INPUT,
-		PERMISSIONS.SCORES_UPDATE,
-		PERMISSIONS.SCORE_UNLOCK, // NEW: Epic 4.2 - Can unlock finalized scores
-		PERMISSIONS.PAYMENTS_READ,
-		PERMISSIONS.PAYMENTS_VERIFY_MANUAL,
-		PERMISSIONS.PAYMENTS_MANAGE,
-		PERMISSIONS.REPORTS_READ,
-		PERMISSIONS.REPORTS_EXPORT
+		'tenant:read',
+		'tenant:update',
+		'user:read',
+		'user:create',
+		'user:update',
+		'user:invite',
+		'settings:read',
+		'settings:manage',
+		'branding:manage',
+		'admission_paths:manage',
+		'fee_structures:manage',
+		'verification:read',
+		'verification:manage',
+		'documents:verify',
+		'scoring:read',
+		'scoring:input',
+		'scoring:finalize',
+		'ranking:view',
+		'ranking:finalize',
+		'finance:view',
+		'finance:verify_manual',
+		'finance:export',
+		'broadcast:view',
+		'broadcast:create',
+		'notification:manage',
+		'reports:view',
+		'reports:export',
+		'reports:dapodik'
 	],
 
-	verifier: [
-		PERMISSIONS.ADMISSION_PATHS_READ,
-		PERMISSIONS.APPLICATIONS_READ,
-		PERMISSIONS.APPLICATIONS_VERIFY,
-		PERMISSIONS.APPLICATIONS_REJECT,
-		PERMISSIONS.SCORES_INPUT,
-		PERMISSIONS.SCORES_UPDATE,
-		PERMISSIONS.REPORTS_READ
-	],
+	verifier: ['tenant:read', 'verification:read', 'verification:manage', 'documents:verify'],
 
 	treasurer: [
-		PERMISSIONS.FEES_READ,
-		PERMISSIONS.PAYMENTS_READ,
-		PERMISSIONS.PAYMENTS_VERIFY_MANUAL,
-		PERMISSIONS.PAYMENTS_MANAGE,
-		PERMISSIONS.REPORTS_READ,
-		PERMISSIONS.REPORTS_EXPORT
+		'tenant:read',
+		'finance:view',
+		'finance:verify_manual',
+		'finance:payout',
+		'finance:export',
+		'reports:view'
 	],
 
-	// Epic 4.2: Dedicated interviewer role for scoring
-	interviewer: [
-		PERMISSIONS.SCORE_CREATE,
-		PERMISSIONS.SCORE_READ,
-		PERMISSIONS.SCORE_UPDATE,
-		PERMISSIONS.SCORE_FINALIZE
-	],
+	interviewer: ['tenant:read', 'scoring:read', 'scoring:input'],
 
-	field_officer: [PERMISSIONS.APPLICATIONS_READ, PERMISSIONS.REPORTS_READ],
+	field_officer: ['tenant:read', 'verification:read', 'scoring:read', 'scoring:input'],
 
-	parent: [PERMISSIONS.REPORTS_READ]
+	parent: ['tenant:read']
 };
 
+// Helper functions
+export function getPermissionsForRole(role: UserRole): Permission[] {
+	return rolePermissions[role] || [];
+}
+
 export function hasPermission(role: UserRole, permission: Permission): boolean {
-	const permissions = ROLE_PERMISSIONS[role];
+	const permissions = getPermissionsForRole(role);
 	return permissions.includes(permission);
 }
 
-export function getPermissionsForRole(role: UserRole): Permission[] {
-	return ROLE_PERMISSIONS[role];
+export function hasAnyPermission(role: UserRole, permissions: Permission[]): boolean {
+	const userPermissions = getPermissionsForRole(role);
+	return permissions.some((p) => userPermissions.includes(p));
+}
+
+export function hasAllPermissions(role: UserRole, permissions: Permission[]): boolean {
+	const userPermissions = getPermissionsForRole(role);
+	return permissions.every((p) => userPermissions.includes(p));
 }

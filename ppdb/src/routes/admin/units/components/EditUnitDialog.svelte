@@ -4,11 +4,13 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/components/ui/select';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import { Pencil, Loader2, MapPin, Phone, School, Info, Building2 } from 'lucide-svelte';
+
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	interface Props {
 		unit: any;
@@ -16,31 +18,37 @@
 		user: any;
 	}
 
-	let { unit, tenants = [], user } = $props<Props>();
+	let { unit, tenants = [], user }: Props = $props();
 
 	let open = $state(false);
 	let loading = $state(false);
 
 	const schoolLevels = [
-		{ value: 'TK', label: 'TK (Taman Kanak-Kanak)' },
-		{ value: 'SD', label: 'SD (Sekolah Dasar)' },
-		{ value: 'SMP', label: 'SMP (Sekolah Menengah Pertama)' },
-		{ value: 'SMA', label: 'SMA (Sekolah Menengah Atas)' },
-		{ value: 'SMK', label: 'SMK (Sekolah Menengah Kejuruan)' },
-		{ value: 'Universitas', label: 'Universitas' },
-		{ value: 'Lainnya', label: 'Lainnya' }
+		{ value: 'TK', label: i18n.t('admin.units.levels.TK') },
+		{ value: 'SD', label: i18n.t('admin.units.levels.SD') },
+		{ value: 'SMP', label: i18n.t('admin.units.levels.SMP') },
+		{ value: 'SMA', label: i18n.t('admin.units.levels.SMA') },
+		{ value: 'SMK', label: i18n.t('admin.units.levels.SMK') },
+		{ value: 'Universitas', label: i18n.t('admin.units.levels.Universitas') },
+		{ value: 'Lainnya', label: i18n.t('admin.units.levels.Lainnya') }
 	];
 
 	const accreditations = [
-		{ value: 'A', label: 'Akreditasi A' },
-		{ value: 'B', label: 'Akreditasi B' },
-		{ value: 'C', label: 'Akreditasi C' },
-		{ value: 'Belum Terakreditasi', label: 'Belum Terakreditasi' }
+		{ value: 'A', label: i18n.t('admin.units.accreditations.A') },
+		{ value: 'B', label: i18n.t('admin.units.accreditations.B') },
+		{ value: 'C', label: i18n.t('admin.units.accreditations.C') },
+		{ value: 'Belum Terakreditasi', label: i18n.t('admin.units.accreditations.none') }
 	];
 
 	let selectedLevel = $state(unit.level || 'SD');
 	let selectedAccreditation = $state(unit.accreditation || 'A');
 	let selectedTenantId = $state(unit.tenantId || '');
+
+	$effect(() => {
+		selectedLevel = unit.level || 'SD';
+		selectedAccreditation = unit.accreditation || 'A';
+		selectedTenantId = unit.tenantId || '';
+	});
 
 	function handleLevelChange(value: string) {
 		selectedLevel = value;
@@ -63,7 +71,7 @@
 	}
 
 	function getTenantLabel(id: string) {
-		return tenants.find((t) => t.id === id)?.name || 'Pilih Yayasan';
+		return tenants.find((t) => t.id === id)?.name || i18n.t('admin.units.allFoundations');
 	}
 </script>
 
@@ -74,15 +82,15 @@
 	onclick={() => (open = true)}
 >
 	<Pencil class="h-4 w-4" />
-	<span class="sr-only">Edit</span>
+	<span class="sr-only">{i18n.t('common.edit')}</span>
 </Button>
 
 <Dialog.Root bind:open>
 	<Dialog.Content class="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Edit Unit Sekolah</Dialog.Title>
+			<Dialog.Title>{i18n.t('admin.units.editUnit')}</Dialog.Title>
 			<Dialog.Description>
-				Perbarui informasi profil unit sekolah {unit.name}.
+				{i18n.t('admin.units.editUnitDesc', { name: unit.name })}
 			</Dialog.Description>
 		</Dialog.Header>
 		<form
@@ -93,13 +101,13 @@
 				return async ({ result, update }) => {
 					loading = false;
 					if (result.type === 'success') {
-						toast.success('Unit berhasil diperbarui');
+						toast.success(i18n.t('admin.units.updateSuccess'));
 						open = false;
 						await update();
 						await invalidateAll();
 					} else if (result.type === 'failure') {
 						// @ts-ignore
-						toast.error(result.data?.error || 'Gagal memperbarui unit');
+						toast.error(result.data?.error || i18n.t('admin.units.updateFailed'));
 					}
 				};
 			}}
@@ -111,10 +119,11 @@
 			{#if user.role === 'super_admin'}
 				<div class="space-y-4 bg-muted/30 p-4 rounded-lg border border-dashed">
 					<h4 class="text-sm font-semibold flex items-center gap-2 text-blue-600">
-						<Building2 class="h-4 w-4" /> Relasi Yayasan / Tenant
+						<Building2 class="h-4 w-4" />
+						{i18n.t('admin.units.foundationRelation')}
 					</h4>
 					<div class="space-y-2">
-						<Label for="tenantId">Pilih Yayasan Tujuan *</Label>
+						<Label for="tenantId">{i18n.t('admin.units.selectFoundation')}</Label>
 						<Select type="single" value={selectedTenantId} onValueChange={handleTenantChange}>
 							<SelectTrigger id="tenantId">
 								{getTenantLabel(selectedTenantId)}
@@ -133,29 +142,30 @@
 			<!-- Informasi Dasar -->
 			<div class="space-y-4">
 				<h4 class="text-sm font-semibold flex items-center gap-2 text-primary">
-					<School class="h-4 w-4" /> Informasi Identitas
+					<School class="h-4 w-4" />
+					{i18n.t('admin.units.identityInfo')}
 				</h4>
 
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="space-y-2">
-						<Label for="name">Nama Unit *</Label>
+						<Label for="name">{i18n.t('admin.units.nameLabel')}</Label>
 						<Input id="name" name="name" value={unit.name} required />
 					</div>
 					<div class="space-y-2">
-						<Label for="npsn">NPSN Unit</Label>
+						<Label for="npsn">{i18n.t('admin.units.npsnLabel')}</Label>
 						<Input
 							id="npsn"
 							name="npsn"
 							value={unit.npsn || ''}
-							placeholder="8 digit NPSN"
-							maxlength="8"
+							placeholder={i18n.t('admin.units.npsnPlaceholder')}
+							maxlength={8}
 						/>
 					</div>
 				</div>
 
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="space-y-2">
-						<Label for="level">Jenjang *</Label>
+						<Label for="level">{i18n.t('admin.units.levelLabel')}</Label>
 						<Select type="single" value={selectedLevel} onValueChange={handleLevelChange}>
 							<SelectTrigger id="level">
 								{getLevelLabel(selectedLevel)}
@@ -169,7 +179,7 @@
 						<input type="hidden" name="level" value={selectedLevel} />
 					</div>
 					<div class="space-y-2">
-						<Label for="accreditation">Akreditasi</Label>
+						<Label for="accreditation">{i18n.t('admin.units.accreditationLabel')}</Label>
 						<Select
 							type="single"
 							value={selectedAccreditation}
@@ -192,11 +202,12 @@
 			<!-- Kontak & Lokasi -->
 			<div class="space-y-4 pt-2 border-t">
 				<h4 class="text-sm font-semibold flex items-center gap-2 text-primary">
-					<MapPin class="h-4 w-4" /> Kontak & Lokasi Unit
+					<MapPin class="h-4 w-4" />
+					{i18n.t('admin.units.contactLocation')}
 				</h4>
 
 				<div class="space-y-2">
-					<Label for="contactPhone">WhatsApp Admin Unit</Label>
+					<Label for="contactPhone">{i18n.t('admin.units.waAdmin')}</Label>
 					<div class="relative">
 						<Phone class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
 						<Input
@@ -210,25 +221,27 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label for="address">Alamat Lengkap Unit</Label>
+					<Label for="address">{i18n.t('admin.units.fullAddress')}</Label>
 					<Textarea
 						id="address"
 						name="address"
 						value={unit.address || ''}
-						placeholder="Jl. Pendidikan No. 123, Kelurahan..."
+						placeholder={i18n.t('admin.units.addressPlaceholder')}
 						rows={3}
 					/>
 				</div>
 			</div>
 
 			<Dialog.Footer class="pt-4">
-				<Button type="button" variant="outline" onclick={() => (open = false)}>Batal</Button>
+				<Button type="button" variant="outline" onclick={() => (open = false)}
+					>{i18n.t('common.cancel')}</Button
+				>
 				<Button type="submit" disabled={loading}>
 					{#if loading}
 						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-						Menyimpan...
+						{i18n.t('common.saving')}
 					{:else}
-						Perbarui Unit
+						{i18n.t('common.save')}
 					{/if}
 				</Button>
 			</Dialog.Footer>

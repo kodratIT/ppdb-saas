@@ -4,6 +4,7 @@
 	import { invalidateAll, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
+	import { i18n } from '$lib/i18n/index.svelte';
 	import {
 		Table,
 		TableBody,
@@ -46,14 +47,20 @@
 	let selectedLevelFilter = $state(data.filters.level);
 	let selectedTenantIdFilter = $state(data.filters.tenantId);
 
+	$effect(() => {
+		search = data.filters.search;
+		selectedLevelFilter = data.filters.level;
+		selectedTenantIdFilter = data.filters.tenantId;
+	});
+
 	const schoolLevels = [
-		{ value: 'all', label: 'Semua Jenjang' },
-		{ value: 'TK', label: 'TK' },
-		{ value: 'SD', label: 'SD' },
-		{ value: 'SMP', label: 'SMP' },
-		{ value: 'SMA', label: 'SMA' },
-		{ value: 'SMK', label: 'SMK' },
-		{ value: 'Universitas', label: 'Universitas' }
+		{ value: 'all', label: i18n.t('admin.units.allLevels') },
+		{ value: 'TK', label: i18n.t('admin.units.levels.TK') },
+		{ value: 'SD', label: i18n.t('admin.units.levels.SD') },
+		{ value: 'SMP', label: i18n.t('admin.units.levels.SMP') },
+		{ value: 'SMA', label: i18n.t('admin.units.levels.SMA') },
+		{ value: 'SMK', label: i18n.t('admin.units.levels.SMK') },
+		{ value: 'Universitas', label: i18n.t('admin.units.levels.Universitas') }
 	];
 
 	function updateFilters() {
@@ -102,7 +109,7 @@
 			const tenantId = unit.tenantId;
 			if (!groups[tenantId]) {
 				groups[tenantId] = {
-					name: unit.tenant?.name || 'Sekolah Satuan',
+					name: unit.tenant?.name || i18n.t('admin.units.singleSchool'),
 					units: []
 				};
 			}
@@ -119,7 +126,7 @@
 	function formatDate(date: any) {
 		try {
 			if (!date) return '-';
-			return new Intl.DateTimeFormat('id-ID', {
+			return new Intl.DateTimeFormat(i18n.language === 'id' ? 'id-ID' : 'en-US', {
 				day: 'numeric',
 				month: 'long',
 				year: 'numeric'
@@ -141,13 +148,13 @@
 			return async ({ result }) => {
 				isDeleting = false;
 				if (result.type === 'success') {
-					toast.success('Unit berhasil dihapus');
+					toast.success(i18n.t('admin.units.deleteSuccess'));
 					unitToDelete = null;
 					isConfirmOpen = false;
 					await invalidateAll();
 				} else if (result.type === 'failure') {
 					// @ts-ignore
-					toast.error(result.data?.error || 'Gagal menghapus unit');
+					toast.error(result.data?.error || i18n.t('admin.units.deleteFailed'));
 				}
 			};
 		}}
@@ -159,12 +166,28 @@
 	<!-- Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 		<div class="space-y-1">
-			<h2 class="text-3xl font-bold tracking-tight text-foreground">Manajemen Unit Sekolah</h2>
+			<h2 class="text-3xl font-bold tracking-tight text-foreground">
+				{i18n.t('admin.units.title')}
+			</h2>
 			<p class="text-muted-foreground text-sm">
-				Kelola unit sekolah (TK, SD, SMP, SMA, dsb) di bawah yayasan Anda.
+				{i18n.t('admin.units.subtitle')}
 			</p>
 		</div>
 		<AddUnitDialog tenants={data.tenants} user={data.user} />
+	</div>
+
+	<!-- Stats -->
+	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+		<Card.Root>
+			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<Card.Title class="text-sm font-medium">{i18n.t('admin.units.totalUnits')}</Card.Title>
+				<School class="h-4 w-4 text-muted-foreground" />
+			</Card.Header>
+			<Card.Content>
+				<div class="text-2xl font-bold">{data.units.length}</div>
+				<p class="text-xs text-muted-foreground">{i18n.t('admin.units.unitsMatching')}</p>
+			</Card.Content>
+		</Card.Root>
 	</div>
 
 	<!-- Filters Bar -->
@@ -176,10 +199,11 @@
 					<div
 						class="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-widest"
 					>
-						<Search class="h-3 w-3" /> Cari Unit
+						<Search class="h-3 w-3" />
+						{i18n.t('admin.units.searchUnits')}
 					</div>
 					<Input
-						placeholder="Nama unit atau NPSN..."
+						placeholder={i18n.t('admin.units.searchPlaceholder')}
 						bind:value={search}
 						oninput={handleSearchInput}
 						class="h-9"
@@ -191,11 +215,13 @@
 					<div
 						class="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-widest"
 					>
-						<Filter class="h-3 w-3" /> Jenjang
+						<Filter class="h-3 w-3" />
+						{i18n.t('admin.units.level')}
 					</div>
 					<Select type="single" value={selectedLevelFilter} onValueChange={handleLevelFilterChange}>
 						<SelectTrigger class="h-9">
-							{schoolLevels.find((l) => l.value === selectedLevelFilter)?.label || 'Semua Jenjang'}
+							{schoolLevels.find((l) => l.value === selectedLevelFilter)?.label ||
+								i18n.t('admin.units.allLevels')}
 						</SelectTrigger>
 						<SelectContent>
 							{#each schoolLevels as level}
@@ -211,7 +237,8 @@
 						<div
 							class="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-widest"
 						>
-							<Building2 class="h-3 w-3" /> Yayasan
+							<Building2 class="h-3 w-3" />
+							{i18n.t('admin.units.foundation')}
 						</div>
 						<Select
 							type="single"
@@ -221,11 +248,11 @@
 							<SelectTrigger class="h-9">
 								<span class="truncate">
 									{data.tenants.find((t: any) => t.id === selectedTenantIdFilter)?.name ||
-										'Semua Yayasan'}
+										i18n.t('admin.units.allFoundations')}
 								</span>
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="all">Semua Yayasan</SelectItem>
+								<SelectItem value="all">{i18n.t('admin.units.allFoundations')}</SelectItem>
 								{#each data.tenants as tenant}
 									<SelectItem value={tenant.id}>{tenant.name}</SelectItem>
 								{/each}
@@ -240,7 +267,7 @@
 					size="icon"
 					class="h-9 w-9 shrink-0"
 					onclick={resetFilters}
-					title="Reset Filter"
+					title={i18n.t('admin.units.resetFilter')}
 				>
 					<X class="h-4 w-4" />
 				</Button>
@@ -248,43 +275,35 @@
 		</Card.Content>
 	</Card.Root>
 
-	<!-- Stats -->
-	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-		<Card.Root>
-			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Total Unit</Card.Title>
-				<School class="h-4 w-4 text-muted-foreground" />
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold">{data.units.length}</div>
-				<p class="text-xs text-muted-foreground">Unit cocok dengan filter</p>
-			</Card.Content>
-		</Card.Root>
-	</div>
-
 	<!-- Units Table with Grouping -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Daftar Unit Terpusat</Card.Title>
-			<Card.Description
-				>Unit dikelompokkan berdasarkan Yayasan/Induk untuk memudahkan navigasi.</Card.Description
-			>
+			<Card.Title>{i18n.t('admin.units.centralizedList')}</Card.Title>
+			<Card.Description>{i18n.t('admin.units.centralizedDesc')}</Card.Description>
 		</Card.Header>
 		<Card.Content class="p-0 overflow-hidden">
 			<Table>
 				<TableHeader>
 					<TableRow class="bg-muted/50 hover:bg-muted/50 border-b-0">
-						<TableHead class="pl-6 py-3 text-foreground font-semibold">Nama Unit</TableHead>
-						<TableHead class="py-3 text-foreground font-semibold">Jenjang</TableHead>
-						<TableHead class="py-3 text-foreground font-semibold">NPSN</TableHead>
-						<TableHead class="text-right pr-6 py-3 text-foreground font-semibold">Aksi</TableHead>
+						<TableHead class="pl-6 py-3 text-foreground font-semibold"
+							>{i18n.t('admin.units.unitName')}</TableHead
+						>
+						<TableHead class="py-3 text-foreground font-semibold"
+							>{i18n.t('admin.units.level')}</TableHead
+						>
+						<TableHead class="py-3 text-foreground font-semibold"
+							>{i18n.t('admin.units.npsn')}</TableHead
+						>
+						<TableHead class="text-right pr-6 py-3 text-foreground font-semibold"
+							>{i18n.t('admin.units.action')}</TableHead
+						>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
 					{#if groupedUnits.length === 0}
 						<TableRow>
 							<TableCell colspan={4} class="h-24 text-center text-muted-foreground">
-								Tidak ada unit yang ditemukan.
+								{i18n.t('common.none')}
 							</TableCell>
 						</TableRow>
 					{:else}
@@ -299,7 +318,7 @@
 										{group.name}
 										<div class="h-1 w-1 rounded-full bg-primary/30"></div>
 										<span class="text-[10px] text-primary/70 font-medium lowercase">
-											{group.units.length} unit
+											{i18n.t('admin.units.unit', { count: group.units.length })}
 										</span>
 									</div>
 								</TableCell>
@@ -350,7 +369,7 @@
 												{:else}
 													<Trash2 class="h-4 w-4" />
 												{/if}
-												<span class="sr-only">Hapus</span>
+												<span class="sr-only">{i18n.t('common.delete')}</span>
 											</Button>
 										</div>
 									</TableCell>
@@ -366,9 +385,9 @@
 
 <ConfirmDialog
 	bind:open={isConfirmOpen}
-	title="Hapus Unit Sekolah?"
-	description="Tindakan ini tidak dapat dibatalkan. Unit hanya dapat dihapus jika belum memiliki jalur pendaftaran atau pendaftar."
-	confirmText={isDeleting ? 'Menghapus...' : 'Ya, Hapus Unit'}
+	title={i18n.t('admin.units.deleteUnit')}
+	description={i18n.t('admin.units.deleteDesc')}
+	confirmText={isDeleting ? i18n.t('admin.units.deleting') : i18n.t('admin.units.confirmDelete')}
 	variant="destructive"
 	onConfirm={() => {
 		const form = document.getElementById('delete-unit-form') as HTMLFormElement;

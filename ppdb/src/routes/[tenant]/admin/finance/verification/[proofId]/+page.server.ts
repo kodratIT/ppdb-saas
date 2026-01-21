@@ -9,7 +9,7 @@ import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const auth = requireAuth(locals);
-	requireRole(auth, 'school_admin', 'super_admin', 'treasurer');
+	requireRole(auth, 'school_admin', 'treasurer');
 
 	const { proofId } = params;
 
@@ -70,7 +70,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 export const actions: Actions = {
 	approve: async ({ locals, params }) => {
 		const auth = requireAuth(locals);
-		requireRole(auth, 'school_admin', 'super_admin', 'treasurer');
+		requireRole(auth, 'school_admin', 'treasurer');
 		const { proofId, tenant } = params;
 		const { tenantId, userId } = auth;
 
@@ -84,7 +84,7 @@ export const actions: Actions = {
 	},
 	reject: async ({ request, locals, params }) => {
 		const auth = requireAuth(locals);
-		requireRole(auth, 'school_admin', 'super_admin', 'treasurer');
+		requireRole(auth, 'school_admin', 'treasurer');
 		const { proofId, tenant } = params;
 		const { tenantId, userId } = auth;
 

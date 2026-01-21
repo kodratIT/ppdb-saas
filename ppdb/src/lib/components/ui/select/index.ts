@@ -25,6 +25,8 @@ export {
 	Root as Select,
 	Group as SelectGroup,
 	GroupHeading as SelectGroupHeading,
+	GroupHeading as SelectLabel,
+	GroupHeading as Label,
 	Item as SelectItem,
 	Content as SelectContent,
 	Trigger as SelectTrigger,

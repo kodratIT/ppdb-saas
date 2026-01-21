@@ -17,10 +17,11 @@ import {
 	selectionResults,
 	homeVisitReports
 } from '$lib/server/db/schema';
-import { eq, sql, desc, or, ilike, and, getTableColumns } from 'drizzle-orm';
+import { eq, sql, desc, or, ilike, and, getTableColumns, gte } from 'drizzle-orm';
 import { clearCache, getCached, setCached } from '$lib/server/cache';
 
 export async function createTenant(
+	// ...
 	data: {
 		name: string;
 		slug: string;
@@ -139,8 +140,8 @@ export async function deleteTenant(tenantId: string, actorId: string) {
 		// 6. Delete the tenant itself
 		const [deleted] = await tx.delete(tenants).where(eq(tenants.id, tenantId)).returning();
 
-		// 7. Create Audit Log (using global db as the transaction might be closed or we want it persistent)
-		await db.insert(auditLogs).values({
+		// 7. Create Audit Log (INSIDE transaction)
+		await tx.insert(auditLogs).values({
 			actorId,
 			action: 'delete_tenant',
 			target: `tenant:${tenantId}`,
@@ -160,25 +161,57 @@ export async function listTenantsWithStats(
 		page?: number;
 		limit?: number;
 		search?: string;
+		searchField?: 'all' | 'name' | 'slug';
+		searchOperator?: 'contains' | 'starts_with' | 'exact';
 		status?: string;
+		type?: string;
+		timeframe?: string;
 		sortBy?: string;
 		sortOrder?: 'asc' | 'desc';
 	} = {}
 ) {
-	const { page = 1, limit = 20, search, status, sortBy = 'createdAt', sortOrder = 'desc' } = params;
+	const {
+		page = 1,
+		limit = 20,
+		search,
+		searchField = 'all',
+		searchOperator = 'contains',
+		status,
+		type,
+		timeframe,
+		sortBy = 'createdAt',
+		sortOrder = 'desc'
+	} = params;
 
 	// Check cache
-	const cacheKey = `tenants:list:${JSON.stringify({ page, limit, search, status, sortBy, sortOrder })}`;
+	const cacheKey = `tenants:list:${JSON.stringify({ page, limit, search, searchField, searchOperator, status, type, timeframe, sortBy, sortOrder })}`;
 	const cached = await getCached<any>(cacheKey);
 	if (cached) return cached;
 
 	// Build filter
 	const conditions = [];
 	if (search) {
-		conditions.push(or(ilike(tenants.name, `%${search}%`), ilike(tenants.slug, `%${search}%`)));
+		const term = searchOperator === 'exact' ? search : searchOperator === 'starts_with' ? `${search}%` : `%${search}%`;
+		const comparator = searchOperator === 'exact' ? eq : ilike;
+
+		if (searchField === 'all') {
+			conditions.push(or(comparator(tenants.name, term), comparator(tenants.slug, term)));
+		} else if (searchField === 'name') {
+			conditions.push(comparator(tenants.name, term));
+		} else if (searchField === 'slug') {
+			conditions.push(comparator(tenants.slug, term));
+		}
 	}
 	if (status && status !== 'all') {
 		conditions.push(eq(tenants.status, status as any));
+	}
+	if (type && type !== 'all') {
+		conditions.push(eq(tenants.type, type as any));
+	}
+	if (timeframe === 'week') {
+		conditions.push(gte(tenants.createdAt, sql`NOW() - INTERVAL '7 days'`));
+	} else if (timeframe === 'month') {
+		conditions.push(gte(tenants.createdAt, sql`NOW() - INTERVAL '30 days'`));
 	}
 
 	const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -431,4 +464,24 @@ export async function getEnhancedStats() {
 			activeRate: (baseStats.tenants.active / baseStats.tenants.total) * 100
 		}
 	};
+}
+
+/**
+ * List all users with staff-level roles across the platform (Super Admin visibility)
+ */
+export async function listAdminUsers() {
+	return await db
+		.select({
+			id: users.id,
+			name: users.name,
+			email: users.email,
+			role: users.role,
+			status: users.status,
+			tenantName: tenants.name,
+			createdAt: users.createdAt
+		})
+		.from(users)
+		.leftJoin(tenants, eq(users.tenantId, tenants.id))
+		.where(or(eq(users.role, 'super_admin'), eq(users.role, 'school_admin'))) // Can be expanded
+		.orderBy(desc(users.createdAt));
 }

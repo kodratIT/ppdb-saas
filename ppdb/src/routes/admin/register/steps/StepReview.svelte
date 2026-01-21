@@ -1,165 +1,113 @@
 <script lang="ts">
-	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
+	import { ReviewCard, ReviewField } from '$lib/components/ui/review';
+	import Alert from '$lib/components/ui/alert.svelte';
 	import type { RegistrationFormData } from '../schema';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	interface Props {
 		formData: Partial<RegistrationFormData>;
+		onEditSection?: (step: number) => void;
 	}
 
-	let { formData }: Props = $props();
+	let { formData, onEditSection }: Props = $props();
 
-	// Type cast for safety due to Zod type inference nuances with Partial
-	const data = (formData || {}) as any;
+	// Helper functions
+	function getTypeLabel(type?: string) {
+		return type === 'foundation'
+			? i18n.t('admin.register.foundation')
+			: i18n.t('admin.register.singleSchool');
+	}
+
+	// Data safely accessed
+	const data = (formData || {}) as Partial<RegistrationFormData>;
 </script>
 
-<div class="space-y-6">
+<div class="space-y-8">
 	<div>
-		<h2 class="text-xl font-semibold mb-2">Review & Submit 📋</h2>
+		<h2 class="text-xl font-semibold mb-2">{i18n.t('admin.register.stepReview')} 📋</h2>
 		<p class="text-sm text-muted-foreground">
-			Please review all information before submitting. You can go back to edit any section.
+			{i18n.t('admin.register.reviewSubmit')}
 		</p>
 	</div>
 
 	<!-- School Identity -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="text-base">School Identity</CardTitle>
-		</CardHeader>
-		<CardContent class="space-y-3">
-			<div class="grid grid-cols-2 gap-4">
-				<div>
-					<p class="text-sm text-muted-foreground">Institution Type</p>
-					<p class="font-medium">
-						{data.type === 'foundation' ? 'Yayasan / Institusi' : 'Sekolah Satuan'}
-					</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">
-						{data.type === 'foundation' ? 'Foundation Name' : 'School Name'}
-					</p>
-					<p class="font-medium">{data.name || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">NPSN</p>
-					<p class="font-medium">{data.npsn || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">
-						{data.type === 'foundation' ? 'Foundation Slug' : 'School Slug'}
-					</p>
-					<p class="font-medium font-mono text-sm">{data.slug || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">Level</p>
-					<p class="font-medium">{data.level || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">Status</p>
-					<Badge variant={data.status === 'active' ? 'default' : 'secondary'}>
-						{data.status || '-'}
-					</Badge>
-				</div>
-			</div>
-			<div class="pt-2 border-t">
-				<p class="text-sm text-muted-foreground">Subdomain</p>
-				<p class="font-medium text-primary">
-					{data.slug || (data.type === 'foundation' ? 'your-foundation' : 'your-school')}.ppdb.id
-				</p>
-			</div>
-		</CardContent>
-	</Card>
+	<ReviewCard
+		title={i18n.t('admin.register.stepIdentity')}
+		icon="🏫"
+		onEdit={() => onEditSection?.(1)}
+	>
+		<div class="grid grid-cols-2 gap-4">
+			<ReviewField
+				label={i18n.t('admin.register.institutionType')}
+				value={getTypeLabel(data.type)}
+			/>
+			<ReviewField
+				label={data.type === 'foundation'
+					? i18n.t('admin.register.foundationName')
+					: i18n.t('admin.register.schoolName')}
+				value={data.name}
+			/>
+			<ReviewField label={i18n.t('admin.register.npsn')} value={data.npsn} />
+			<ReviewField
+				label={data.type === 'foundation'
+					? i18n.t('admin.register.foundationSlug')
+					: i18n.t('admin.register.slug')}
+				value={data.slug}
+				mono
+			/>
+			<ReviewField label={i18n.t('admin.register.level')} value={data.level} />
+			<ReviewField
+				label={i18n.t('admin.register.status')}
+				badge={{
+					label:
+						data.status === 'active'
+							? i18n.t('admin.register.active')
+							: i18n.t('admin.register.inactive'),
+					variant: data.status === 'active' ? 'default' : 'secondary'
+				}}
+			/>
+		</div>
+		<div class="pt-3 mt-3 border-t">
+			<ReviewField
+				label={i18n.t('admin.register.subdomain')}
+				value={`${data.slug || (data.type === 'foundation' ? 'your-foundation' : 'your-school')}.ppdb.id`}
+				highlight
+			/>
+		</div>
+	</ReviewCard>
 
 	<!-- Location -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="text-base">Location</CardTitle>
-		</CardHeader>
-		<CardContent class="space-y-3">
-			<div class="grid grid-cols-2 gap-4">
-				<div>
-					<p class="text-sm text-muted-foreground">Province</p>
-					<p class="font-medium">{data.province || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">City/Regency</p>
-					<p class="font-medium">{data.city || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">District</p>
-					<p class="font-medium">{data.district || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">Village</p>
-					<p class="font-medium">{data.village || '-'}</p>
-				</div>
-			</div>
-			<div class="pt-2 border-t">
-				<p class="text-sm text-muted-foreground">Street Address</p>
-				<p class="font-medium">{data.address || '-'}</p>
-			</div>
-			<div>
-				<p class="text-sm text-muted-foreground">Postal Code</p>
-				<p class="font-medium">{data.postalCode || '-'}</p>
-			</div>
-		</CardContent>
-	</Card>
+	<ReviewCard
+		title={i18n.t('admin.register.stepLocation')}
+		icon="📍"
+		onEdit={() => onEditSection?.(2)}
+	>
+		<div class="grid grid-cols-2 gap-4">
+			<ReviewField label={i18n.t('admin.register.province')} value={data.province} />
+			<ReviewField label={i18n.t('admin.register.city')} value={data.city} />
+			<ReviewField label={i18n.t('admin.register.district')} value={data.district} />
+			<ReviewField label={i18n.t('admin.register.village')} value={data.village} />
+		</div>
+		<div class="pt-3 mt-3 border-t space-y-3">
+			<ReviewField label={i18n.t('admin.register.streetAddress')} value={data.address} />
+			<ReviewField label={i18n.t('admin.register.postalCode')} value={data.postalCode} />
+		</div>
+	</ReviewCard>
 
 	<!-- Admin Account -->
-	<Card>
-		<CardHeader>
-			<CardTitle class="text-base">Admin Account</CardTitle>
-		</CardHeader>
-		<CardContent class="space-y-3">
-			<div class="grid grid-cols-2 gap-4">
-				<div>
-					<p class="text-sm text-muted-foreground">Admin Name</p>
-					<p class="font-medium">{data.adminName || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">Email</p>
-					<p class="font-medium">{data.email || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">WhatsApp</p>
-					<p class="font-medium">{data.whatsapp || '-'}</p>
-				</div>
-				<div>
-					<p class="text-sm text-muted-foreground">Password</p>
-					<p class="font-medium">••••••••</p>
-				</div>
-			</div>
-		</CardContent>
-	</Card>
+	<ReviewCard
+		title={i18n.t('admin.register.stepAdmin')}
+		icon="👤"
+		onEdit={() => onEditSection?.(3)}
+	>
+		<div class="grid grid-cols-2 gap-4">
+			<ReviewField label={i18n.t('admin.register.adminName')} value={data.adminName} />
+			<ReviewField label={i18n.t('admin.register.adminEmail')} value={data.email} />
+			<ReviewField label={i18n.t('admin.register.whatsapp')} value={data.whatsapp} />
+			<ReviewField label={i18n.t('admin.register.adminPassword')} masked />
+		</div>
+	</ReviewCard>
 
 	<!-- Important Notice -->
-	<div
-		class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
-	>
-		<div class="flex gap-3">
-			<div class="text-blue-600 dark:text-blue-400">
-				<svg
-					class="w-5 h-5"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					></path>
-				</svg>
-			</div>
-			<div class="flex-1">
-				<h4 class="font-medium text-blue-900 dark:text-blue-100 mb-1">Before you submit</h4>
-				<p class="text-sm text-blue-800 dark:text-blue-200">
-					Make sure all information is correct. After submission, a new tenant will be created with
-					the admin account. You'll be able to log in immediately after registration is complete.
-				</p>
-			</div>
-		</div>
-	</div>
+	<Alert variant="info" message={i18n.t('admin.register.submitNotice')} />
 </div>

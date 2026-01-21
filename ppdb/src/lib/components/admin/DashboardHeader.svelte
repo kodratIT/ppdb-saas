@@ -1,69 +1,87 @@
 <script lang="ts">
-	import { Search, Bell, User, ChevronDown } from 'lucide-svelte';
+	import { EyeOff } from 'lucide-svelte';
+	import { page } from '$app/state';
+	import AdminSearch from './AdminSearch.svelte';
+	import AdminNotification from './AdminNotification.svelte';
+	import AdminUserMenu from './AdminUserMenu.svelte';
+	import AdminBreadcrumb from './AdminBreadcrumb.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { cn } from '$lib/utils';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import LanguageSwitcher from '$lib/components/ui/language-switcher.svelte';
 
-	let { breadcrumbs = [{ label: 'Dashboard', href: '/admin' }] } = $props();
+	interface BreadcrumbItem {
+		label: string;
+		href?: string;
+	}
+
+	let { breadcrumbs = [{ label: i18n.t('nav.dashboard'), href: '/admin' }] } = $props();
+
+	// Check if impersonating
+	let isImpersonating = $derived(page.data?.isImpersonating);
+	let user = $derived(page.data?.session?.user || { name: 'Super Admin', role: 'System Control' });
+
+	let searchQuery = $state('');
+
+	function handleSearch(value: string) {
+		console.log('Searching for:', value);
+		// Implement search logic here
+	}
+
+	let signOutForm: HTMLFormElement;
+
+	function handleSignOut() {
+		signOutForm?.submit();
+	}
 </script>
 
+<form action="/admin/sign-out" method="POST" bind:this={signOutForm} class="hidden"></form>
+
 <header
-	class="flex h-16 items-center justify-between border-b bg-white px-8 shadow-sm dark:bg-slate-900"
+	class={cn(
+		'sticky top-0 z-30 flex h-16 items-center justify-between px-4 sm:px-8 transition-all duration-300 bg-white/70 backdrop-blur-md border-b border-slate-200 shadow-sm',
+		isImpersonating ? 'border-b-amber-500/50 bg-amber-50/20' : ''
+	)}
 >
-	<div class="flex items-center gap-4">
-		<nav class="flex items-center text-sm font-medium text-slate-500 dark:text-slate-400">
-			{#each breadcrumbs as crumb, i}
-				{#if i > 0}
-					<span class="mx-2">/</span>
-				{/if}
-				<a
-					href={crumb.href}
-					class="transition-colors hover:text-slate-900 dark:hover:text-slate-100"
-					class:text-slate-900={i === breadcrumbs.length - 1}
-					class:dark:text-slate-100={i === breadcrumbs.length - 1}
+	<div class="flex items-center gap-6">
+		{#if isImpersonating}
+			<form action="/admin/impersonate/stop" method="POST" class="hidden sm:block">
+				<Button
+					type="submit"
+					variant="outline"
+					size="sm"
+					class="h-8 gap-2 rounded-full border-amber-500/20 bg-amber-500/10 text-[10px] font-bold uppercase tracking-wider text-amber-600 hover:bg-amber-500/20 transition-all dark:text-amber-400"
 				>
-					{crumb.label}
-				</a>
-			{/each}
-		</nav>
+					<EyeOff class="h-3 w-3" />
+					{i18n.t('common.stopImpersonating' as any) || 'Stop Impersonating'}
+				</Button>
+			</form>
+		{/if}
+
+		<AdminBreadcrumb items={breadcrumbs} class="hidden lg:flex" />
 	</div>
 
-	<div class="flex flex-1 items-center justify-center px-8">
-		<div class="relative w-full max-w-md">
-			<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-			<input
-				type="text"
-				placeholder="Search anything..."
-				class="h-10 w-full rounded-full border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm transition-all focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-800 dark:bg-slate-800 dark:focus:bg-slate-900"
-			/>
-		</div>
+	<div class="flex flex-1 items-center justify-center px-4 max-w-2xl">
+		<AdminSearch
+			placeholder={i18n.t('common.search')}
+			bind:value={searchQuery}
+			onchange={handleSearch}
+			class="max-w-md w-full bg-slate-100/50 border-slate-200 focus-within:border-blue-500/30 transition-all"
+		/>
 	</div>
 
-	<div class="flex items-center gap-4">
-		<button
-			class="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-		>
-			<Bell class="h-5 w-5 text-slate-600 dark:text-slate-400" />
-			<span class="absolute right-2.5 top-2.5 flex h-2 w-2">
-				<span
-					class="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"
-				></span>
-				<span class="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
-			</span>
-		</button>
+	<div class="flex items-center gap-2 sm:gap-6">
+		<LanguageSwitcher variant="dropdown" />
 
-		<div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
+		<AdminNotification count={3} />
 
-		<button
-			class="flex items-center gap-3 rounded-lg p-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-		>
-			<div
-				class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-			>
-				<User class="h-5 w-5" />
-			</div>
-			<div class="hidden text-left sm:block">
-				<p class="text-xs font-semibold text-slate-900 dark:text-slate-100">Super Admin</p>
-				<p class="text-[10px] text-slate-500">System Control</p>
-			</div>
-			<ChevronDown class="h-4 w-4 text-slate-400" />
-		</button>
+		<div class="h-8 w-px bg-border/40 hidden sm:block"></div>
+
+		<AdminUserMenu
+			userName={user.name}
+			userRole={user.role}
+			{isImpersonating}
+			onSignOut={handleSignOut}
+		/>
 	</div>
 </header>

@@ -11,9 +11,19 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-	import { MoreHorizontal, FileText, Search, X, CheckCircle, Ban, Loader2, Calendar } from 'lucide-svelte';
+	import {
+		MoreHorizontal,
+		FileText,
+		Search,
+		X,
+		CheckCircle,
+		Ban,
+		Loader2,
+		Calendar
+	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -68,7 +78,7 @@
 	}
 
 	function getStatusVariant(status: string) {
-		switch (status) {
+		switch (status.toLowerCase()) {
 			case 'paid':
 				return 'default';
 			case 'pending':
@@ -81,29 +91,37 @@
 	}
 
 	function formatCurrency(amount: number) {
-		return new Intl.NumberFormat('id-ID', {
+		return new Intl.NumberFormat(i18n.language === 'id' ? 'id-ID' : 'en-US', {
 			style: 'currency',
 			currency: 'IDR',
 			minimumFractionDigits: 0
 		}).format(amount);
 	}
+
+	const getStatusText = (status: string) => {
+		const key = `admin.transactions.${status.toLowerCase()}` as any;
+		const translated = i18n.t(key);
+		return translated !== key ? translated : status.toUpperCase();
+	};
 </script>
 
 <div class="flex flex-col gap-6 p-6">
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold tracking-tight">Transactions</h1>
-			<p class="text-muted-foreground">History of subscription invoices and payments.</p>
+			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.transactions.title')}</h1>
+			<p class="text-muted-foreground">{i18n.t('admin.transactions.subtitle')}</p>
 		</div>
 	</div>
 
 	<!-- Filter Toolbar -->
-	<div class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+	<div
+		class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border shadow-sm"
+	>
 		<div class="relative w-full sm:w-72">
 			<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 			<Input
 				type="search"
-				placeholder="Search tenant name or slug..."
+				placeholder={i18n.t('admin.transactions.searchPlaceholder')}
 				class="pl-8"
 				bind:value={searchValue}
 				oninput={handleSearch}
@@ -115,14 +133,15 @@
 				bind:value={statusValue}
 				onchange={handleStatusChange}
 			>
-				<option value="all">All Status</option>
-				<option value="pending">Pending</option>
-				<option value="paid">Paid</option>
-				<option value="void">Void</option>
+				<option value="all">{i18n.t('admin.transactions.allStatus')}</option>
+				<option value="pending">{i18n.t('admin.transactions.pending')}</option>
+				<option value="paid">{i18n.t('admin.transactions.paid')}</option>
+				<option value="void">{i18n.t('admin.transactions.void')}</option>
 			</select>
 			{#if searchValue || statusValue !== 'all'}
 				<Button variant="ghost" onclick={resetFilters} size="sm">
-					<X class="mr-2 h-4 w-4" /> Reset
+					<X class="mr-2 h-4 w-4" />
+					{i18n.t('common.reset')}
 				</Button>
 			{/if}
 		</div>
@@ -130,19 +149,19 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>Invoices</Card.Title>
+			<Card.Title>{i18n.t('admin.transactions.invoices')}</Card.Title>
 		</Card.Header>
 		<Card.Content>
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>Invoice ID</Table.Head>
-						<Table.Head>Tenant</Table.Head>
-						<Table.Head>Amount</Table.Head>
-						<Table.Head>Status</Table.Head>
-						<Table.Head>Due Date</Table.Head>
-						<Table.Head>Paid At</Table.Head>
-						<Table.Head class="text-right">Actions</Table.Head>
+						<Table.Head>{i18n.t('admin.transactions.invoiceId')}</Table.Head>
+						<Table.Head>{i18n.t('admin.transactions.tenant')}</Table.Head>
+						<Table.Head>{i18n.t('admin.transactions.amount')}</Table.Head>
+						<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
+						<Table.Head>{i18n.t('admin.transactions.dueDate')}</Table.Head>
+						<Table.Head>{i18n.t('admin.transactions.paidAt')}</Table.Head>
+						<Table.Head class="text-right">{i18n.t('common.actions')}</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -156,41 +175,45 @@
 							<Table.Cell>{formatCurrency(row.invoice.amount)}</Table.Cell>
 							<Table.Cell>
 								<Badge variant={getStatusVariant(row.invoice.status)}>
-									{row.invoice.status}
+									{getStatusText(row.invoice.status)}
 								</Badge>
 							</Table.Cell>
 							<Table.Cell>
-								{new Date(row.invoice.dueDate).toLocaleDateString('id-ID')}
+								{new Date(row.invoice.dueDate).toLocaleDateString(
+									i18n.language === 'id' ? 'id-ID' : 'en-US'
+								)}
 							</Table.Cell>
 							<Table.Cell>
-								{row.invoice.paidAt ? new Date(row.invoice.paidAt).toLocaleDateString('id-ID') : '-'}
+								{row.invoice.paidAt
+									? new Date(row.invoice.paidAt).toLocaleDateString(
+											i18n.language === 'id' ? 'id-ID' : 'en-US'
+										)
+									: '-'}
 							</Table.Cell>
 							<Table.Cell class="text-right">
 								<DropdownMenu.Root>
-									<DropdownMenu.Trigger
-										class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-									>
+									<DropdownMenu.Trigger class={buttonVariants({ variant: 'ghost', size: 'icon' })}>
 										<MoreHorizontal class="h-4 w-4" />
 									</DropdownMenu.Trigger>
 									<DropdownMenu.Content align="end">
-										<DropdownMenu.Label>Actions</DropdownMenu.Label>
+										<DropdownMenu.Label>{i18n.t('common.actions')}</DropdownMenu.Label>
 										<DropdownMenu.Separator />
 										<DropdownMenu.Item onclick={() => openDetailDialog(row)}>
 											<FileText class="mr-2 h-4 w-4" />
-											View Details
+											{i18n.t('admin.transactions.viewDetails')}
 										</DropdownMenu.Item>
 										<DropdownMenu.Separator />
 										<DropdownMenu.Item onclick={() => openStatusDialog(row.invoice, 'paid')}>
 											<CheckCircle class="mr-2 h-4 w-4 text-green-500" />
-											Mark as Paid
+											{i18n.t('admin.transactions.markPaid')}
 										</DropdownMenu.Item>
 										<DropdownMenu.Item onclick={() => openStatusDialog(row.invoice, 'pending')}>
 											<FileText class="mr-2 h-4 w-4" />
-											Mark as Pending
+											{i18n.t('admin.transactions.markPending')}
 										</DropdownMenu.Item>
 										<DropdownMenu.Item onclick={() => openStatusDialog(row.invoice, 'void')}>
 											<Ban class="mr-2 h-4 w-4 text-red-500" />
-											Void Invoice
+											{i18n.t('admin.transactions.voidInvoice')}
 										</DropdownMenu.Item>
 									</DropdownMenu.Content>
 								</DropdownMenu.Root>
@@ -200,7 +223,7 @@
 					{#if data.invoices.length === 0}
 						<Table.Row>
 							<Table.Cell colspan={7} class="text-center h-24 text-muted-foreground">
-								No transactions found matching your filters.
+								{i18n.t('admin.transactions.noTransactions')}
 							</Table.Cell>
 						</Table.Row>
 					{/if}
@@ -213,9 +236,12 @@
 	<Dialog.Root bind:open={isStatusDialogOpen}>
 		<Dialog.Content class="sm:max-w-[425px]">
 			<Dialog.Header>
-				<Dialog.Title>Update Invoice Status</Dialog.Title>
+				<Dialog.Title>{i18n.t('admin.transactions.updateStatus')}</Dialog.Title>
 				<Dialog.Description>
-					Change status to <span class="font-bold uppercase">{selectedStatus}</span> for invoice #{selectedInvoice?.id.slice(0, 8)}.
+					{i18n.t('admin.transactions.changeStatusTo', {
+						status: selectedStatus.toUpperCase(),
+						id: selectedInvoice?.id.slice(0, 8)
+					})}
 				</Dialog.Description>
 			</Dialog.Header>
 			<form
@@ -223,18 +249,18 @@
 				method="POST"
 				use:enhance={() => {
 					isUpdating = true;
-					const toastId = toast.loading('Updating invoice status...');
-					
+					const toastId = toast.loading(i18n.t('admin.transactions.updatingInvoice'));
+
 					return async ({ result, update }) => {
 						isUpdating = false;
 						if (result.type === 'success') {
 							toast.dismiss(toastId);
-							toast.success('Invoice status updated successfully');
+							toast.success(i18n.t('admin.transactions.statusUpdated'));
 							isStatusDialogOpen = false;
 							update();
 						} else {
 							toast.dismiss(toastId);
-							toast.error('Failed to update status');
+							toast.error(i18n.t('admin.transactions.updateFailed'));
 							console.error(result);
 						}
 					};
@@ -245,24 +271,31 @@
 					<input type="hidden" name="status" value={selectedStatus} />
 					<div class="grid gap-4 py-4">
 						<div class="grid w-full gap-1.5">
-							<Label for="notes">Notes (Optional)</Label>
+							<Label for="notes">{i18n.t('admin.transactions.notesOptional')}</Label>
 							<Textarea
 								id="notes"
 								name="notes"
-								placeholder="e.g., Transfer received via BCA on {new Date().toLocaleDateString()}"
+								placeholder={i18n.t('admin.transactions.notesPlaceholder', {
+									date: new Date().toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US')
+								})}
 								rows={3}
 								value={selectedInvoice.notes}
 							/>
 						</div>
 					</div>
 					<Dialog.Footer>
-						<Button type="button" variant="ghost" onclick={() => isStatusDialogOpen = false} disabled={isUpdating}>Cancel</Button>
+						<Button
+							type="button"
+							variant="ghost"
+							onclick={() => (isStatusDialogOpen = false)}
+							disabled={isUpdating}>{i18n.t('common.cancel')}</Button
+						>
 						<Button type="submit" disabled={isUpdating}>
 							{#if isUpdating}
 								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-								Updating...
+								{i18n.t('common.loading.loading')}
 							{:else}
-								Confirm Update
+								{i18n.t('admin.transactions.confirmUpdate')}
 							{/if}
 						</Button>
 					</Dialog.Footer>
@@ -275,9 +308,9 @@
 	<Dialog.Root bind:open={isDetailDialogOpen}>
 		<Dialog.Content class="sm:max-w-[600px]">
 			<Dialog.Header>
-				<Dialog.Title>Invoice Details</Dialog.Title>
+				<Dialog.Title>{i18n.t('admin.transactions.invoiceDetails')}</Dialog.Title>
 				<Dialog.Description>
-					Detailed information for invoice #{selectedInvoice?.invoice.id.slice(0, 8)}.
+					{i18n.t('admin.transactions.detailsFor', { id: selectedInvoice?.invoice.id.slice(0, 8) })}
 				</Dialog.Description>
 			</Dialog.Header>
 			{#if selectedInvoice}
@@ -288,32 +321,54 @@
 							<h3 class="font-semibold text-lg">{selectedInvoice.tenant.name}</h3>
 							<p class="text-sm text-muted-foreground">{selectedInvoice.tenant.slug}</p>
 						</div>
-						<Badge variant={getStatusVariant(selectedInvoice.invoice.status)} class="text-sm px-3 py-1">
-							{selectedInvoice.invoice.status}
+						<Badge
+							variant={getStatusVariant(selectedInvoice.invoice.status)}
+							class="text-sm px-3 py-1"
+						>
+							{getStatusText(selectedInvoice.invoice.status)}
 						</Badge>
 					</div>
 
 					<!-- Subscription Info -->
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-1">
-							<p class="text-xs text-muted-foreground uppercase font-bold">Package</p>
+							<p class="text-xs text-muted-foreground uppercase font-bold">
+								{i18n.t('admin.tenants.package')}
+							</p>
 							<p class="font-medium">
-								{selectedInvoice.subscription?.packageId ? 'Pro/Basic' : 'Custom'} Plan
+								{i18n.t('admin.transactions.plan', {
+									name: selectedInvoice.subscription?.packageId ? 'Pro/Basic' : 'Custom'
+								})}
 							</p>
 						</div>
 						<div class="space-y-1">
-							<p class="text-xs text-muted-foreground uppercase font-bold">Billing Cycle</p>
-							<p class="font-medium capitalize">{selectedInvoice.subscription?.billingCycle || 'Monthly'}</p>
+							<p class="text-xs text-muted-foreground uppercase font-bold">
+								{i18n.t('admin.tenants.cycle')}
+							</p>
+							<p class="font-medium capitalize">
+								{getCycleText(selectedInvoice.subscription?.billingCycle)}
+							</p>
 						</div>
 						<div class="space-y-1">
-							<p class="text-xs text-muted-foreground uppercase font-bold">Amount Due</p>
-							<p class="font-bold text-lg text-primary">{formatCurrency(selectedInvoice.invoice.amount)}</p>
+							<p class="text-xs text-muted-foreground uppercase font-bold">
+								{i18n.t('admin.transactions.amount')}
+							</p>
+							<p class="font-bold text-lg text-primary">
+								{formatCurrency(selectedInvoice.invoice.amount)}
+							</p>
 						</div>
 						<div class="space-y-1">
-							<p class="text-xs text-muted-foreground uppercase font-bold">Due Date</p>
+							<p class="text-xs text-muted-foreground uppercase font-bold">
+								{i18n.t('admin.transactions.dueDate')}
+							</p>
 							<div class="flex items-center gap-2">
 								<Calendar class="h-4 w-4 text-muted-foreground" />
-								<span>{new Date(selectedInvoice.invoice.dueDate).toLocaleDateString('id-ID', { dateStyle: 'long' })}</span>
+								<span
+									>{new Date(selectedInvoice.invoice.dueDate).toLocaleDateString(
+										i18n.language === 'id' ? 'id-ID' : 'en-US',
+										{ dateStyle: 'long' }
+									)}</span
+								>
 							</div>
 						</div>
 					</div>
@@ -321,38 +376,49 @@
 					<!-- Payment Info -->
 					<div class="bg-muted/50 p-4 rounded-lg space-y-3">
 						<h4 class="font-medium text-sm flex items-center gap-2">
-							<FileText class="h-4 w-4" /> Payment Information
+							<FileText class="h-4 w-4" />
+							{i18n.t('admin.transactions.paymentInfo')}
 						</h4>
 						{#if selectedInvoice.invoice.paidAt}
 							<div class="flex justify-between text-sm">
-								<span class="text-muted-foreground">Paid On:</span>
+								<span class="text-muted-foreground">{i18n.t('admin.transactions.paidOn')}</span>
 								<span class="font-medium text-green-600">
-									{new Date(selectedInvoice.invoice.paidAt).toLocaleDateString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}
+									{new Date(selectedInvoice.invoice.paidAt).toLocaleDateString(
+										i18n.language === 'id' ? 'id-ID' : 'en-US',
+										{ dateStyle: 'full', timeStyle: 'short' }
+									)}
 								</span>
 							</div>
 						{:else}
-							<p class="text-sm text-muted-foreground italic">No payment recorded yet.</p>
+							<p class="text-sm text-muted-foreground italic">
+								{i18n.t('admin.transactions.noPayment')}
+							</p>
 						{/if}
-						
+
 						{#if selectedInvoice.invoice.notes}
 							<div class="pt-2 border-t border-dashed border-slate-300">
-								<p class="text-xs text-muted-foreground mb-1">Notes:</p>
+								<p class="text-xs text-muted-foreground mb-1">
+									{i18n.t('admin.transactions.notes')}
+								</p>
 								<p class="text-sm whitespace-pre-wrap">{selectedInvoice.invoice.notes}</p>
 							</div>
 						{/if}
 					</div>
 				</div>
 				<Dialog.Footer>
-					<Button type="button" variant="outline" onclick={() => isDetailDialogOpen = false}>Close</Button>
+					<Button type="button" variant="outline" onclick={() => (isDetailDialogOpen = false)}
+						>{i18n.t('common.close')}</Button
+					>
 					{#if selectedInvoice.invoice.status !== 'paid'}
-						<Button 
-							type="button" 
+						<Button
+							type="button"
 							onclick={() => {
 								isDetailDialogOpen = false;
 								openStatusDialog(selectedInvoice.invoice, 'paid');
 							}}
 						>
-							<CheckCircle class="mr-2 h-4 w-4" /> Mark as Paid
+							<CheckCircle class="mr-2 h-4 w-4" />
+							{i18n.t('admin.transactions.markPaid')}
 						</Button>
 					{/if}
 				</Dialog.Footer>

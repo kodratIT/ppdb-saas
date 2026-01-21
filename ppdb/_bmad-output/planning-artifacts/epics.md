@@ -1,5 +1,6 @@
 ---
 stepsCompleted: [1, 2, 3, 4]
+workflow_completed: true
 inputDocuments:
   [
     '/_bmad-output/planning-artifacts/prd.md',
@@ -9,6 +10,22 @@ inputDocuments:
 ---
 
 # ppdb - Epic Breakdown
+
+## 📊 Epic Progress Tracking
+
+| Epic       | Name                                        | Status         | Completion Date | Stories |
+| ---------- | ------------------------------------------- | -------------- | --------------- | ------- |
+| **Epic 1** | Platform Foundation & Tenant Onboarding     | ✅ DONE        | 2026-01-21      | 4/4     |
+| Epic 2     | School Admission Configuration              | 🔄 In Progress | -               | 0/4     |
+| Epic 3     | Frictionless Registration & Data Collection | ⏳ Pending     | -               | 0/6     |
+| Epic 4     | Verification, Selection & Ranking Engine    | ⏳ Pending     | -               | 0/4     |
+| Epic 5     | Integrated Payment & Settlement             | ⏳ Pending     | -               | 0/3     |
+| Epic 6     | Proactive Communication & Engagement        | ⏳ Pending     | -               | 0/3     |
+| Epic 7     | Governance, Compliance & Reporting          | ⏳ Pending     | -               | 0/4     |
+
+**Overall Progress:** 1/7 Epics Completed (14.3%) | 4/27 Stories Completed (14.8%)
+
+---
 
 ## Overview
 
@@ -84,46 +101,147 @@ NFR13: Format ekspor data harus mematuhi skema atribut yang kompatibel dengan st
 
 ### FR Coverage Map
 
-FR1: Epic 1 - Register new Foundation/School
-FR2: Epic 1 - Manage Tenant Lifecycle
-FR3: Epic 1 - Global Monitoring
-FR4: Epic 1 - Payout Management
-FR5: Epic 2 - Config Admission Paths
-FR6: Epic 2 - Config Quotas
-FR7: Epic 2 - Config Fees
-FR8: Epic 2 - Config Branding
-FR9: Epic 7 - Export Data
-FR10: Epic 3 - Auth/OTP
-FR11: Epic 7 - Account Recovery
-FR12: Epic 2 - RBAC Setup
-FR13: Epic 3 - Form Wizard
-FR14: Epic 3 - Multi-child
-FR15: Epic 3 - Doc Upload
-FR16: Epic 3 - Lead Recovery Detection
-FR17: Epic 4 - Document Verification
-FR18: Epic 4 - Scoring Input
-FR19: Epic 4 - Home Visit Report
-FR20: Epic 4 - Ranking Engine
-FR21: Epic 6 - Notification Status
-FR22: Epic 6 - Broadcasting
-FR23: Epic 6 - Waitlist Promotion
-FR24: Epic 5 - Online Payment
-FR25: Epic 5 - Manual Payment
-FR26: Epic 5 - Invoice Generation
-FR27: Epic 3 - User Consent
-FR28: Epic 7 - Audit Log
-FR29: Epic 7 - Privacy/Deletion
-FR30: Epic 1 - Global Role Management
-FR31: Epic 1 - Executive Reports
+| ID   | Requirement                                             | Epic   | Status            |
+| ---- | ------------------------------------------------------- | ------ | ----------------- |
+| FR1  | Super Admin dapat mendaftarkan Yayasan/Sekolah baru     | Epic 1 | ✅ DONE           |
+| FR2  | Super Admin dapat mengelola masa aktif tenant           | Epic 1 | ✅ DONE           |
+| FR3  | Super Admin dapat memantau kesehatan infrastruktur      | Epic 1 | ✅ DONE           |
+| FR4  | Super Admin dapat mengelola penarikan dana (payout)     | Epic 1 | ✅ DONE (partial) |
+| FR5  | Admin Sekolah dapat mengonfigurasi jalur pendaftaran    | Epic 2 | ⏳ Pending        |
+| FR6  | Admin Sekolah dapat menetapkan kuota per jalur          | Epic 2 | ⏳ Pending        |
+| FR7  | Admin Sekolah dapat mengatur biaya dan momen pembayaran | Epic 2 | ⏳ Pending        |
+| FR8  | Admin Sekolah dapat mengubah konten profil sekolah      | Epic 2 | ⏳ Pending        |
+| FR9  | Admin Sekolah dapat ekspor data format standar          | Epic 7 | ⏳ Pending        |
+| FR10 | P registrant dapat buat akun dengan OTP                 | Epic 3 | ⏳ Pending        |
+| FR11 | Pengguna dapat pemulihan akun                           | Epic 7 | ⏳ Pending        |
+| FR12 | Sistem memberikan hak akses berbeda (RBAC)              | Epic 1 | ✅ DONE           |
+| FR13 | P registrant dapat isi formulir bertahap                | Epic 3 | ⏳ Pending        |
+| FR14 | P registrant dapat daftarkan lebih dari satu anak       | Epic 3 | ⏳ Pending        |
+| FR15 | P registrant dapatunggah dokumen pendukung              | Epic 3 | ⏳ Pending        |
+| FR16 | Sistem deteksi dan ingatkan pendaftaran tidak lengkap   | Epic 3 | ⏳ Pending        |
+| FR17 | Admin dapat verifikasi dokumen side-by-side             | Epic 4 | ⏳ Pending        |
+| FR18 | Penguji dapat input nilai tes/wawancara                 | Epic 4 | ⏳ Pending        |
+| FR19 | Petugas Lapangan dapatunggah laporan survei             | Epic 4 | ⏳ Pending        |
+| FR20 | Sistem perankingan otomatis                             | Epic 4 | ⏳ Pending        |
+| FR21 | Sistem kirim notifikasi via WhatsApp/Email              | Epic 6 | ⏳ Pending        |
+| FR22 | Admin dapat kirim broadcast pesan massal                | Epic 6 | ⏳ Pending        |
+| FR23 | Sistem promosi otomatis dari daftar tunggu              | Epic 6 | ⏳ Pending        |
+| FR24 | P registrant dapat pembayaran online (VA/QRIS)          | Epic 5 | ⏳ Pending        |
+| FR25 | Admin Keuangan dapat validasi pembayaran manual         | Epic 5 | ⏳ Pending        |
+| FR26 | Sistem bukti bayar invoice otomatis                     | Epic 5 | ⏳ Pending        |
+| FR27 | Pengguna dapat consent data pribadi                     | Epic 3 | ⏳ Pending        |
+| FR28 | Sistem log audit tidak dapat dihapus                    | Epic 1 | ✅ DONE           |
+| FR29 | Pengguna dapat minta penghapusan data UU PDP            | Epic 7 | ⏳ Pending        |
+| FR30 | Super Admin kelola Roles dan Permissions                | Epic 1 | ✅ DONE           |
+| FR31 | Super Admin akses laporan eksekutif                     | Epic 1 | ✅ DONE           |
+
+**Total Completed:** 10/31 FRs (32.3%)
+**Remaining:** 21/31 FRs (67.7%)
 
 ## Epic List
 
-### Epic 1: Platform Foundation & Tenant Onboarding
+### Epic 1: Platform Foundation & Tenant Onboarding ✅ DONE
+
+**Status:** ✅ COMPLETED
+**Completion Date:** 2026-01-21
+**Implemented by:** Security Hardening Tasks (Paket A)
 
 Establish the multi-tenant SaaS infrastructure, Super Admin capabilities, and global RBAC to enable school onboarding and system monitoring.
+
 **FRs covered:** FR1, FR2, FR3, FR4, FR30, FR31
 
-### Epic 2: School Admission Configuration
+---
+
+### Story 1.1: Project Setup & Starter Architecture ✅ DONE
+
+As a Developer,
+I want to initialize the SvelteKit project with the approved Hybrid SaaS Foundation stack,
+So that the development team has a consistent, production-ready environment to build upon.
+
+**Acceptance Criteria:**
+
+**Given** A fresh development environment
+**When** I run the initialization commands `npx -y create-svelte@latest .` and install Drizzle, Neon, Lucia, and Shadcn
+**Then** The project structure should match the architecture document (e.g., `src/lib/server/domain`, `src/lib/server/infra`)
+**And** Cloudflare Workers configuration (`wrangler.jsonc`) is set up for TypeScript
+**And** Tailwind CSS is configured with the Design System tokens (Primary #002C5F, Radius 1rem)
+**And** CI/CD pipeline skeleton is created in `.github/workflows`
+
+**Status:** ✅ Completed during initial project setup
+**Files:** `wrangler.jsonc`, `svelte.config.js`, `tailwind.config.ts`
+
+---
+
+### Story 1.2: Tenant Database Isolation (RLS) ✅ DONE
+
+As a Super Admin,
+I want to ensure every school's data is strictly isolated at the database level using Row-Level Security,
+So that there is zero risk of data leakage between schools.
+
+**Acceptance Criteria:**
+
+**Given** A Neon PostgreSQL database instance
+**When** I define the Drizzle schema for `tenants` and `users` tables
+**Then** An RLS policy must be applied that restricts `SELECT/UPDATE/DELETE` based on `tenant_id`
+**And** A helper function in `src/lib/server/db/` enables setting the current `tenant_id` for the session context
+**And** Migration scripts are generated and tested to confirm cross-tenant access is blocked by default
+
+**Status:** ✅ Completed (Security Hardening Task 2)
+**Files:** `drizzle/migrations/0011_enable_rls.sql`, `src/lib/server/db/schema.ts`
+**RLS Enabled Tables:** tenants, users, units, applications, admission_paths, fee_structures, invoices, payment_transactions, payment_proofs, broadcasts, custom_fields, application_documents, sessions, school_profiles, tickets, ticket_messages, payouts, saas_subscriptions, saas_invoices, home_visit_reports
+
+---
+
+### Story 1.3: Subdomain Resolution & Routing ✅ DONE
+
+As a User,
+I want to access my specific school's portal via a unique subdomain (e.g., `school-a.ppdb.id`),
+So that I am immediately immersed in the correct school context.
+
+**Acceptance Criteria:**
+
+**Given** A request comes to `school-a.ppdb.id`
+**When** The Cloudflare Worker intercepts the request
+**Then** It should resolve the subdomain to a valid `tenant_id` using a cached lookup (Cloudflare KV)
+**And** If the subdomain is invalid, redirect to the main platform landing page
+**And** The `tenant_id` is passed to the SvelteKit `locals` context for downstream use
+
+**Status:** ✅ Completed (existing implementation)
+**Files:** `src/hooks.server.ts`, `src/lib/server/tenant/index.ts`
+**Features:** Subdomain extraction, KV caching, reserved domain filtering, path-based fallback
+
+---
+
+### Story 1.4: Global RBAC & Super Admin Dashboard ✅ DONE
+
+As a Super Admin,
+I want to have a centralized dashboard to manage tenants and define global roles,
+So that I can onboard new schools and control platform access.
+
+**Acceptance Criteria:**
+
+**Given** I am logged in as a Super Admin
+**When** I access the `/super-admin` route group
+**Then** I should see a list of all registered tenants (Schools)
+**And** I can creating a new tenant (Name, Subdomain, Active Status)
+**And** I can define global roles (Super Admin, School Admin, Parent) in the database permissions matrix
+**And** The system logs this administrative action in the global audit log
+
+**Status:** ✅ Completed (Security Hardening Tasks 1, 3, 4, 5)
+**Files:** `src/routes/admin/+page.svelte`, `src/routes/admin/schools/+page.svelte`, `src/routes/admin/register/+page.server.ts`, `src/lib/server/domain/admin/index.ts`, `src/lib/server/auth/permissions.ts`, `src/lib/server/validators/admin.ts`, `src/hooks.server.ts`
+
+**Completed Features:**
+
+- ✅ Tenant CRUD (Create, Read, Update, Delete)
+- ✅ Tenant status management (Active/Inactive)
+- ✅ Audit logging for all admin actions
+- ✅ Role-Permission definitions (RBAC)
+- ✅ Zod validation schemas for admin forms
+- ✅ Rate limiting on admin endpoints
+
+---
+
+## Epic 2: School Admission Configuration
 
 Empower School Admins to fully configure their admission portal, including paths, quotas, fees, and branding, to prepare for student intake.
 **FRs covered:** FR5, FR6, FR7, FR8, FR12

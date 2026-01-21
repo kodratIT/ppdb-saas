@@ -6,6 +6,9 @@
 	import Label from '$lib/components/ui/label.svelte';
 	import Textarea from '$lib/components/ui/textarea.svelte';
 
+	import * as Card from '$lib/components/ui/card';
+	import { i18n } from '$lib/i18n/index.svelte';
+
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let saving = $state(false);
@@ -25,10 +28,10 @@
 	// Get payment timing description
 	function getPaymentTimingDescription(timing: string): string {
 		const descriptions: Record<string, string> = {
-			registration: 'Due upon registration',
-			acceptance: 'Due upon acceptance',
-			enrollment: 'Due upon enrollment',
-			custom: 'Custom timing'
+			registration: i18n.t('admin.feeStructures.dueUponRegistration'),
+			acceptance: i18n.t('admin.feeStructures.dueUponAcceptance'),
+			enrollment: i18n.t('admin.feeStructures.dueUponEnrollment'),
+			custom: i18n.t('admin.feeStructures.customTiming')
 		};
 		return descriptions[timing] || timing;
 	}
@@ -36,7 +39,7 @@
 	// Get admission path name by ID
 	function getAdmissionPathName(pathId: string): string {
 		const path = data.admissionPaths.find((p) => p.id === pathId);
-		return path?.name || 'Unknown Path';
+		return path?.name || i18n.t('admin.schoolAdmins.unknown');
 	}
 
 	// Open edit modal
@@ -64,14 +67,14 @@
 <div class="container mx-auto px-4 py-8 max-w-6xl">
 	<div class="flex justify-between items-center mb-6">
 		<div>
-			<h1 class="text-3xl font-bold">Fee Structures</h1>
-			<p class="text-gray-600 mt-1">Configure fees and payment timing for each admission path</p>
+			<h1 class="text-3xl font-bold">{i18n.t('admin.feeStructures.title')}</h1>
+			<p class="text-gray-600 mt-1">{i18n.t('admin.feeStructures.subtitle')}</p>
 		</div>
 		<button
 			onclick={() => (showCreateModal = true)}
 			class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
 		>
-			Add New Fee
+			{i18n.t('admin.feeStructures.addNew')}
 		</button>
 	</div>
 
@@ -104,14 +107,14 @@
 						d="M12 6v6m0 0v6m0-6h6m-6 0H6"
 					/>
 				</svg>
-				<p class="mt-2 text-lg font-medium">No fee structures configured</p>
-				<p class="text-sm">Get started by adding a fee structure for your admission paths.</p>
+				<p class="mt-2 text-lg font-medium">{i18n.t('admin.feeStructures.noFee')}</p>
+				<p class="text-sm">{i18n.t('admin.feeStructures.startGuide')}</p>
 			</div>
 			<button
 				onclick={() => (showCreateModal = true)}
 				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
 			>
-				Add First Fee Structure
+				{i18n.t('admin.feeStructures.addFirst')}
 			</button>
 		</div>
 	{:else}
@@ -122,32 +125,32 @@
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Fee Name
+							{i18n.t('admin.feeStructures.feeName')}
 						</th>
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Admission Path
+							{i18n.t('admin.feeStructures.admissionPath')}
 						</th>
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Amount
+							{i18n.t('admin.feeStructures.amount')}
 						</th>
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Payment Timing
+							{i18n.t('admin.feeStructures.paymentTiming')}
 						</th>
 						<th
 							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Status
+							{i18n.t('admin.feeStructures.status')}
 						</th>
 						<th
 							class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
 						>
-							Actions
+							{i18n.t('common.actions')}
 						</th>
 					</tr>
 				</thead>
@@ -171,7 +174,9 @@
 								</span>
 								{#if fee.penaltyAmount}
 									<div class="text-xs text-red-500">
-										+{formatCurrency(fee.penaltyAmount)} late fee
+										{i18n.t('admin.feeStructures.lateFee', {
+											amount: formatCurrency(fee.penaltyAmount, fee.currency)
+										})}
 									</div>
 								{/if}
 							</td>
@@ -181,7 +186,9 @@
 								</span>
 								{#if fee.paymentTiming === 'custom' && fee.dueDateOffsetDays > 0}
 									<div class="text-xs text-gray-400">
-										{fee.dueDateOffsetDays} days after registration
+										{i18n.t('admin.feeStructures.daysAfterRegistration', {
+											days: fee.dueDateOffsetDays
+										})}
 									</div>
 								{/if}
 							</td>
@@ -200,7 +207,7 @@
 									onclick={() => openEditModal(fee)}
 									class="text-indigo-600 hover:text-indigo-900 mr-3"
 								>
-									Edit
+									{i18n.t('actions.edit')}
 								</button>
 								<form
 									method="POST"
@@ -220,7 +227,7 @@
 										disabled={saving}
 										class="text-red-600 hover:text-red-900 disabled:opacity-50"
 									>
-										Delete
+										{i18n.t('actions.delete')}
 									</button>
 								</form>
 							</td>
@@ -243,7 +250,9 @@
 					<div class="sm:flex sm:items-start">
 						<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
 							<h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-								{editingFee ? 'Edit Fee Structure' : 'Create New Fee Structure'}
+								{editingFee
+									? i18n.t('admin.feeStructures.editFee')
+									: i18n.t('admin.feeStructures.createFee')}
 							</h3>
 
 							<form
@@ -268,7 +277,7 @@
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
 										<Label for="name" class="block text-gray-700 mb-1">
-											Fee Name <span class="text-red-500">*</span>
+											{i18n.t('admin.feeStructures.feeNameLabel')}
 										</Label>
 										<Input
 											type="text"
@@ -281,7 +290,7 @@
 
 									<div>
 										<Label for="admissionPathId" class="block text-gray-700 mb-1">
-											Admission Path <span class="text-red-500">*</span>
+											{i18n.t('admin.feeStructures.admissionPathLabel')}
 										</Label>
 										<select
 											id="admissionPathId"
@@ -289,7 +298,7 @@
 											required
 											class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 										>
-											<option value="">Select admission path</option>
+											<option value="">{i18n.t('admin.feeStructures.selectPath')}</option>
 											{#each data.admissionPaths as path}
 												<option value={path.id} selected={editingFee?.admissionPathId === path.id}>
 													{path.name}
@@ -312,7 +321,7 @@
 								<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 									<div>
 										<Label for="amount" class="block text-gray-700 mb-1">
-											Amount (IDR) <span class="text-red-500">*</span>
+											{i18n.t('admin.feeStructures.amountLabel')}
 										</Label>
 										<Input
 											type="number"
@@ -326,7 +335,9 @@
 									</div>
 
 									<div>
-										<Label for="currency" class="block text-gray-700 mb-1">Currency</Label>
+										<Label for="currency" class="block text-gray-700 mb-1"
+											>{i18n.t('admin.feeStructures.currency')}</Label
+										>
 										<select
 											id="currency"
 											name="currency"
@@ -341,7 +352,9 @@
 									</div>
 
 									<div>
-										<Label for="status" class="block text-gray-700 mb-1">Status</Label>
+										<Label for="status" class="block text-gray-700 mb-1"
+											>{i18n.t('admin.feeStructures.status')}</Label
+										>
 										<select
 											id="status"
 											name="status"
@@ -349,10 +362,11 @@
 										>
 											<option
 												value="active"
-												selected={editingFee?.status === 'active' || !editingFee}>Active</option
+												selected={editingFee?.status === 'active' || !editingFee}
+												>{i18n.t('admin.schools.active')}</option
 											>
 											<option value="inactive" selected={editingFee?.status === 'inactive'}
-												>Inactive</option
+												>{i18n.t('admin.schools.inactive')}</option
 											>
 										</select>
 									</div>
@@ -361,7 +375,7 @@
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
 										<Label for="paymentTiming" class="block text-gray-700 mb-1">
-											Payment Timing <span class="text-red-500">*</span>
+											{i18n.t('admin.feeStructures.paymentTimingLabel')}
 										</Label>
 										<select
 											id="paymentTiming"
@@ -372,27 +386,27 @@
 											<option
 												value="registration"
 												selected={editingFee?.paymentTiming === 'registration' || !editingFee}
-												>Upon Registration</option
+												>{i18n.t('admin.feeStructures.dueUponRegistration')}</option
 											>
 											<option
 												value="acceptance"
 												selected={editingFee?.paymentTiming === 'acceptance'}
-												>Upon Acceptance</option
+												>{i18n.t('admin.feeStructures.dueUponAcceptance')}</option
 											>
 											<option
 												value="enrollment"
 												selected={editingFee?.paymentTiming === 'enrollment'}
-												>Upon Enrollment</option
+												>{i18n.t('admin.feeStructures.dueUponEnrollment')}</option
 											>
 											<option value="custom" selected={editingFee?.paymentTiming === 'custom'}
-												>Custom</option
+												>{i18n.t('admin.feeStructures.customTiming')}</option
 											>
 										</select>
 									</div>
 
 									<div>
 										<Label for="dueDateOffsetDays" class="block text-gray-700 mb-1">
-											Days After Registration (for custom)
+											{i18n.t('admin.feeStructures.daysAfterRegLabel')}
 										</Label>
 										<Input
 											type="number"
@@ -407,7 +421,7 @@
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div>
 										<Label for="penaltyAmount" class="block text-gray-700 mb-1">
-											Late Fee Amount (IDR)
+											{i18n.t('admin.feeStructures.lateFeeLabel')}
 										</Label>
 										<Input
 											type="number"
@@ -416,13 +430,13 @@
 											min="0"
 											step="1000"
 											value={editingFee?.penaltyAmount || ''}
-											placeholder="Optional"
+											placeholder={i18n.t('admin.feeStructures.optionalPlaceholder')}
 										/>
 									</div>
 
 									<div>
 										<Label for="penaltyGraceDays" class="block text-gray-700 mb-1">
-											Grace Period (days)
+											{i18n.t('admin.feeStructures.gracePeriodLabel')}
 										</Label>
 										<Input
 											type="number"
@@ -436,7 +450,7 @@
 
 								{#if hasErrors}
 									<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-										<p class="font-bold">Validation Errors:</p>
+										<p class="font-bold">{i18n.t('admin.feeStructures.validationErrors')}</p>
 										<ul class="list-disc list-inside">
 											{#each hasErrors as error}
 												<li>{error.message}</li>
@@ -451,14 +465,18 @@
 										onclick={closeModal}
 										class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
 									>
-										Cancel
+										{i18n.t('actions.cancel')}
 									</button>
 									<button
 										type="submit"
 										disabled={saving}
 										class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
 									>
-										{saving ? 'Saving...' : editingFee ? 'Update Fee' : 'Create Fee'}
+										{saving
+											? i18n.t('admin.feeStructures.saving')
+											: editingFee
+												? i18n.t('admin.feeStructures.updateFeeButton')
+												: i18n.t('admin.feeStructures.createFeeButton')}
 									</button>
 								</div>
 							</form>

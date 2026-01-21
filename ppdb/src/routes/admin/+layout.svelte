@@ -1,9 +1,11 @@
 <script lang="ts">
-	import DashboardLayout from '$lib/components/admin/DashboardLayout.svelte';
+	import AdminLayout from '$lib/components/admin/AdminLayout.svelte';
+	import { page } from '$app/state';
 
 	let { children } = $props();
+	let breadcrumbs = $derived(page.data?.breadcrumbs);
 </script>
 
-<DashboardLayout>
+<AdminLayout {breadcrumbs}>
 	{@render children()}
-</DashboardLayout>
+</AdminLayout>
