@@ -67,44 +67,50 @@
 	}
 
 	const getStatusText = (status: string | undefined) => {
-		if (!status) return i18n.t('admin.tenants.noSubscription');
-		const key = `admin.tenants.${status.toLowerCase()}` as any;
-		const translated = i18n.t(key);
-		return translated !== key ? translated : status.toUpperCase();
+		if (!status) return 'No Subscription';
+		const statusMap: Record<string, string> = {
+			active: 'Active',
+			trial: 'Trial',
+			past_due: 'Past Due',
+			cancelled: 'Cancelled'
+		};
+		return statusMap[status.toLowerCase()] || status.toUpperCase();
 	};
 
 	const getCycleText = (cycle: string | undefined) => {
 		if (!cycle) return '-';
-		const key = `admin.tenants.${cycle.toLowerCase()}` as any;
-		const translated = i18n.t(key);
-		return translated !== key ? translated : cycle;
+		const cycleMap: Record<string, string> = {
+			monthly: 'Monthly',
+			yearly: 'Yearly'
+		};
+		return cycleMap[cycle.toLowerCase()] || cycle;
 	};
 </script>
 
 <div class="flex flex-col gap-6 p-6">
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.tenants.title')}</h1>
-			<p class="text-muted-foreground">{i18n.t('admin.tenants.subtitle')}</p>
+			<h1 class="text-3xl font-bold tracking-tight">Tenants</h1>
+			<p class="text-muted-foreground">Manage subscription tenants</p>
 		</div>
 	</div>
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{i18n.t('admin.tenants.tenants')}</Card.Title>
+			<Card.Title>Tenants</Card.Title>
 		</Card.Header>
 		<Card.Content>
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>{i18n.t('admin.tenants.tenantName')}</Table.Head>
-						<Table.Head>{i18n.t('admin.packages.slug')}</Table.Head>
-						<Table.Head>{i18n.t('admin.tenants.package')}</Table.Head>
-						<Table.Head>{i18n.t('admin.tenants.usageStudents')}</Table.Head>
-						<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
-						<Table.Head>{i18n.t('admin.tenants.cycle')}</Table.Head>
-						<Table.Head>{i18n.t('admin.tenants.validUntil')}</Table.Head>
-						<Table.Head class="text-right">{i18n.t('common.actions')}</Table.Head>
+						<Table.Head>Tenant Name</Table.Head>
+						<Table.Head>Slug</Table.Head>
+						<Table.Head>Package</Table.Head>
+						<Table.Head>Usage (Students)</Table.Head>
+						<Table.Head>Status</Table.Head>
+						<Table.Head>Cycle</Table.Head>
+						<Table.Head>Valid Until</Table.Head>
+						<Table.Head class="text-right">Actions</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -168,11 +174,11 @@
 										<MoreHorizontal class="h-4 w-4" />
 									</DropdownMenu.Trigger>
 									<DropdownMenu.Content align="end">
-										<DropdownMenu.Label>{i18n.t('common.actions')}</DropdownMenu.Label>
+										<DropdownMenu.Label>Actions</DropdownMenu.Label>
 										<DropdownMenu.Separator />
 										<DropdownMenu.Item onclick={() => openEditDialog(row)}>
 											<CreditCard class="mr-2 h-4 w-4" />
-											{i18n.t('admin.tenants.manageSubscription')}
+											Manage Subscription
 										</DropdownMenu.Item>
 									</DropdownMenu.Content>
 								</DropdownMenu.Root>
@@ -187,9 +193,9 @@
 	<Dialog.Root bind:open={isDialogOpen}>
 		<Dialog.Content class="sm:max-w-[425px]">
 			<Dialog.Header>
-				<Dialog.Title>{i18n.t('admin.tenants.manageSubscription')}</Dialog.Title>
+				<Dialog.Title>Manage Subscription</Dialog.Title>
 				<Dialog.Description>
-					{i18n.t('admin.tenants.manageSubDesc', { name: editingSubscription?.tenantName })}
+					Manage subscription for {editingSubscription?.tenantName}
 				</Dialog.Description>
 			</Dialog.Header>
 			<form
@@ -197,18 +203,18 @@
 				method="POST"
 				use:enhance={() => {
 					isSaving = true;
-					const toastId = toast.loading(i18n.t('admin.tenants.savingSub'));
+					const toastId = toast.loading('Saving...');
 
 					return async ({ result, update }) => {
 						isSaving = false;
 						if (result.type === 'success') {
 							toast.dismiss(toastId);
-							toast.success(i18n.t('admin.tenants.subUpdated'));
+							toast.success('Subscription updated');
 							isDialogOpen = false;
 							update();
 						} else {
 							toast.dismiss(toastId);
-							toast.error(i18n.t('admin.tenants.subUpdateFailed'));
+							toast.error('Failed to update subscription');
 							console.error('Update failed:', result);
 						}
 					};
@@ -218,7 +224,7 @@
 					<input type="hidden" name="tenantId" value={editingSubscription.tenantId} />
 					<div class="grid gap-4 py-4">
 						<div class="grid grid-cols-4 items-center gap-4">
-							<Label for="packageId" class="text-right">{i18n.t('admin.tenants.package')}</Label>
+							<Label for="packageId" class="text-right">Package</Label>
 							<select
 								id="packageId"
 								name="packageId"
@@ -234,7 +240,7 @@
 							</select>
 						</div>
 						<div class="grid grid-cols-4 items-center gap-4">
-							<Label for="billingCycle" class="text-right">{i18n.t('admin.tenants.cycle')}</Label>
+							<Label for="billingCycle" class="text-right">Cycle</Label>
 							<select
 								id="billingCycle"
 								name="billingCycle"
@@ -242,12 +248,12 @@
 								value={editingSubscription.billingCycle}
 								required
 							>
-								<option value="monthly">{i18n.t('admin.tenants.monthly')}</option>
-								<option value="yearly">{i18n.t('admin.tenants.yearly')}</option>
+								<option value="monthly">Monthly</option>
+								<option value="yearly">Yearly</option>
 							</select>
 						</div>
 						<div class="grid grid-cols-4 items-center gap-4">
-							<Label for="status" class="text-right">{i18n.t('admin.packages.status')}</Label>
+							<Label for="status" class="text-right">Status</Label>
 							<select
 								id="status"
 								name="status"
@@ -255,15 +261,15 @@
 								value={editingSubscription.status}
 								required
 							>
-								<option value="active">{i18n.t('admin.tenants.active')}</option>
-								<option value="trial">{i18n.t('admin.tenants.trial')}</option>
-								<option value="past_due">{i18n.t('admin.tenants.past_due')}</option>
-								<option value="cancelled">{i18n.t('admin.tenants.cancelled')}</option>
+								<option value="active">Active</option>
+								<option value="trial">Trial</option>
+								<option value="past_due">Past Due</option>
+								<option value="cancelled">Cancelled</option>
 							</select>
 						</div>
 						<div class="grid grid-cols-4 items-center gap-4">
 							<Label for="currentPeriodEnd" class="text-right"
-								>{i18n.t('admin.tenants.validUntil')}</Label
+								>Valid Until</Label
 							>
 							<Input
 								id="currentPeriodEnd"
@@ -280,14 +286,14 @@
 							type="button"
 							variant="ghost"
 							onclick={() => (isDialogOpen = false)}
-							disabled={isSaving}>{i18n.t('actions.cancel')}</Button
+							disabled={isSaving}>Cancel</Button
 						>
 						<Button type="submit" disabled={isSaving}>
 							{#if isSaving}
 								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-								{i18n.t('messages.loading.saving')}
+								Saving...
 							{:else}
-								{i18n.t('actions.saveChanges')}
+								Save Changes
 							{/if}
 						</Button>
 					</Dialog.Footer>

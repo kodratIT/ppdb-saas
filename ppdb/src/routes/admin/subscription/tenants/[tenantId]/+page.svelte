@@ -32,16 +32,22 @@
 
 	function getStatusText(status: string | undefined) {
 		if (!status) return 'No Subscription';
-		const key = `admin.tenants.${status.toLowerCase()}` as any;
-		const translated = i18n.t(key);
-		return translated !== key ? translated : status;
+		const statusMap: Record<string, string> = {
+			active: 'Active',
+			trial: 'Trial',
+			past_due: 'Past Due',
+			cancelled: 'Cancelled'
+		};
+		return statusMap[status.toLowerCase()] || status;
 	}
 
 	function getCycleText(cycle: string | undefined) {
 		if (!cycle) return '-';
-		const key = `admin.tenants.${cycle.toLowerCase()}` as any;
-		const translated = i18n.t(key);
-		return translated !== key ? translated : cycle;
+		const cycleMap: Record<string, string> = {
+			monthly: 'Monthly',
+			yearly: 'Yearly'
+		};
+		return cycleMap[cycle.toLowerCase()] || cycle;
 	}
 
 	let isDialogOpen = $state(false);
