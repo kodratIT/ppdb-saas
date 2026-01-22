@@ -8,12 +8,42 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { MoreHorizontal, CreditCard, Loader2 } from 'lucide-svelte';
+	import { MoreHorizontal, CreditCard, Loader2, Search, Eye } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
 	import { i18n } from '$lib/i18n/index.svelte';
+	import SubscriptionNav from '$lib/components/admin/SubscriptionNav.svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+
+	import * as Select from '$lib/components/ui/select';
 
 	let { data }: { data: PageData } = $props();
+
+	let searchTimer: NodeJS.Timeout;
+
+	function handleSearch(value: string) {
+		clearTimeout(searchTimer);
+		searchTimer = setTimeout(() => {
+			const url = new URL($page.url);
+			url.searchParams.set('search', value);
+			url.searchParams.set('page', '1');
+			goto(url);
+		}, 300);
+	}
+
+	function handleFilter(key: string, value: string) {
+		const url = new URL($page.url);
+		url.searchParams.set(key, value);
+		url.searchParams.set('page', '1');
+		goto(url);
+	}
+
+	function handlePageChange(newPage: number) {
+		const url = new URL($page.url);
+		url.searchParams.set('page', newPage.toString());
+		goto(url);
+	}
 
 	let isDialogOpen = $state(false);
 	let isSaving = $state(false);
@@ -82,10 +112,93 @@
 </script>
 
 <div class="flex flex-col gap-6 p-6">
+	<SubscriptionNav />
+
 	<div class="flex items-center justify-between">
 		<div>
 			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.tenants.title')}</h1>
 			<p class="text-muted-foreground">{i18n.t('admin.tenants.subtitle')}</p>
+		</div>
+	</div>
+
+	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+		<div class="flex flex-1 items-center gap-4">
+			<div class="relative w-full md:w-72">
+				<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+				<Input
+					type="search"
+					placeholder={i18n.t('common.searchPlaceholder')}
+					class="pl-9"
+					value={data.filters.search}
+					oninput={(e) => {
+						const target = e.currentTarget;
+						if (target instanceof HTMLInputElement) {
+							handleSearch(target.value);
+						}
+					}}
+				/>
+			</div>
+			<div class="w-[150px]">
+				<Select.Root
+					selected={{
+						value: data.filters.status,
+						label:
+							data.filters.status === 'all'
+								? i18n.t('common.allStatus')
+								: getStatusText(data.filters.status)
+					}}
+					onSelectedChange={(v) => {
+						if (v) handleFilter('status', v.value as string);
+					}}
+				>
+					<Select.Trigger>
+						<span>
+							{data.filters.status && data.filters.status !== 'all'
+								? getStatusText(data.filters.status)
+								: i18n.t('common.status')}
+						</span>
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="all">{i18n.t('common.allStatus')}</Select.Item>
+						<Select.Item value="active">{i18n.t('admin.tenants.active')}</Select.Item>
+						<Select.Item value="trial">{i18n.t('admin.tenants.trial')}</Select.Item>
+						<Select.Item value="past_due">{i18n.t('admin.tenants.past_due')}</Select.Item>
+						<Select.Item value="cancelled">{i18n.t('admin.tenants.cancelled')}</Select.Item>
+					</Select.Content>
+				</Select.Root>
+			</div>
+			<div class="w-[200px]">
+				<Select.Root
+					selected={{
+						value: data.filters.packageId,
+						label:
+							data.filters.packageId === 'all'
+								? `${i18n.t('common.all')} ${i18n.t('admin.tenants.package')}`
+								: (data.packages.find((p) => p.id === data.filters.packageId)?.name ??
+									`${i18n.t('common.all')} ${i18n.t('admin.tenants.package')}`)
+					}}
+					onSelectedChange={(v) => {
+						if (v) handleFilter('packageId', v.value as string);
+					}}
+				>
+					<Select.Trigger>
+						<span>
+							{data.filters.packageId && data.filters.packageId !== 'all'
+								? (data.packages.find((p) => p.id === data.filters.packageId)?.name ??
+									i18n.t('admin.tenants.package'))
+								: i18n.t('admin.tenants.package')}
+						</span>
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="all"
+							>{i18n.t('common.all')} {i18n.t('admin.tenants.package')}</Select.Item
+						>
+						{#each data.packages as pkg}
+							<Select.Item value={pkg.id}>{pkg.name}</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
 		</div>
 	</div>
 
@@ -170,6 +283,10 @@
 									<DropdownMenu.Content align="end">
 										<DropdownMenu.Label>{i18n.t('common.actions')}</DropdownMenu.Label>
 										<DropdownMenu.Separator />
+										<DropdownMenu.Item href="/admin/subscription/tenants/{row.tenant.id}">
+											<Eye class="mr-2 h-4 w-4" />
+											{i18n.t('common.viewDetails')}
+										</DropdownMenu.Item>
 										<DropdownMenu.Item onclick={() => openEditDialog(row)}>
 											<CreditCard class="mr-2 h-4 w-4" />
 											{i18n.t('admin.tenants.manageSubscription')}
@@ -183,6 +300,31 @@
 			</Table.Root>
 		</Card.Content>
 	</Card.Root>
+
+	<div class="flex items-center justify-end space-x-2 py-4">
+		<Button
+			variant="outline"
+			size="sm"
+			disabled={data.pagination.page === 1}
+			onclick={() => handlePageChange(data.pagination.page - 1)}
+		>
+			{i18n.t('common.previous')}
+		</Button>
+		<div class="text-sm text-muted-foreground">
+			{i18n.t('common.page')}
+			{data.pagination.page}
+			{i18n.t('common.of')}
+			{data.pagination.totalPages}
+		</div>
+		<Button
+			variant="outline"
+			size="sm"
+			disabled={data.pagination.page >= data.pagination.totalPages}
+			onclick={() => handlePageChange(data.pagination.page + 1)}
+		>
+			{i18n.t('common.next')}
+		</Button>
+	</div>
 
 	<Dialog.Root bind:open={isDialogOpen}>
 		<Dialog.Content class="sm:max-w-[425px]">
