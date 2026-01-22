@@ -94,6 +94,14 @@ export const documentStatusEnum = pgEnum('document_status', [
 	'revision_requested'
 ]);
 
+export const broadcastStatusEnum = pgEnum('broadcast_status', [
+	'pending',
+	'scheduled',
+	'sent',
+	'failed',
+	'cancelled'
+]);
+
 export const payoutStatusEnum = pgEnum('payout_status', [
 	'pending',
 	'processed',
@@ -796,20 +804,35 @@ export const paymentProofsRelations = relations(paymentProofs, ({ one }) => ({
 }));
 
 // Epic 6.2: Broadcast Messaging
+export const messageTemplates = pgTable('message_templates', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	name: text('name').notNull(),
+	category: text('category'),
+	message: text('message').notNull(),
+	variables: jsonb('variables').default([]).notNull(), // Array of strings
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 export const broadcasts = pgTable('broadcasts', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	tenantId: uuid('tenant_id')
-		.references(() => tenants.id)
-		.notNull(),
+	tenantId: uuid('tenant_id').references(() => tenants.id),
 	senderId: uuid('sender_id')
 		.references(() => users.id)
 		.notNull(),
-	targetSegment: text('target_segment').notNull(),
-	messageTemplate: text('message_template').notNull(),
-	sentCount: integer('sent_count').notNull(),
-	failedCount: integer('failed_count').notNull(),
-	failedRecipients: text('failed_recipients'), // JSON string of phone numbers
-	createdAt: timestamp('created_at').defaultNow().notNull()
+	targetType: text('target_type').notNull(), // 'all', 'active', 'inactive', 'custom'
+	targetTenantIds: jsonb('target_tenant_ids'), // If custom
+	message: text('message').notNull(),
+	templateId: uuid('template_id').references(() => messageTemplates.id),
+	status: broadcastStatusEnum('status').default('sent').notNull(),
+	totalTarget: integer('total_target').notNull().default(0),
+	sentCount: integer('sent_count').notNull().default(0),
+	failedCount: integer('failed_count').notNull().default(0),
+	failedRecipients: text('failed_recipients'), // JSON string
+	scheduledAt: timestamp('scheduled_at'),
+	sentAt: timestamp('sent_at'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
 export const payouts = pgTable('payouts', {
@@ -847,6 +870,10 @@ export const payoutsRelations = relations(payouts, ({ one }) => ({
 	})
 }));
 
+export const messageTemplatesRelations = relations(messageTemplates, ({ many }) => ({
+	broadcasts: many(broadcasts)
+}));
+
 export const broadcastsRelations = relations(broadcasts, ({ one }) => ({
 	tenant: one(tenants, {
 		fields: [broadcasts.tenantId],
@@ -855,6 +882,10 @@ export const broadcastsRelations = relations(broadcasts, ({ one }) => ({
 	sender: one(users, {
 		fields: [broadcasts.senderId],
 		references: [users.id]
+	}),
+	template: one(messageTemplates, {
+		fields: [broadcasts.templateId],
+		references: [messageTemplates.id]
 	})
 }));
 
@@ -997,6 +1028,7 @@ export const tickets = pgTable(
 		userId: uuid('user_id')
 			.references(() => users.id)
 			.notNull(), // Requester (School Admin)
+		assignedTo: uuid('assigned_to').references(() => users.id),
 		subject: text('subject').notNull(),
 		status: ticketStatusEnum('status').default('open').notNull(),
 		priority: ticketPriorityEnum('priority').default('medium').notNull(),
@@ -1032,6 +1064,10 @@ export const ticketsRelations = relations(tickets, ({ one, many }) => ({
 		fields: [tickets.userId],
 		references: [users.id]
 	}),
+	assignee: one(users, {
+		fields: [tickets.assignedTo],
+		references: [users.id]
+	}),
 	messages: many(ticketMessages)
 }));
 
@@ -1043,5 +1079,132 @@ export const ticketMessagesRelations = relations(ticketMessages, ({ one }) => ({
 	sender: one(users, {
 		fields: [ticketMessages.senderId],
 		references: [users.id]
+	})
+}));
+
+// Super Admin Announcements System
+export const announcementStatusEnum = pgEnum('announcement_status', [
+	'draft',
+	'scheduled',
+	'published',
+	'archived'
+]);
+export const announcementPriorityEnum = pgEnum('announcement_priority', [
+	'low',
+	'normal',
+	'high',
+	'urgent'
+]);
+export const announcementTargetTypeEnum = pgEnum('announcement_target_type', [
+	'all',
+	'active',
+	'inactive',
+	'custom'
+]);
+export const announcementContentTypeEnum = pgEnum('announcement_content_type', [
+	'html',
+	'markdown'
+]);
+
+export const announcements = pgTable(
+	'announcements',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		title: text('title').notNull(),
+		content: text('content').notNull(), // HTML/Markdown content
+		contentType: announcementContentTypeEnum('content_type').default('html').notNull(),
+		status: announcementStatusEnum('status').default('draft').notNull(),
+
+		// Targeting
+		targetType: announcementTargetTypeEnum('target_type').default('all').notNull(),
+		targetTenantIds: jsonb('target_tenant_ids').default([]),
+
+		// Scheduling
+		publishedAt: timestamp('published_at'),
+		scheduledAt: timestamp('scheduled_at'),
+		expiresAt: timestamp('expires_at'),
+
+		// Statistics
+		viewCount: integer('view_count').default(0).notNull(),
+		clickCount: integer('click_count').default(0).notNull(),
+
+		// Metadata
+		priority: announcementPriorityEnum('priority').default('normal').notNull(),
+		category: text('category'),
+		tags: jsonb('tags').default([]),
+
+		// Audit
+		createdBy: uuid('created_by').references(() => users.id),
+		updatedBy: uuid('updated_by').references(() => users.id),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(t) => ({
+		statusIdx: index('announcements_status_idx').on(t.status),
+		priorityIdx: index('announcements_priority_idx').on(t.priority),
+		createdAtIdx: index('announcements_created_at_idx').on(t.createdAt)
+	})
+);
+
+export const announcementsRelations = relations(announcements, ({ one }) => ({
+	createdByUser: one(users, {
+		fields: [announcements.createdBy],
+		references: [users.id]
+	}),
+	updatedByUser: one(users, {
+		fields: [announcements.updatedBy],
+		references: [users.id]
+	})
+}));
+
+// Announcement Templates
+export const announcementTemplates = pgTable('announcement_templates', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	name: text('name').notNull(),
+	category: text('category'),
+	title: text('title').notNull(),
+	content: text('content').notNull(),
+	contentType: announcementContentTypeEnum('content_type').default('html').notNull(),
+	priority: announcementPriorityEnum('priority').default('normal').notNull(),
+	usageCount: integer('usage_count').default(0).notNull(),
+	createdBy: uuid('created_by').references(() => users.id),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+export const announcementTemplatesRelations = relations(announcementTemplates, ({ one }) => ({
+	createdByUser: one(users, {
+		fields: [announcementTemplates.createdBy],
+		references: [users.id]
+	})
+}));
+
+// Announcement Views Tracking (for analytics)
+export const announcementViews = pgTable(
+	'announcement_views',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		announcementId: uuid('announcement_id')
+			.references(() => announcements.id, { onDelete: 'cascade' })
+			.notNull(),
+		tenantId: uuid('tenant_id')
+			.references(() => tenants.id)
+			.notNull(),
+		viewedAt: timestamp('viewed_at').defaultNow().notNull()
+	},
+	(t) => ({
+		announcementIdx: index('announcement_views_announcement_idx').on(t.announcementId),
+		tenantIdx: index('announcement_views_tenant_idx').on(t.tenantId)
+	})
+);
+
+export const announcementViewsRelations = relations(announcementViews, ({ one }) => ({
+	announcement: one(announcements, {
+		fields: [announcementViews.announcementId],
+		references: [announcements.id]
+	}),
+	tenant: one(tenants, {
+		fields: [announcementViews.tenantId],
+		references: [tenants.id]
 	})
 }));

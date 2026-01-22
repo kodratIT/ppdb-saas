@@ -21,3 +21,4 @@ export { default as TableCell } from './table-cell.svelte';
 export { default as TableBody } from './table-body.svelte';
 export { default as TableFooter } from './table-footer.svelte';
 export { default as TableCaption } from './table-caption.svelte';
+export { Switch } from './switch';

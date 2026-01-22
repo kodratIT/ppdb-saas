@@ -57,3 +57,4 @@ class I18nStore {
 }
 
 export const i18n = new I18nStore();
+export const t = i18n.t;
