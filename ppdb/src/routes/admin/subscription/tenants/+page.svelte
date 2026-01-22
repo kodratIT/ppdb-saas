@@ -127,7 +127,7 @@
 							</Table.Cell>
 							<Table.Cell>
 								{#if row.package}
-									{@const limit = row.package.limits?.max_students ?? 0}
+									{@const limit = (row.package.limits as { max_students?: number })?.max_students ?? 0}
 									{@const count = row.applicationCount ?? 0}
 									{@const percentage = getUsagePercentage(count, limit)}
 

@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			.from(saasSubscriptions)
 			.leftJoin(saasPackages, eq(saasSubscriptions.packageId, saasPackages.id))
 			.where(eq(saasSubscriptions.tenantId, params.tenantId))
-			.then((r) => r[0]?.saasPackages),
+			.then((r) => r[0]?.saas_packages),
 		db
 			.select({ count: sql`count(*)` })
 			.from(applications)

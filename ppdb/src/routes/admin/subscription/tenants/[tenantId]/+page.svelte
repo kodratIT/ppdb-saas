@@ -129,12 +129,12 @@
 						<span class="font-medium">{data.applicationCount}</span>
 					</div>
 					{#if data.package?.limits}
-						<div class="flex justify-between">
-							<span class="text-muted-foreground">Limit</span>
-							<span class="font-medium">
-								{data.package.limits.max_students === -1 ? 'Unlimited' : data.package.limits.max_students}
-							</span>
-						</div>
+					<div class="flex justify-between">
+						<span class="text-muted-foreground">Limit</span>
+						<span class="font-medium">
+							{(data.package?.limits as { max_students?: number })?.max_students === -1 ? 'Unlimited' : (data.package?.limits as { max_students?: number })?.max_students}
+						</span>
+					</div>
 					{/if}
 					<div class="flex justify-between">
 						<span class="text-muted-foreground">Package Type</span>
