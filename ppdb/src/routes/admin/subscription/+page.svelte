@@ -14,7 +14,7 @@
 		CheckCircle2,
 		ArrowRight
 	} from 'lucide-svelte';
-	import RevenueTrendChart from '$lib/components/admin/RevenueTrendChart.svelte';
+	import RevenueTrendChart from '$lib/components/admin/charts/RevenueTrendChart.svelte';
 
 	let { data }: { data: PageData } = $props();
 
