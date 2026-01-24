@@ -173,17 +173,23 @@
 	}
 
 	const getStatusText = (status: string | undefined) => {
-		if (!status) return i18n.t('admin.tenants.noSubscription');
-		const key = `admin.tenants.${status.toLowerCase()}` as any;
-		const translated = i18n.t(key);
-		return translated !== key ? translated : status.toUpperCase();
+		if (!status) return 'No Subscription';
+		const statusMap: Record<string, string> = {
+			active: 'Active',
+			trial: 'Trial',
+			past_due: 'Past Due',
+			cancelled: 'Cancelled'
+		};
+		return statusMap[status.toLowerCase()] || status.toUpperCase();
 	};
 
 	const getCycleText = (cycle: string | undefined) => {
 		if (!cycle) return '-';
-		const key = `admin.tenants.${cycle.toLowerCase()}` as any;
-		const translated = i18n.t(key);
-		return translated !== key ? translated : cycle;
+		const cycleMap: Record<string, string> = {
+			monthly: 'Monthly',
+			yearly: 'Yearly'
+		};
+		return cycleMap[cycle.toLowerCase()] || cycle;
 	};
 </script>
 
@@ -493,7 +499,7 @@
 	<Dialog.Root bind:open={isManageDialogOpen}>
 		<Dialog.Content class="sm:max-w-[425px]">
 			<Dialog.Header>
-				<Dialog.Title>{i18n.t('admin.tenants.manageSubscription')}</Dialog.Title>
+				<Dialog.Title>Manage Subscription</Dialog.Title>
 				<Dialog.Description>
 					{i18n.t('admin.tenants.manageSubDesc', { name: selectedTenant?.name })}
 				</Dialog.Description>
@@ -503,7 +509,7 @@
 				method="POST"
 				use:enhance={() => {
 					isSaving = true;
-					const toastId = toast.loading(i18n.t('admin.tenants.savingSub'));
+					const toastId = toast.loading('Saving...');
 
 					return async ({ result, update }) => {
 						isSaving = false;
@@ -514,7 +520,7 @@
 							update();
 						} else {
 							toast.dismiss(toastId);
-							toast.error(i18n.t('admin.tenants.subUpdateFailed'));
+							toast.error('Failed to update subscription');
 							console.error('Update failed:', result);
 						}
 					};
@@ -600,14 +606,13 @@
 							type="button"
 							variant="ghost"
 							onclick={() => (isManageDialogOpen = false)}
-							disabled={isSaving}>{i18n.t('actions.cancel')}</Button
-						>
+							disabled={isSaving}>{i18n.t('actions.cancel')}</Button>
 						<Button type="submit" disabled={isSaving}>
 							{#if isSaving}
 								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-								{i18n.t('messages.loading.saving')}
+								Saving...
 							{:else}
-								{i18n.t('actions.saveChanges')}
+								Save Changes
 							{/if}
 						</Button>
 					</Dialog.Footer>

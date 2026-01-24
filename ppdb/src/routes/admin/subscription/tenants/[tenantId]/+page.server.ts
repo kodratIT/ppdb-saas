@@ -1,15 +1,19 @@
-import { error, fail } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
-import {
-	getTenantDetails,
-	cancelSubscription,
-	extendTrial
-} from '$lib/server/domain/admin/tenants';
+import { fail, error } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
+import { requireAuth, requireSuperAdmin } from '$lib/server/auth/authorization';
 import { db } from '$lib/server/db';
-import { saasPackages, saasSubscriptions } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { tenants, saasSubscriptions, saasPackages, applications, saasInvoices } from '$lib/server/db/schema';
+import { eq, sql, desc } from 'drizzle-orm';
+import { 
+    getTenantDetails, 
+    cancelSubscription as domainCancelSubscription, 
+    extendTrial as domainExtendTrial 
+} from '$lib/server/domain/admin/tenants';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ locals, params }) => {
+	const auth = requireAuth(locals);
+	requireSuperAdmin(auth);
+
 	const tenantId = params.tenantId;
 
 	const [tenantData, packages] = await Promise.all([
@@ -18,7 +22,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	]);
 
 	if (!tenantData) {
-		error(404, 'Tenant not found');
+		throw error(404, 'Tenant not found');
 	}
 
 	return {
@@ -28,7 +32,10 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions: Actions = {
-	updateSubscription: async ({ request, params }) => {
+	updateSubscription: async ({ request, params, locals }) => {
+		const auth = requireAuth(locals);
+		requireSuperAdmin(auth);
+
 		const formData = await request.formData();
 		const tenantId = params.tenantId;
 		const packageId = formData.get('packageId') as string;
@@ -64,26 +71,32 @@ export const actions: Actions = {
 				});
 
 			return { success: true };
-		} catch (error) {
-			console.error('Failed to update subscription:', error);
-			return fail(500, { message: 'admin.tenants.subUpdateFailed' });
+		} catch (err) {
+			console.error('Failed to update subscription:', err);
+			return fail(500, { error: 'Failed to update subscription' });
 		}
 	},
 
-	cancelSubscription: async ({ params }) => {
+	cancelSubscription: async ({ params, locals }) => {
+		const auth = requireAuth(locals);
+		requireSuperAdmin(auth);
+
 		const tenantId = params.tenantId;
 		if (!tenantId) return fail(400, { missing: true });
 
 		try {
-			await cancelSubscription(tenantId);
+			await domainCancelSubscription(tenantId);
 			return { success: true };
-		} catch (error) {
-			console.error('Failed to cancel subscription:', error);
-			return fail(500, { message: 'admin.tenants.subCancelFailed' });
+		} catch (err) {
+			console.error('Failed to cancel subscription:', err);
+			return fail(500, { error: 'Failed to cancel subscription' });
 		}
 	},
 
-	extendTrial: async ({ request, params }) => {
+	extendTrial: async ({ request, params, locals }) => {
+		const auth = requireAuth(locals);
+		requireSuperAdmin(auth);
+
 		const formData = await request.formData();
 		const tenantId = params.tenantId;
 		const days = Number(formData.get('days'));
@@ -91,11 +104,11 @@ export const actions: Actions = {
 		if (!tenantId || !days) return fail(400, { missing: true });
 
 		try {
-			await extendTrial(tenantId, days);
+			await domainExtendTrial(tenantId, days);
 			return { success: true };
-		} catch (error) {
-			console.error('Failed to extend trial:', error);
-			return fail(500, { message: 'admin.tenants.subExtendFailed' });
+		} catch (err) {
+			console.error('Failed to extend trial:', err);
+			return fail(500, { error: 'Failed to extend trial' });
 		}
 	}
 };

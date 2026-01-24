@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { page } from '$app/stores';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
@@ -8,8 +7,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Separator } from '$lib/components/ui/separator';
-	import { ArrowLeft, CreditCard, Calendar, Users, AlertTriangle, Loader2 } from 'lucide-svelte';
+	import { ArrowLeft, CreditCard, Calendar, Users, AlertTriangle, Loader2, Package } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
 	import { i18n } from '$lib/i18n/index.svelte';
@@ -48,6 +46,26 @@
 		if (percentage >= 75) return 'bg-yellow-500';
 		return 'bg-green-500';
 	}
+    
+    function getStatusText(status: string | undefined) {
+		if (!status) return 'No Subscription';
+		const statusMap: Record<string, string> = {
+			active: 'Active',
+			trial: 'Trial',
+			past_due: 'Past Due',
+			cancelled: 'Cancelled'
+		};
+		return statusMap[status.toLowerCase()] || status;
+	}
+
+	function getCycleText(cycle: string | undefined) {
+		if (!cycle) return '-';
+		const cycleMap: Record<string, string> = {
+			monthly: 'Monthly',
+			yearly: 'Yearly'
+		};
+		return cycleMap[cycle.toLowerCase()] || cycle;
+	}
 </script>
 
 <div class="flex flex-col gap-6 p-6">
@@ -69,7 +87,7 @@
 					{i18n.t('admin.tenants.extendTrial')}
 				</Button>
 			{/if}
-			{#if subscription?.status !== 'cancelled'}
+			{#if subscription?.status && subscription.status !== 'cancelled'}
 				<Button variant="destructive" onclick={() => (isCancelDialogOpen = true)}>
 					<AlertTriangle class="mr-2 h-4 w-4" />
 					{i18n.t('admin.tenants.cancelSubscription')}
@@ -92,7 +110,7 @@
 				<div class="space-y-1">
 					<p class="text-sm font-medium text-muted-foreground">{i18n.t('admin.tenants.status')}</p>
 					<Badge variant={getStatusVariant(subscription?.status)}>
-						{subscription?.status?.toUpperCase() ?? 'NONE'}
+						{getStatusText(subscription?.status)}
 					</Badge>
 				</div>
 				<div class="space-y-1">
@@ -103,7 +121,7 @@
 					<p class="text-sm font-medium text-muted-foreground">
 						{i18n.t('admin.tenants.billingCycle')}
 					</p>
-					<div class="capitalize">{subscription?.billingCycle ?? '-'}</div>
+					<div class="capitalize">{getCycleText(subscription?.billingCycle)}</div>
 				</div>
 				<div class="space-y-1">
 					<p class="text-sm font-medium text-muted-foreground">
@@ -133,14 +151,14 @@
 					<div class="flex-1 space-y-1">
 						<p class="text-sm font-medium leading-none">{i18n.t('admin.tenants.students')}</p>
 						<p class="text-muted-foreground">
-							{applicationCount} / {pkg?.limits?.max_students === -1
+							{applicationCount} / {(pkg?.limits as any)?.max_students === -1
 								? '∞'
-								: (pkg?.limits?.max_students ?? 0)}
+								: ((pkg?.limits as any)?.max_students ?? 0)}
 						</p>
-						{#if pkg && pkg.limits?.max_students !== -1}
+						{#if pkg && (pkg?.limits as any)?.max_students !== -1}
 							{@const percentage = getUsagePercentage(
 								applicationCount,
-								pkg.limits?.max_students as number
+								(pkg?.limits as any)?.max_students as number
 							)}
 							<div class="h-2 w-full rounded-full bg-secondary">
 								<div
@@ -323,6 +341,7 @@
 					};
 				}}
 			>
+                <input type="hidden" name="tenantId" value={tenant.id} />
 				<div class="grid gap-4 py-4">
 					<div class="grid gap-2">
 						<Label>{i18n.t('admin.tenants.duration')}</Label>
@@ -342,7 +361,7 @@
 							{/each}
 						</div>
 					</div>
-				</div>
+                </div>
 				<Dialog.Footer>
 					<Button
 						type="button"
@@ -386,6 +405,7 @@
 					};
 				}}
 			>
+                <input type="hidden" name="tenantId" value={tenant.id} />
 				<Dialog.Footer>
 					<Button
 						type="button"
