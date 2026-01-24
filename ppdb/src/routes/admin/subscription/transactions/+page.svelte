@@ -30,6 +30,7 @@
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
 	import { i18n } from '$lib/i18n/index.svelte';
+	import { cn } from '$lib/utils';
 
 	let { data }: { data: PageData } = $props();
 
@@ -202,18 +203,27 @@
 		}
 	}
 
-	function isOverdue(invoice: any) {
-		return invoice.status === 'pending' && new Date(invoice.dueDate) < new Date();
+	function getStatusIcon(status: string) {
+		switch (status.toLowerCase()) {
+			case 'paid':
+				return CheckCircle;
+			case 'pending':
+				return Clock;
+			case 'void':
+				return Ban;
+			default:
+				return FileText;
+		}
 	}
 </script>
 
-<div class="flex flex-col gap-6 p-6">
+<div class="space-y-6 p-6">
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.transactions.title')}</h1>
+			<h1 class="text-3xl font-bold tracking-tight mb-1">{i18n.t('admin.transactions.title')}</h1>
 			<p class="text-muted-foreground">{i18n.t('admin.transactions.subtitle')}</p>
 		</div>
-		<Button onclick={openCreateDialog}>
+		<Button onclick={openCreateDialog} class="rounded-xl">
 			<Plus class="mr-2 h-4 w-4" />
 			Create Invoice
 		</Button>
@@ -221,168 +231,238 @@
 
 	<!-- Stats Grid -->
 	<div class="grid gap-4 md:grid-cols-3">
-		<Card.Root>
+		<Card.Root class="rounded-xl shadow-sm border">
 			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Total Paid</Card.Title>
+				<Card.Title class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+					>Total Paid</Card.Title
+				>
 				<CreditCard class="h-4 w-4 text-green-500" />
 			</Card.Header>
 			<Card.Content>
 				<div class="text-2xl font-bold">{formatCurrency(data.stats.totalPaid)}</div>
-				<p class="text-xs text-muted-foreground">Total lifetime revenue</p>
+				<p class="text-[10px] text-muted-foreground uppercase font-bold tracking-tight mt-1">
+					Total lifetime revenue
+				</p>
 			</Card.Content>
 		</Card.Root>
-		<Card.Root>
+		<Card.Root class="rounded-xl shadow-sm border">
 			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Pending Amount</Card.Title>
+				<Card.Title class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+					>Pending Amount</Card.Title
+				>
 				<Clock class="h-4 w-4 text-orange-500" />
 			</Card.Header>
 			<Card.Content>
 				<div class="text-2xl font-bold">{formatCurrency(data.stats.pendingAmount)}</div>
-				<p class="text-xs text-muted-foreground">Outstanding invoices</p>
+				<p class="text-[10px] text-muted-foreground uppercase font-bold tracking-tight mt-1">
+					Outstanding invoices
+				</p>
 			</Card.Content>
 		</Card.Root>
-		<Card.Root>
+		<Card.Root class="rounded-xl shadow-sm border">
 			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Overdue Invoices</Card.Title>
+				<Card.Title class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+					>Overdue Invoices</Card.Title
+				>
 				<AlertCircle class="h-4 w-4 text-red-500" />
 			</Card.Header>
 			<Card.Content>
 				<div class="text-2xl font-bold">{data.stats.overdueCount}</div>
-				<p class="text-xs text-muted-foreground">Past due date</p>
+				<p class="text-[10px] text-muted-foreground uppercase font-bold tracking-tight mt-1">
+					Past due date
+				</p>
 			</Card.Content>
 		</Card.Root>
 	</div>
 
 	<!-- Filter Toolbar -->
 	<div
-		class="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border shadow-sm"
+		class="flex flex-col md:flex-row gap-4 justify-between items-end bg-card p-4 rounded-xl border shadow-sm"
 	>
-		<div class="relative w-full sm:w-72">
-			<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-			<Input
-				type="search"
-				placeholder={i18n.t('admin.transactions.searchPlaceholder')}
-				class="pl-8"
-				bind:value={searchValue}
-				oninput={handleSearch}
-			/>
+		<div class="flex flex-col md:flex-row gap-4 w-full">
+			<div class="space-y-1 w-full md:w-48">
+				<Label class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+					>Status</Label
+				>
+				<select
+					class="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					bind:value={statusValue}
+					onchange={handleStatusChange}
+				>
+					<option value="all">{i18n.t('admin.transactions.allStatus')}</option>
+					<option value="pending">{i18n.t('admin.transactions.pending')}</option>
+					<option value="paid">{i18n.t('admin.transactions.paid')}</option>
+					<option value="void">{i18n.t('admin.transactions.void')}</option>
+				</select>
+			</div>
+
+			<div class="space-y-1 w-full md:flex-1">
+				<Label class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+					>Search</Label
+				>
+				<div class="relative">
+					<Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+					<Input
+						type="search"
+						placeholder={i18n.t('admin.transactions.searchPlaceholder')}
+						class="h-9 pl-9"
+						bind:value={searchValue}
+						oninput={handleSearch}
+					/>
+				</div>
+			</div>
 		</div>
-		<div class="flex items-center gap-3 w-full sm:w-auto">
-			<select
-				class="flex h-9 w-full sm:w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-				bind:value={statusValue}
-				onchange={handleStatusChange}
-			>
-				<option value="all">{i18n.t('admin.transactions.allStatus')}</option>
-				<option value="pending">{i18n.t('admin.transactions.pending')}</option>
-				<option value="paid">{i18n.t('admin.transactions.paid')}</option>
-				<option value="void">{i18n.t('admin.transactions.void')}</option>
-			</select>
-			{#if searchValue || statusValue !== 'all'}
-				<Button variant="ghost" onclick={resetFilters} size="sm">
-					<X class="mr-2 h-4 w-4" />
-					{i18n.t('common.reset')}
-				</Button>
-			{/if}
-		</div>
+
+		{#if searchValue || statusValue !== 'all'}
+			<Button variant="ghost" onclick={resetFilters} size="sm" class="h-9 text-[10px] font-black uppercase tracking-widest">
+				<X class="mr-2 h-3 w-3" />
+				{i18n.t('common.reset')}
+			</Button>
+		{/if}
 	</div>
 
-	<Card.Root>
-		<Card.Header>
-			<Card.Title>{i18n.t('admin.transactions.invoices')}</Card.Title>
-		</Card.Header>
-		<Card.Content>
-			<Table.Root>
-				<Table.Header>
-					<Table.Row>
-						<Table.Head class="w-10">
+	<!-- Table Container -->
+	<div class="bg-card rounded-xl border shadow-sm overflow-hidden">
+		<div class="overflow-x-auto">
+			<table class="w-full text-left border-collapse">
+				<thead>
+					<tr class="bg-muted/30 border-b">
+						<th class="p-4 w-10">
 							<Checkbox
 								checked={selectedIds.length === data.invoices.length && data.invoices.length > 0}
 								onCheckedChange={toggleSelectAll}
 							/>
-						</Table.Head>
-						<Table.Head>{i18n.t('admin.transactions.invoiceId')}</Table.Head>
-						<Table.Head>{i18n.t('admin.transactions.tenant')}</Table.Head>
-						<Table.Head>{i18n.t('admin.transactions.amount')}</Table.Head>
-						<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
-						<Table.Head>{i18n.t('admin.transactions.dueDate')}</Table.Head>
-						<Table.Head>{i18n.t('admin.transactions.paidAt')}</Table.Head>
-						<Table.Head class="text-right">{i18n.t('common.actions')}</Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
-					{#each data.invoices as row}
-						<Table.Row class={isOverdue(row.invoice) ? 'bg-red-50/50 dark:bg-red-950/20' : ''}>
-							<Table.Cell>
-								<Checkbox
-									checked={selectedIds.includes(row.invoice.id)}
-									onCheckedChange={() => toggleSelect(row.invoice.id)}
-								/>
-							</Table.Cell>
-							<Table.Cell class="font-mono text-xs">{row.invoice.id.slice(0, 8)}...</Table.Cell>
-							<Table.Cell class="font-medium">
-								{row.tenant?.name || 'Unknown'}
-								<div class="text-xs text-muted-foreground">{row.tenant?.slug}</div>
-							</Table.Cell>
-							<Table.Cell>{formatCurrency(row.invoice.amount)}</Table.Cell>
-							<Table.Cell>
-								<Badge variant={getStatusVariant(row.invoice.status)}>
-									{getStatusText(row.invoice.status)}
-								</Badge>
-							</Table.Cell>
-							<Table.Cell>
-								{new Date(row.invoice.dueDate).toLocaleDateString(
-									i18n.language === 'id' ? 'id-ID' : 'en-US'
-								)}
-							</Table.Cell>
-							<Table.Cell>
-								{row.invoice.paidAt
-									? new Date(row.invoice.paidAt).toLocaleDateString(
-											i18n.language === 'id' ? 'id-ID' : 'en-US'
-										)
-									: '-'}
-							</Table.Cell>
-							<Table.Cell class="text-right">
-								<DropdownMenu.Root>
-									<DropdownMenu.Trigger class={buttonVariants({ variant: 'ghost', size: 'icon' })}>
-										<MoreHorizontal class="h-4 w-4" />
-									</DropdownMenu.Trigger>
-									<DropdownMenu.Content align="end">
-										<DropdownMenu.Label>{i18n.t('common.actions')}</DropdownMenu.Label>
-										<DropdownMenu.Separator />
-										<DropdownMenu.Item onclick={() => openDetailDialog(row)}>
-											<FileText class="mr-2 h-4 w-4" />
-											{i18n.t('admin.transactions.viewDetails')}
-										</DropdownMenu.Item>
-										<DropdownMenu.Separator />
-										<DropdownMenu.Item onclick={() => openStatusDialog(row, 'paid')}>
-											<CheckCircle class="mr-2 h-4 w-4 text-green-500" />
-											{i18n.t('admin.transactions.markPaid')}
-										</DropdownMenu.Item>
-										<DropdownMenu.Item onclick={() => openStatusDialog(row, 'pending')}>
-											<FileText class="mr-2 h-4 w-4" />
-											{i18n.t('admin.transactions.markPending')}
-										</DropdownMenu.Item>
-										<DropdownMenu.Item onclick={() => openStatusDialog(row, 'void')}>
-											<Ban class="mr-2 h-4 w-4 text-red-500" />
-											{i18n.t('admin.transactions.voidInvoice')}
-										</DropdownMenu.Item>
-									</DropdownMenu.Content>
-								</DropdownMenu.Root>
-							</Table.Cell>
-						</Table.Row>
-					{/each}
+						</th>
+						<th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+							>{i18n.t('admin.transactions.invoiceId')}</th
+						>
+						<th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+							>{i18n.t('admin.transactions.tenant')}</th
+						>
+						<th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center"
+							>{i18n.t('admin.transactions.amount')}</th
+						>
+						<th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center"
+							>{i18n.t('admin.packages.status')}</th
+						>
+						<th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+							>{i18n.t('admin.transactions.dueDate')}</th
+						>
+						<th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+							>{i18n.t('admin.transactions.paidAt')}</th
+						>
+						<th class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right"
+							>{i18n.t('common.actions')}</th
+						>
+					</tr>
+				</thead>
+				<tbody class="divide-y">
 					{#if data.invoices.length === 0}
-						<Table.Row>
-							<Table.Cell colspan={8} class="text-center h-24 text-muted-foreground">
+						<tr>
+							<td colspan="8" class="p-12 text-center text-muted-foreground italic text-sm">
 								{i18n.t('admin.transactions.noTransactions')}
-							</Table.Cell>
-						</Table.Row>
+							</td>
+						</tr>
+					{:else}
+						{#each data.invoices as row (row.invoice.id)}
+							<tr
+								class={cn(
+									'hover:bg-muted/20 transition-colors group',
+									isOverdue(row.invoice) ? 'bg-red-50/50 dark:bg-red-950/10' : ''
+								)}
+							>
+								<td class="p-4">
+									<Checkbox
+										checked={selectedIds.includes(row.invoice.id)}
+										onCheckedChange={() => toggleSelect(row.invoice.id)}
+									/>
+								</td>
+								<td class="p-4">
+									<span class="font-mono text-[10px] font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded"
+										>{row.invoice.id.slice(0, 8)}</span
+									>
+								</td>
+								<td class="p-4">
+									<div class="flex flex-col">
+										<span class="text-sm font-bold">{row.tenant?.name || 'Unknown'}</span>
+										<span class="text-[10px] text-muted-foreground font-medium uppercase tracking-tight"
+											>{row.tenant?.slug}</span
+										>
+									</div>
+								</td>
+								<td class="p-4 text-center">
+									<span class="text-sm font-black tabular-nums">{formatCurrency(row.invoice.amount)}</span>
+								</td>
+								<td class="p-4 text-center">
+									<Badge
+										variant={getStatusVariant(row.invoice.status)}
+										class="text-[9px] uppercase font-black tracking-tight flex items-center gap-1.5 mx-auto w-fit"
+									>
+										{@const Icon = getStatusIcon(row.invoice.status)}
+										<Icon class="w-2.5 h-2.5" />
+										{getStatusText(row.invoice.status)}
+									</Badge>
+								</td>
+								<td class="p-4">
+									<div class="flex flex-col">
+										<span class="text-xs font-medium">
+											{new Date(row.invoice.dueDate).toLocaleDateString(
+												i18n.language === 'id' ? 'id-ID' : 'en-US',
+												{ dateStyle: 'medium' }
+											)}
+										</span>
+										{#if isOverdue(row.invoice)}
+											<span class="text-[9px] text-red-500 font-black uppercase tracking-widest mt-0.5">Overdue</span>
+										{/if}
+									</div>
+								</td>
+								<td class="p-4 text-xs font-medium text-muted-foreground tabular-nums">
+									{row.invoice.paidAt
+										? new Date(row.invoice.paidAt).toLocaleDateString(
+												i18n.language === 'id' ? 'id-ID' : 'en-US',
+												{ dateStyle: 'medium' }
+											)
+										: '-'}
+								</td>
+								<td class="p-4 text-right">
+									<DropdownMenu.Root>
+										<DropdownMenu.Trigger>
+											{#snippet child({ props })}
+												<Button variant="ghost" size="icon" class="h-8 w-8" {...props}>
+													<MoreHorizontal class="h-4 w-4" />
+												</Button>
+											{/snippet}
+										</DropdownMenu.Trigger>
+										<DropdownMenu.Content align="end">
+											<DropdownMenu.Label>{i18n.t('common.actions')}</DropdownMenu.Label>
+											<DropdownMenu.Separator />
+											<DropdownMenu.Item onclick={() => openDetailDialog(row)}>
+												<FileText class="mr-2 h-4 w-4" />
+												{i18n.t('admin.transactions.viewDetails')}
+											</DropdownMenu.Item>
+											<DropdownMenu.Separator />
+											<DropdownMenu.Item onclick={() => openStatusDialog(row, 'paid')}>
+												<CheckCircle class="mr-2 h-4 w-4 text-green-500" />
+												{i18n.t('admin.transactions.markPaid')}
+											</DropdownMenu.Item>
+											<DropdownMenu.Item onclick={() => openStatusDialog(row, 'pending')}>
+												<FileText class="mr-2 h-4 w-4" />
+												{i18n.t('admin.transactions.markPending')}
+											</DropdownMenu.Item>
+											<DropdownMenu.Item onclick={() => openStatusDialog(row, 'void')}>
+												<Ban class="mr-2 h-4 w-4 text-red-500" />
+												{i18n.t('admin.transactions.voidInvoice')}
+											</DropdownMenu.Item>
+										</DropdownMenu.Content>
+									</DropdownMenu.Root>
+								</td>
+							</tr>
+						{/each}
 					{/if}
-				</Table.Body>
-			</Table.Root>
-		</Card.Content>
-	</Card.Root>
+				</tbody>
+			</table>
+		</div>
+	</div>
 
 	<!-- Bulk Action Bar -->
 	{#if selectedIds.length > 0}
@@ -390,39 +470,41 @@
 			class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in fade-in slide-in-from-bottom-4 z-50 border border-slate-700"
 		>
 			<div class="flex items-center gap-2">
-				<div class="bg-primary text-primary-foreground h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold">
+				<div
+					class="bg-primary text-primary-foreground h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-black"
+				>
 					{selectedIds.length}
 				</div>
-				<span class="text-sm font-medium">item dipilih</span>
+				<span class="text-xs font-black uppercase tracking-widest">Item Dipilih</span>
 			</div>
-			
+
 			<div class="h-6 w-px bg-slate-700"></div>
-			
+
 			<div class="flex items-center gap-2">
-				<Button 
-					size="sm" 
-					variant="ghost" 
-					class="text-white hover:bg-slate-800"
+				<Button
+					size="sm"
+					variant="ghost"
+					class="text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-800"
 					onclick={() => handleBulkAction('paid')}
 					disabled={isBulkUpdating}
 				>
 					<CheckCircle class="mr-2 h-4 w-4 text-green-400" />
 					Mark Paid
 				</Button>
-				<Button 
-					size="sm" 
-					variant="ghost" 
-					class="text-white hover:bg-slate-800"
+				<Button
+					size="sm"
+					variant="ghost"
+					class="text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-800"
 					onclick={() => handleBulkAction('void')}
 					disabled={isBulkUpdating}
 				>
 					<Ban class="mr-2 h-4 w-4 text-orange-400" />
 					Void
 				</Button>
-				<Button 
-					size="sm" 
-					variant="ghost" 
-					class="text-white hover:bg-red-900/50 hover:text-red-400"
+				<Button
+					size="sm"
+					variant="ghost"
+					class="text-[10px] font-black uppercase tracking-widest text-white hover:bg-red-900/50 hover:text-red-400"
 					onclick={() => handleBulkAction('delete')}
 					disabled={isBulkUpdating}
 				>
@@ -430,10 +512,15 @@
 					Delete
 				</Button>
 			</div>
-			
+
 			<div class="h-6 w-px bg-slate-700"></div>
-			
-			<Button size="sm" variant="ghost" class="text-slate-400 hover:text-white" onclick={() => selectedIds = []}>
+
+			<Button
+				size="sm"
+				variant="ghost"
+				class="text-slate-400 hover:text-white"
+				onclick={() => (selectedIds = [])}
+			>
 				<X class="h-4 w-4" />
 			</Button>
 		</div>
