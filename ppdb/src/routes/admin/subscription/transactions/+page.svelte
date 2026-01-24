@@ -8,6 +8,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
@@ -20,7 +21,11 @@
 		Ban,
 		Loader2,
 		Calendar,
-		Plus
+		Plus,
+		CreditCard,
+		Clock,
+		AlertCircle,
+		Trash2
 	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
@@ -31,6 +36,10 @@
 	let searchValue = $state(data.filters.search);
 	let statusValue = $state(data.filters.status);
 	let timeout: NodeJS.Timeout;
+
+	// Selection State
+	let selectedIds = $state<string[]>([]);
+	let isBulkUpdating = $state(false);
 
 	// Dialog States
 	let isStatusDialogOpen = $state(false);
@@ -132,6 +141,70 @@
 		const translated = i18n.t(key);
 		return translated !== key ? translated : cycle;
 	};
+
+	// Bulk Action Handlers
+	function toggleSelectAll() {
+		if (selectedIds.length === data.invoices.length) {
+			selectedIds = [];
+		} else {
+			selectedIds = data.invoices.map((row) => row.invoice.id);
+		}
+	}
+
+	function toggleSelect(id: string) {
+		if (selectedIds.includes(id)) {
+			selectedIds = selectedIds.filter((i) => i !== id);
+		} else {
+			selectedIds = [...selectedIds, id];
+		}
+	}
+
+	async function handleBulkAction(action: 'paid' | 'void' | 'delete') {
+		if (selectedIds.length === 0) return;
+
+		const confirmMsg =
+			action === 'delete'
+				? `Are you sure you want to delete ${selectedIds.length} invoices?`
+				: `Update ${selectedIds.length} invoices to ${action.toUpperCase()}?`;
+
+		if (!confirm(confirmMsg)) return;
+
+		isBulkUpdating = true;
+		const toastId = toast.loading(`${action === 'delete' ? 'Deleting' : 'Updating'} invoices...`);
+
+		const formData = new FormData();
+		formData.append('ids', JSON.stringify(selectedIds));
+
+		let url = '?/bulkUpdateStatus';
+		if (action === 'delete') {
+			url = '?/bulkDelete';
+		} else {
+			formData.append('status', action);
+		}
+
+		try {
+			const response = await fetch(url, {
+				method: 'POST',
+				body: formData
+			});
+
+			if (response.ok) {
+				toast.success('Bulk action completed successfully', { id: toastId });
+				selectedIds = [];
+				goto(page.url.pathname + page.url.search, { invalidateAll: true });
+			} else {
+				toast.error('Bulk action failed', { id: toastId });
+			}
+		} catch (error) {
+			toast.error('An error occurred', { id: toastId });
+		} finally {
+			isBulkUpdating = false;
+		}
+	}
+
+	function isOverdue(invoice: any) {
+		return invoice.status === 'pending' && new Date(invoice.dueDate) < new Date();
+	}
 </script>
 
 <div class="flex flex-col gap-6 p-6">
@@ -144,6 +217,40 @@
 			<Plus class="mr-2 h-4 w-4" />
 			Create Invoice
 		</Button>
+	</div>
+
+	<!-- Stats Grid -->
+	<div class="grid gap-4 md:grid-cols-3">
+		<Card.Root>
+			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<Card.Title class="text-sm font-medium">Total Paid</Card.Title>
+				<CreditCard class="h-4 w-4 text-green-500" />
+			</Card.Header>
+			<Card.Content>
+				<div class="text-2xl font-bold">{formatCurrency(data.stats.totalPaid)}</div>
+				<p class="text-xs text-muted-foreground">Total lifetime revenue</p>
+			</Card.Content>
+		</Card.Root>
+		<Card.Root>
+			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<Card.Title class="text-sm font-medium">Pending Amount</Card.Title>
+				<Clock class="h-4 w-4 text-orange-500" />
+			</Card.Header>
+			<Card.Content>
+				<div class="text-2xl font-bold">{formatCurrency(data.stats.pendingAmount)}</div>
+				<p class="text-xs text-muted-foreground">Outstanding invoices</p>
+			</Card.Content>
+		</Card.Root>
+		<Card.Root>
+			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+				<Card.Title class="text-sm font-medium">Overdue Invoices</Card.Title>
+				<AlertCircle class="h-4 w-4 text-red-500" />
+			</Card.Header>
+			<Card.Content>
+				<div class="text-2xl font-bold">{data.stats.overdueCount}</div>
+				<p class="text-xs text-muted-foreground">Past due date</p>
+			</Card.Content>
+		</Card.Root>
 	</div>
 
 	<!-- Filter Toolbar -->
@@ -188,6 +295,12 @@
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
+						<Table.Head class="w-10">
+							<Checkbox
+								checked={selectedIds.length === data.invoices.length && data.invoices.length > 0}
+								onCheckedChange={toggleSelectAll}
+							/>
+						</Table.Head>
 						<Table.Head>{i18n.t('admin.transactions.invoiceId')}</Table.Head>
 						<Table.Head>{i18n.t('admin.transactions.tenant')}</Table.Head>
 						<Table.Head>{i18n.t('admin.transactions.amount')}</Table.Head>
@@ -199,7 +312,13 @@
 				</Table.Header>
 				<Table.Body>
 					{#each data.invoices as row}
-						<Table.Row>
+						<Table.Row class={isOverdue(row.invoice) ? 'bg-red-50/50 dark:bg-red-950/20' : ''}>
+							<Table.Cell>
+								<Checkbox
+									checked={selectedIds.includes(row.invoice.id)}
+									onCheckedChange={() => toggleSelect(row.invoice.id)}
+								/>
+							</Table.Cell>
 							<Table.Cell class="font-mono text-xs">{row.invoice.id.slice(0, 8)}...</Table.Cell>
 							<Table.Cell class="font-medium">
 								{row.tenant?.name || 'Unknown'}
@@ -236,15 +355,15 @@
 											{i18n.t('admin.transactions.viewDetails')}
 										</DropdownMenu.Item>
 										<DropdownMenu.Separator />
-										<DropdownMenu.Item onclick={() => openStatusDialog(row.invoice, 'paid')}>
+										<DropdownMenu.Item onclick={() => openStatusDialog(row, 'paid')}>
 											<CheckCircle class="mr-2 h-4 w-4 text-green-500" />
 											{i18n.t('admin.transactions.markPaid')}
 										</DropdownMenu.Item>
-										<DropdownMenu.Item onclick={() => openStatusDialog(row.invoice, 'pending')}>
+										<DropdownMenu.Item onclick={() => openStatusDialog(row, 'pending')}>
 											<FileText class="mr-2 h-4 w-4" />
 											{i18n.t('admin.transactions.markPending')}
 										</DropdownMenu.Item>
-										<DropdownMenu.Item onclick={() => openStatusDialog(row.invoice, 'void')}>
+										<DropdownMenu.Item onclick={() => openStatusDialog(row, 'void')}>
 											<Ban class="mr-2 h-4 w-4 text-red-500" />
 											{i18n.t('admin.transactions.voidInvoice')}
 										</DropdownMenu.Item>
@@ -255,7 +374,7 @@
 					{/each}
 					{#if data.invoices.length === 0}
 						<Table.Row>
-							<Table.Cell colspan={7} class="text-center h-24 text-muted-foreground">
+							<Table.Cell colspan={8} class="text-center h-24 text-muted-foreground">
 								{i18n.t('admin.transactions.noTransactions')}
 							</Table.Cell>
 						</Table.Row>
@@ -264,6 +383,61 @@
 			</Table.Root>
 		</Card.Content>
 	</Card.Root>
+
+	<!-- Bulk Action Bar -->
+	{#if selectedIds.length > 0}
+		<div
+			class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-6 animate-in fade-in slide-in-from-bottom-4 z-50 border border-slate-700"
+		>
+			<div class="flex items-center gap-2">
+				<div class="bg-primary text-primary-foreground h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold">
+					{selectedIds.length}
+				</div>
+				<span class="text-sm font-medium">item dipilih</span>
+			</div>
+			
+			<div class="h-6 w-px bg-slate-700"></div>
+			
+			<div class="flex items-center gap-2">
+				<Button 
+					size="sm" 
+					variant="ghost" 
+					class="text-white hover:bg-slate-800"
+					onclick={() => handleBulkAction('paid')}
+					disabled={isBulkUpdating}
+				>
+					<CheckCircle class="mr-2 h-4 w-4 text-green-400" />
+					Mark Paid
+				</Button>
+				<Button 
+					size="sm" 
+					variant="ghost" 
+					class="text-white hover:bg-slate-800"
+					onclick={() => handleBulkAction('void')}
+					disabled={isBulkUpdating}
+				>
+					<Ban class="mr-2 h-4 w-4 text-orange-400" />
+					Void
+				</Button>
+				<Button 
+					size="sm" 
+					variant="ghost" 
+					class="text-white hover:bg-red-900/50 hover:text-red-400"
+					onclick={() => handleBulkAction('delete')}
+					disabled={isBulkUpdating}
+				>
+					<Trash2 class="mr-2 h-4 w-4 text-red-400" />
+					Delete
+				</Button>
+			</div>
+			
+			<div class="h-6 w-px bg-slate-700"></div>
+			
+			<Button size="sm" variant="ghost" class="text-slate-400 hover:text-white" onclick={() => selectedIds = []}>
+				<X class="h-4 w-4" />
+			</Button>
+		</div>
+	{/if}
 
 	<!-- Create Invoice Dialog -->
 	<Dialog.Root bind:open={isCreateDialogOpen}>
@@ -535,7 +709,7 @@
 							type="button"
 							onclick={() => {
 								isDetailDialogOpen = false;
-								openStatusDialog(selectedInvoice.invoice, 'paid');
+								openStatusDialog(selectedInvoice, 'paid');
 							}}
 						>
 							<CheckCircle class="mr-2 h-4 w-4" />
