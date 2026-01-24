@@ -38,6 +38,12 @@
 	let statusValue = $state(data.filters.status);
 	let timeout: NodeJS.Timeout;
 
+	// Reactive state when data changes
+	$effect(() => {
+		searchValue = data.filters.search;
+		statusValue = data.filters.status;
+	});
+
 	// Selection State
 	let selectedIds = $state<string[]>([]);
 	let isBulkUpdating = $state(false);

@@ -2,6 +2,7 @@
 	import type { Component } from 'svelte';
 	import { cn } from '$lib/utils';
 	import { Badge } from '$lib/components/ui/badge';
+	import { page } from '$app/state';
 
 	interface Props {
 		name: string;
@@ -12,20 +13,29 @@
 		class?: string;
 	}
 
-	let { name, icon: Icon, href, isActive = false, badge, class: className }: Props = $props();
+	let { name, icon: Icon, href, isActive, badge, class: className }: Props = $props();
+
+	// Improved active state detection with support for nested routes
+	let computedIsActive = $derived(
+		isActive ??
+			(page.url.pathname === href ||
+				page.url.pathname.startsWith(href + '/') ||
+				(page.url.pathname.startsWith(href) && page.url.pathname.charAt(href.length) === '?'))
+	);
 </script>
 
 <a
 	{href}
 	class={cn(
 		'group relative flex items-center justify-between rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-300',
-		isActive
+		computedIsActive
 			? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
 			: 'text-slate-400 hover:bg-white/5 hover:text-slate-50',
 		className
 	)}
+	aria-current={computedIsActive ? 'page' : undefined}
 >
-	{#if isActive}
+	{#if computedIsActive}
 		<div
 			class="absolute left-0 top-2.5 bottom-2.5 w-1 bg-white rounded-full transition-all duration-500"
 		></div>
@@ -35,17 +45,19 @@
 		<Icon
 			class={cn(
 				'h-4 w-4 transition-transform duration-300 group-hover:scale-110',
-				isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-200'
+				computedIsActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-200'
 			)}
 		/>
 		<span class="tracking-tight">{name}</span>
 	</div>
 	{#if badge !== undefined}
 		<Badge
-			variant={isActive ? 'default' : 'secondary'}
+			variant={computedIsActive ? 'default' : 'secondary'}
 			class={cn(
 				'h-5 min-w-[20px] justify-center px-1.5 text-[10px] font-bold border-none transition-all duration-300',
-				isActive ? 'bg-white text-blue-600' : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700'
+				computedIsActive
+					? 'bg-white text-blue-600'
+					: 'bg-slate-800 text-slate-400 group-hover:bg-slate-700'
 			)}
 		>
 			{badge}

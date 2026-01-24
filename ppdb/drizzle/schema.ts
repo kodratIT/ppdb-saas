@@ -16,6 +16,8 @@ export const status = pgEnum("status", ['active', 'inactive'])
 export const userRole = pgEnum("user_role", ['super_admin', 'school_admin', 'verifier', 'treasurer', 'interviewer', 'field_officer', 'parent'])
 export const userStatus = pgEnum("user_status", ['active', 'inactive', 'pending'])
 export const verificationAction = pgEnum("verification_action", ['approve', 'reject', 'request_revision'])
+export const payoutStatus = pgEnum("payout_status", ['pending', 'processed', 'completed', 'failed', 'rejected'])
+export const payoutAuditAction = pgEnum("payout_audit_action", ['approved', 'rejected', 'processed', 'failed', 'updated'])
 
 
 export const applications = pgTable("applications", {
@@ -539,4 +541,60 @@ export const users = pgTable("users", {
 			name: "users_tenant_id_tenants_id_fk"
 		}),
 	unique("users_email_tenant_id_unique").on(table.email, table.tenantId),
+]);
+
+export const payouts = pgTable("payouts", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	tenantId: uuid("tenant_id").notNull(),
+	amount: integer().notNull(),
+	status: payoutStatus().default('pending').notNull(),
+	bankName: text("bank_name").notNull(),
+	accountNumber: text("account_number").notNull(),
+	accountName: text("account_name").notNull(),
+	reference: text(),
+	requestedBy: uuid("requested_by").notNull(),
+	processedBy: uuid("processed_by"),
+	processedAt: timestamp("processed_at", { mode: 'string' }),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.tenantId],
+			foreignColumns: [tenants.id],
+			name: "payouts_tenant_id_tenants_id_fk"
+		}),
+	foreignKey({
+			columns: [table.requestedBy],
+			foreignColumns: [users.id],
+			name: "payouts_requested_by_users_id_fk"
+		}),
+	foreignKey({
+			columns: [table.processedBy],
+			foreignColumns: [users.id],
+			name: "payouts_processed_by_users_id_fk"
+		}),
+]);
+
+export const payoutAuditLogs = pgTable("payout_audit_logs", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	payoutId: uuid("payout_id").notNull(),
+	action: payoutAuditAction().notNull(),
+	previousStatus: payoutStatus("previous_status"),
+	newStatus: payoutStatus("new_status"),
+	actorId: uuid("actor_id").notNull(),
+	actorName: text("actor_name").notNull(),
+	notes: text(),
+	metadata: jsonb(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.payoutId],
+			foreignColumns: [payouts.id],
+			name: "payout_audit_logs_payout_id_payouts_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.actorId],
+			foreignColumns: [users.id],
+			name: "payout_audit_logs_actor_id_users_id_fk"
+		}),
 ]);

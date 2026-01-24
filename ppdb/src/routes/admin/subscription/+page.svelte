@@ -1,5 +1,21 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import * as Table from '$lib/components/ui/table';
+	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
+	import {
+		DollarSign,
+		TrendingUp,
+		Users,
+		AlertTriangle,
+		CreditCard,
+		Clock,
+		CheckCircle2,
+		ArrowRight
+	} from 'lucide-svelte';
+	import RevenueTrendChart from '$lib/components/admin/RevenueTrendChart.svelte';
+
 	let { data }: { data: PageData } = $props();
 
 	function formatCurrency(amount: number) {
@@ -37,113 +53,147 @@
 
 	<!-- Stats Grid -->
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-		<Card.Root>
-			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">MRR</Card.Title>
-				<DollarSign class="h-4 w-4 text-muted-foreground" />
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold">{formatCurrency(data.stats.mrr)}</div>
+		<!-- MRR Card -->
+		<div class="bg-card p-4 rounded-xl border shadow-sm hover:shadow-md transition-shadow group">
+			<div class="flex items-center justify-between mb-3">
+				<div class="flex items-center gap-2">
+					<DollarSign class="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+					<span
+						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+														>
+						MRR
+					</span>
+				</div>
+			</div>
+			<div class="space-y-1">
+				<div class="text-2xl font-bold tabular-nums">{formatCurrency(data.stats.mrr)}</div>
 				<p class="text-xs text-muted-foreground">Monthly Recurring Revenue</p>
-			</Card.Content>
-		</Card.Root>
-		<Card.Root>
-			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">ARR</Card.Title>
-				<TrendingUp class="h-4 w-4 text-muted-foreground" />
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold">{formatCurrency(data.stats.arr)}</div>
+			</div>
+		</div>
+		<!-- ARR Card -->
+		<div class="bg-card p-4 rounded-xl border shadow-sm hover:shadow-md transition-shadow group">
+			<div class="flex items-center justify-between mb-3">
+				<div class="flex items-center gap-2">
+					<TrendingUp class="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+					<span
+						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+													>
+						ARR
+					</span>
+				</div>
+			</div>
+			<div class="space-y-1">
+				<div class="text-2xl font-bold tabular-nums">{formatCurrency(data.stats.arr)}</div>
 				<p class="text-xs text-muted-foreground">Annual Run Rate</p>
-			</Card.Content>
-		</Card.Root>
-		<Card.Root>
-			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Active Tenants</Card.Title>
-				<Users class="h-4 w-4 text-muted-foreground" />
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold">{data.stats.activeCount}</div>
+			</div>
+		</div>
+
+		<!-- Active Tenants Card -->
+		<div class="bg-card p-4 rounded-xl border shadow-sm hover:shadow-md transition-shadow group">
+			<div class="flex items-center justify-between mb-3">
+				<div class="flex items-center gap-2">
+					<Users class="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+					<span
+						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+													>
+						Active Tenants
+					</span>
+				</div>
+			</div>
+			<div class="space-y-1">
+				<div class="text-2xl font-bold tabular-nums">{data.stats.activeCount}</div>
 				<p class="text-xs text-muted-foreground">
 					+ {data.stats.trialCount} on trial
 				</p>
-			</Card.Content>
-		</Card.Root>
-		<Card.Root>
-			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Past Due</Card.Title>
-				<AlertTriangle class="h-4 w-4 text-red-500" />
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold text-red-600">{data.stats.pastDueCount}</div>
+			</div>
+		</div>
+
+		<!-- Past Due Card -->
+		<div class="bg-card p-4 rounded-xl border shadow-sm hover:shadow-md transition-shadow group">
+			<div class="flex items-center justify-between mb-3">
+				<div class="flex items-center gap-2">
+					<AlertTriangle class="h-4 w-4 text-red-500" />
+					<span
+						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+													>
+						Past Due
+					</span>
+				</div>
+			</div>
+			<div class="space-y-1">
+				<div class="text-2xl font-bold text-red-600 tabular-nums">{data.stats.pastDueCount}</div>
 				<p class="text-xs text-muted-foreground">Subscriptions needing attention</p>
-			</Card.Content>
-		</Card.Root>
+			</div>
+		</div>
 	</div>
 
 	<!-- Analytics Charts -->
 	<div class="grid gap-4 md:grid-cols-2">
-		<Card.Root>
-			<Card.Header>
-				<Card.Title class="text-sm font-medium flex items-center gap-2">
-					<DollarSign class="h-4 w-4" />
-					Revenue Growth (Last 6 Months)
-				</Card.Title>
-			</Card.Header>
-			<Card.Content class="pt-4">
-				{#if revenueChartData.length > 0}
-					<RevenueTrendChart 
-						data={revenueChartData} 
-						labels={revenueChartLabels} 
-						height={250} 
-						color="#10b981" 
-					/>
-				{:else}
-					<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
-						No revenue data available yet
-					</div>
-				{/if}
-			</Card.Content>
-		</Card.Root>
+		<div class="bg-card p-5 rounded-xl border shadow-sm">
+			<div class="flex items-center gap-2 mb-4">
+				<DollarSign class="h-4 w-4 text-muted-foreground" />
+				<h3 class="text-sm font-semibold">Revenue Growth</h3>
+				<span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-auto">
+					Last 6 Months
+				</span>
+			</div>
+			{#if revenueChartData.length > 0}
+				<RevenueTrendChart
+					data={revenueChartData}
+					labels={revenueChartLabels}
+					height={250}
+					color="#10b981"
+				/>
+			{:else}
+				<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
+					No revenue data available yet
+				</div>
+			{/if}
+		</div>
 
-		<Card.Root>
-			<Card.Header>
-				<Card.Title class="text-sm font-medium flex items-center gap-2">
-					<Users class="h-4 w-4" />
-					New Tenants Growth (Last 6 Months)
-				</Card.Title>
-			</Card.Header>
-			<Card.Content class="pt-4">
-				{#if growthChartData.length > 0}
-					<RevenueTrendChart 
-						data={growthChartData} 
-						labels={growthChartLabels} 
-						height={250} 
-						color="#3b82f6" 
-					/>
-				{:else}
-					<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
-						No growth data available yet
-					</div>
-				{/if}
-			</Card.Content>
-		</Card.Root>
+		<div class="bg-card p-5 rounded-xl border shadow-sm">
+			<div class="flex items-center gap-2 mb-4">
+				<Users class="h-4 w-4 text-muted-foreground" />
+				<h3 class="text-sm font-semibold">New Tenants</h3>
+				<span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-auto">
+					Last 6 Months
+				</span>
+			</div>
+			{#if growthChartData.length > 0}
+				<RevenueTrendChart
+					data={growthChartData}
+					labels={growthChartLabels}
+					height={250}
+					color="#3b82f6"
+				/>
+			{:else}
+				<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
+					No growth data available yet
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
 		<!-- Recent Transactions -->
-		<Card.Root class="col-span-4">
-			<Card.Header>
-				<Card.Title>Recent Transactions</Card.Title>
-			</Card.Header>
-			<Card.Content>
+		<div class="bg-card rounded-xl border shadow-sm col-span-4">
+			<div class="p-5 border-b flex items-center justify-between">
+				<div class="flex items-center gap-2">
+					<CreditCard class="h-4 w-4 text-muted-foreground" />
+					<h3 class="text-sm font-semibold">Recent Transactions</h3>
+				</div>
+				<Button variant="ghost" size="sm" href="/admin/subscription/transactions" class="h-8">
+					View all <ArrowRight class="ml-1 h-3 w-3" />
+				</Button>
+			</div>
+			<div class="p-0">
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head>Tenant</Table.Head>
-							<Table.Head>Amount</Table.Head>
-							<Table.Head>Status</Table.Head>
-							<Table.Head>Date</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest">Tenant</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-right">Amount</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-center">Status</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-right">Date</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
@@ -155,26 +205,29 @@
 							</Table.Row>
 						{:else}
 							{#each data.recentInvoices as row}
-								<Table.Row>
+								<Table.Row class="hover:bg-muted/50">
 									<Table.Cell>
-										<div class="font-medium">{row.tenant?.name || 'Unknown'}</div>
-										<div class="text-xs text-muted-foreground hidden sm:inline">
+										<div class="font-medium text-sm">{row.tenant?.name || 'Unknown'}</div>
+										<div class="text-xs text-muted-foreground hidden sm:inline font-mono">
 											{row.invoice.id.slice(0, 8)}
 										</div>
 									</Table.Cell>
-									<Table.Cell>{formatCurrency(row.invoice.amount)}</Table.Cell>
-									<Table.Cell>
+									<Table.Cell class="text-right font-medium tabular-nums">
+										{formatCurrency(row.invoice.amount)}
+									</Table.Cell>
+									<Table.Cell class="text-center">
 										<Badge
 											variant={row.invoice.status === 'paid'
 												? 'default'
 												: row.invoice.status === 'void'
 													? 'destructive'
 													: 'secondary'}
+											class="text-xs"
 										>
 											{row.invoice.status}
 										</Badge>
 									</Table.Cell>
-									<Table.Cell class="text-muted-foreground text-sm">
+									<Table.Cell class="text-right text-muted-foreground text-sm">
 										{formatDate(row.invoice.createdAt)}
 									</Table.Cell>
 								</Table.Row>
@@ -182,21 +235,24 @@
 						{/if}
 					</Table.Body>
 				</Table.Root>
-				<div class="mt-4 flex justify-end">
-					<Button variant="ghost" size="sm" href="/admin/subscription/transactions">
-						View all transactions <ArrowRight class="ml-2 h-4 w-4" />
-					</Button>
-				</div>
-			</Card.Content>
-		</Card.Root>
+			</div>
+		</div>
 
 		<!-- Expiring Subscriptions -->
-		<Card.Root class="col-span-3">
-			<Card.Header>
-				<Card.Title>Expiring Soon</Card.Title>
-				<Card.Description>Subscriptions ending in next 7 days</Card.Description>
-			</Card.Header>
-			<Card.Content>
+		<div class="bg-card rounded-xl border shadow-sm col-span-3">
+			<div class="p-5 border-b flex items-center justify-between">
+				<div class="flex items-center gap-2">
+					<Clock class="h-4 w-4 text-orange-500" />
+					<div>
+						<h3 class="text-sm font-semibold">Expiring Soon</h3>
+						<p class="text-xs text-muted-foreground">Next 7 days</p>
+					</div>
+				</div>
+				<Button variant="ghost" size="sm" href="/admin/subscription/tenants" class="h-8">
+					Manage <ArrowRight class="ml-1 h-3 w-3" />
+				</Button>
+			</div>
+			<div class="p-5">
 				<div class="space-y-4">
 					{#if data.expiringSubscriptions.length === 0}
 						<div class="text-center py-8 text-muted-foreground text-sm">
@@ -205,7 +261,7 @@
 						</div>
 					{:else}
 						{#each data.expiringSubscriptions as item}
-							<div class="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+							<div class="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 group hover:bg-muted/50 rounded-lg p-2 -mx-2 transition-colors">
 								<div class="space-y-1">
 									<p class="text-sm font-medium leading-none">{item.tenant?.name}</p>
 									<p class="text-xs text-muted-foreground">
@@ -227,12 +283,7 @@
 						{/each}
 					{/if}
 				</div>
-				<div class="mt-6 flex justify-end">
-					<Button variant="ghost" size="sm" href="/admin/subscription/tenants">
-						Manage tenants <ArrowRight class="ml-2 h-4 w-4" />
-					</Button>
-				</div>
-			</Card.Content>
-		</Card.Root>
+			</div>
+		</div>
 	</div>
 </div>

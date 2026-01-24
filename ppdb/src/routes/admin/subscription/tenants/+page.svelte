@@ -14,12 +14,13 @@
 		SelectItem,
 		SelectTrigger
 	} from '$lib/components/ui';
+	import { Checkbox } from '$lib/components/ui/checkbox';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import {
-		MoreHorizontal,
+		MoreVertical,
 		CreditCard,
 		Loader2,
 		Search,
@@ -106,6 +107,27 @@
 	let isExtendDialogOpen = $state(false);
 	let isCancelDialogOpen = $state(false);
 	let isSaving = $state(false);
+
+	let selectedIds = $state<string[]>([]);
+	let selectAll = $derived(
+		data.tenants.length > 0 && selectedIds.length === data.tenants.length
+	);
+
+	function toggleSelectAll() {
+		if (selectAll) {
+			selectedIds = [];
+		} else {
+			selectedIds = data.tenants.map((row) => row.tenant.id);
+		}
+	}
+
+	function toggleSelect(id: string) {
+		if (selectedIds.includes(id)) {
+			selectedIds = selectedIds.filter((i) => i !== id);
+		} else {
+			selectedIds = [...selectedIds, id];
+		}
+	}
 
 	let selectedTenant = $state<{
 		id: string;
@@ -259,7 +281,7 @@
 	</div>
 
 	<!-- Filters Bar -->
-	<Card.Root>
+	<Card.Root class="rounded-xl border shadow-sm">
 		<Card.Content class="p-4">
 			<div class="flex flex-col md:flex-row items-end gap-4">
 				<!-- Search -->
@@ -342,47 +364,80 @@
 		</Card.Content>
 	</Card.Root>
 
-	<Card.Root>
-		<Card.Header>
-			<Card.Title>{i18n.t('admin.tenants.tenants')}</Card.Title>
-			<Card.Description>{i18n.t('admin.tenants.description')}</Card.Description>
-		</Card.Header>
-		<Card.Content>
-			<div class="overflow-x-auto">
-				<Table.Root>
-					<Table.Header>
-						<Table.Row>
-							<Table.Head>{i18n.t('admin.tenants.tenantName')}</Table.Head>
-							<Table.Head>{i18n.t('admin.packages.slug')}</Table.Head>
-							<Table.Head>{i18n.t('admin.tenants.package')}</Table.Head>
-							<Table.Head>{i18n.t('admin.tenants.usageStudents')}</Table.Head>
-							<Table.Head>{i18n.t('admin.packages.status')}</Table.Head>
-							<Table.Head>{i18n.t('admin.tenants.cycle')}</Table.Head>
-							<Table.Head>{i18n.t('admin.tenants.validUntil')}</Table.Head>
-							<Table.Head class="text-right">{i18n.t('common.actions')}</Table.Head>
-						</Table.Row>
-					</Table.Header>
+	<!-- Bulk Actions -->
+	{#if selectedIds.length > 0}
+		<div
+			class="flex items-center gap-4 px-4 py-3 bg-primary/10 border border-primary/20 rounded-xl"
+		>
+			<span class="text-sm font-medium">{selectedIds.length} {i18n.t('common.selected')}</span>
+			<div class="flex gap-2">
+				<Button variant="outline" size="sm" onclick={() => (selectedIds = [])}>
+					{i18n.t('common.clear')}
+				</Button>
+				<Button
+					variant="destructive"
+					size="sm"
+					onclick={() => alert('Bulk action pending implementation')}
+				>
+					{i18n.t('common.delete')} {i18n.t('common.selected')}
+				</Button>
+			</div>
+		</div>
+	{/if}
+
+	<div class="bg-card rounded-xl border shadow-sm overflow-hidden">
+		<div class="p-6 border-b bg-muted/10">
+			<h3 class="text-lg font-semibold leading-none tracking-tight">{i18n.t('admin.tenants.tenants')}</h3>
+			<p class="text-sm text-muted-foreground mt-1.5">{i18n.t('admin.tenants.description')}</p>
+		</div>
+		<div class="overflow-x-auto">
+			<Table.Root>
+				<Table.Header class="bg-muted/30">
+					<Table.Row>
+						<Table.Head class="p-4 w-10">
+							<Checkbox checked={selectAll} onCheckedChange={toggleSelectAll} />
+						</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{i18n.t('admin.tenants.tenantName')}</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{i18n.t('admin.packages.slug')}</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{i18n.t('admin.tenants.package')}</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{i18n.t('admin.tenants.usageStudents')}</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{i18n.t('admin.packages.status')}</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{i18n.t('admin.tenants.cycle')}</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">{i18n.t('admin.tenants.validUntil')}</Table.Head>
+						<Table.Head class="p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">{i18n.t('common.actions')}</Table.Head>
+					</Table.Row>
+				</Table.Header>
 					<Table.Body>
 						{#each data.tenants as row}
-							<Table.Row>
-								<Table.Cell class="font-medium">{row.tenant.name}</Table.Cell>
-								<Table.Cell>{row.tenant.slug}</Table.Cell>
-								<Table.Cell>
+							<Table.Row class="hover:bg-muted/20 transition-colors group">
+								<Table.Cell class="p-4">
+									<Checkbox
+										checked={selectedIds.includes(row.tenant.id)}
+										onCheckedChange={() => toggleSelect(row.tenant.id)}
+									/>
+								</Table.Cell>
+								<Table.Cell class="p-4">
+									<div class="flex flex-col">
+										<span class="font-bold text-sm">{row.tenant.name}</span>
+									</div>
+								</Table.Cell>
+								<Table.Cell class="p-4 text-xs text-muted-foreground">{row.tenant.slug}</Table.Cell>
+								<Table.Cell class="p-4">
 									{#if row.package}
-										<Badge variant="outline">{row.package.name}</Badge>
+										<Badge variant="outline" class="text-[9px] uppercase font-black tracking-tight">{row.package.name}</Badge>
 									{:else}
 										<span class="text-muted-foreground">-</span>
 									{/if}
 								</Table.Cell>
-								<Table.Cell>
+								<Table.Cell class="p-4">
 									{#if row.package}
 										{@const limit = row.package.limits?.max_students ?? 0}
 										{@const count = row.applicationCount ?? 0}
 										{@const percentage = getUsagePercentage(count, limit)}
 
 										<div class="flex flex-col gap-1 w-32">
-											<div class="flex justify-between text-xs text-muted-foreground">
-												<span>{count}</span>
+											<div class="flex justify-between text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
+												<span>{count} Applications</span>
 												<span>{limit === -1 ? '∞' : limit}</span>
 											</div>
 											{#if limit !== -1}
@@ -402,32 +457,32 @@
 										<span class="text-muted-foreground">-</span>
 									{/if}
 								</Table.Cell>
-								<Table.Cell>
-									<Badge variant={getStatusVariant(row.subscription?.status)}>
+								<Table.Cell class="p-4">
+									<Badge variant={getStatusVariant(row.subscription?.status)} class="text-[9px] uppercase font-black tracking-tight">
 										{getStatusText(row.subscription?.status)}
 									</Badge>
 								</Table.Cell>
-								<Table.Cell>
+								<Table.Cell class="p-4 text-xs font-medium">
 									{getCycleText(row.subscription?.billingCycle)}
 								</Table.Cell>
-								<Table.Cell>
+								<Table.Cell class="p-4 text-xs">
 									{row.subscription?.currentPeriodEnd
 										? new Date(row.subscription.currentPeriodEnd).toLocaleDateString(
 												i18n.language === 'id' ? 'id-ID' : 'en-US'
 											)
 										: '-'}
 								</Table.Cell>
-								<Table.Cell class="text-right">
+								<Table.Cell class="p-4 text-right">
 									<DropdownMenu.Root>
 										<DropdownMenu.Trigger
-											class={buttonVariants({ variant: 'ghost', size: 'icon' })}
+											class={buttonVariants({ variant: 'ghost', size: 'icon', class: 'h-8 w-8' })}
 										>
-											<MoreHorizontal class="h-4 w-4" />
+											<MoreVertical class="h-4 w-4" />
 										</DropdownMenu.Trigger>
 										<DropdownMenu.Content align="end">
 											<DropdownMenu.Label>{i18n.t('common.actions')}</DropdownMenu.Label>
 											<DropdownMenu.Separator />
-											<DropdownMenu.Item href="/admin/subscription/tenants/{row.tenant.id}">
+											<DropdownMenu.Item onSelect={() => goto(`/admin/subscription/tenants/${row.tenant.id}`)}>
 												<Eye class="mr-2 h-4 w-4" />
 												{i18n.t('common.viewDetails')}
 											</DropdownMenu.Item>
@@ -467,32 +522,32 @@
 					</Table.Body>
 				</Table.Root>
 			</div>
-		</Card.Content>
-	</Card.Root>
-
-	<div class="flex items-center justify-end space-x-2 py-4">
-		<Button
-			variant="outline"
-			size="sm"
-			disabled={data.pagination.page === 1}
-			onclick={() => handlePageChange(data.pagination.page - 1)}
-		>
-			{i18n.t('common.previous')}
-		</Button>
-		<div class="text-sm text-muted-foreground">
-			{i18n.t('common.page')}
-			{data.pagination.page}
-			{i18n.t('common.of')}
-			{data.pagination.totalPages}
 		</div>
-		<Button
-			variant="outline"
-			size="sm"
-			disabled={data.pagination.page >= data.pagination.totalPages}
-			onclick={() => handlePageChange(data.pagination.page + 1)}
-		>
-			{i18n.t('common.next')}
-		</Button>
+
+	<div class="flex items-center justify-between px-2 py-4 bg-muted/20 rounded-xl border mt-4">
+		<div class="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2">
+			{i18n.t('common.page')} {data.pagination.page} {i18n.t('common.of')} {data.pagination.totalPages}
+		</div>
+		<div class="flex items-center space-x-2 mr-2">
+			<Button
+				variant="outline"
+				size="sm"
+				class="h-8 text-[10px] font-black uppercase tracking-widest"
+				disabled={data.pagination.page === 1}
+				onclick={() => handlePageChange(data.pagination.page - 1)}
+			>
+				{i18n.t('common.previous')}
+			</Button>
+			<Button
+				variant="outline"
+				size="sm"
+				class="h-8 text-[10px] font-black uppercase tracking-widest"
+				disabled={data.pagination.page >= data.pagination.totalPages}
+				onclick={() => handlePageChange(data.pagination.page + 1)}
+			>
+				{i18n.t('common.next')}
+			</Button>
+		</div>
 	</div>
 
 	<!-- Manage Subscription Dialog -->
