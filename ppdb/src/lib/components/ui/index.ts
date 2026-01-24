@@ -1,6 +1,6 @@
 export { default as Modal } from './modal.svelte';
 export { default as Dialog } from './dialog.svelte';
-export { default as Button } from './button.svelte';
+export { default as Button, buttonVariants } from './button.svelte';
 export { default as Card } from './card.svelte';
 export { default as CardContent } from './card-content.svelte';
 export { default as CardHeader } from './card-header.svelte';
@@ -21,3 +21,4 @@ export { default as TableCell } from './table-cell.svelte';
 export { default as TableBody } from './table-body.svelte';
 export { default as TableFooter } from './table-footer.svelte';
 export { default as TableCaption } from './table-caption.svelte';
+export { Switch } from './switch';

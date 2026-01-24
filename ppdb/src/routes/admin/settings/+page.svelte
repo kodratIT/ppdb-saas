@@ -237,7 +237,9 @@
 									rows={3}
 								/>
 								<p class="text-xs text-muted-foreground">
-									{i18n.t('admin.settings.availableVars', { vars: '{{name}}, {{amount}}, {{dueDate}}' })}
+									{i18n.t('admin.settings.availableVars', {
+										vars: '{{name}}, {{amount}}, {{dueDate}}'
+									})}
 								</p>
 							</div>
 							<div class="space-y-2">
@@ -261,7 +263,9 @@
 									rows={3}
 								/>
 								<p class="text-xs text-muted-foreground">
-									{i18n.t('admin.settings.availableVars', { vars: '{{platformName}}, {{schoolName}}' })}
+									{i18n.t('admin.settings.availableVars', {
+										vars: '{{platformName}}, {{schoolName}}'
+									})}
 								</p>
 							</div>
 						</Card.Content>
@@ -308,7 +312,8 @@
 										<div>
 											<p class="font-medium">{i18n.t('admin.settings.whatsappGateway')}</p>
 											<p class="text-xs text-muted-foreground">
-												{i18n.t('admin.settings.status')}: {data.health?.waha.details || i18n.t('admin.settings.unknown')}
+												{i18n.t('admin.settings.status')}: {data.health?.waha.details ||
+													i18n.t('admin.settings.unknown')}
 											</p>
 											{#if data.health?.waha.latency}
 												<p class="text-[10px] text-muted-foreground">
@@ -530,7 +535,6 @@
 							type="tel"
 							id="contactPhone"
 							name="contactPhone"
-							value={data.profile.contactPhone || ''}
 							value={data.profile.contactPhone || ''}
 							placeholder={i18n.t('admin.settings.phonePlaceholder')}
 							class={errors?.contactPhone ? 'border-red-500' : ''}

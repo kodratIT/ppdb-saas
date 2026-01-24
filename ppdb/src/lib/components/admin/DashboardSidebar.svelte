@@ -47,7 +47,8 @@
 		{
 			name: i18n.t('nav.subscription'),
 			items: [
-				{ name: i18n.t('nav.plans'), icon: Package, href: '/admin/plans' },
+				{ name: i18n.t('nav.overview'), icon: LayoutDashboard, href: '/admin/subscription' },
+				{ name: i18n.t('nav.plans'), icon: Package, href: '/admin/subscription/packages' },
 				{
 					name: i18n.t('nav.activeSubscriptions'),
 					icon: Users,
@@ -58,7 +59,9 @@
 					icon: FileText,
 					href: '/admin/subscription/transactions'
 				},
-				{ name: i18n.t('nav.payouts'), icon: CreditCard, href: '/admin/payouts' }
+				{ name: i18n.t('nav.coupons'), icon: Ticket, href: '/admin/subscription/coupons' },
+				{ name: i18n.t('nav.payouts'), icon: CreditCard, href: '/admin/payouts' },
+				{ name: i18n.t('nav.auditLogs'), icon: FileCheck, href: '/admin/subscription/logs' }
 			]
 		},
 		{

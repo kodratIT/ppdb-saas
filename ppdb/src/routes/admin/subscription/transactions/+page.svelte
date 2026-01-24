@@ -19,7 +19,8 @@
 		CheckCircle,
 		Ban,
 		Loader2,
-		Calendar
+		Calendar,
+		Plus
 	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
@@ -31,12 +32,23 @@
 	let statusValue = $state(data.filters.status);
 	let timeout: NodeJS.Timeout;
 
-	// Update Status State
+	// Dialog States
 	let isStatusDialogOpen = $state(false);
 	let isDetailDialogOpen = $state(false);
+	let isCreateDialogOpen = $state(false);
 	let isUpdating = $state(false);
+	let isCreating = $state(false);
+
 	let selectedInvoice = $state<any>(null);
 	let selectedStatus = $state<'paid' | 'pending' | 'void'>('pending');
+
+	// Create Invoice Form State
+	let createForm = $state({
+		tenantId: '',
+		amount: '',
+		dueDate: '',
+		notes: ''
+	});
 
 	function handleSearch() {
 		clearTimeout(timeout);
@@ -77,6 +89,16 @@
 		isDetailDialogOpen = true;
 	}
 
+	function openCreateDialog() {
+		createForm = {
+			tenantId: '',
+			amount: '',
+			dueDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0],
+			notes: ''
+		};
+		isCreateDialogOpen = true;
+	}
+
 	function getStatusVariant(status: string) {
 		switch (status.toLowerCase()) {
 			case 'paid':
@@ -103,6 +125,13 @@
 		const translated = i18n.t(key);
 		return translated !== key ? translated : status.toUpperCase();
 	};
+
+	const getCycleText = (cycle: string | undefined) => {
+		if (!cycle) return '-';
+		const key = `admin.tenants.${cycle.toLowerCase()}` as any;
+		const translated = i18n.t(key);
+		return translated !== key ? translated : cycle;
+	};
 </script>
 
 <div class="flex flex-col gap-6 p-6">
@@ -111,6 +140,10 @@
 			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.transactions.title')}</h1>
 			<p class="text-muted-foreground">{i18n.t('admin.transactions.subtitle')}</p>
 		</div>
+		<Button onclick={openCreateDialog}>
+			<Plus class="mr-2 h-4 w-4" />
+			Create Invoice
+		</Button>
 	</div>
 
 	<!-- Filter Toolbar -->
@@ -232,6 +265,94 @@
 		</Card.Content>
 	</Card.Root>
 
+	<!-- Create Invoice Dialog -->
+	<Dialog.Root bind:open={isCreateDialogOpen}>
+		<Dialog.Content class="sm:max-w-[500px]">
+			<Dialog.Header>
+				<Dialog.Title>Create New Invoice</Dialog.Title>
+				<Dialog.Description>Create a manual invoice for a tenant.</Dialog.Description>
+			</Dialog.Header>
+			<form
+				action="?/create"
+				method="POST"
+				use:enhance={() => {
+					isCreating = true;
+					return async ({ result, update }) => {
+						isCreating = false;
+						if (result.type === 'success') {
+							toast.success('Invoice created successfully');
+							isCreateDialogOpen = false;
+							update();
+						} else {
+							toast.error(result.data?.message || 'Failed to create invoice');
+						}
+					};
+				}}
+			>
+				<div class="grid gap-4 py-4">
+					<div class="grid gap-2">
+						<Label for="tenantId">Tenant</Label>
+						<select
+							id="tenantId"
+							name="tenantId"
+							class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+							bind:value={createForm.tenantId}
+							required
+						>
+							<option value="" disabled>Select a tenant</option>
+							{#each data.tenants as tenant}
+								<option value={tenant.id}>{tenant.name} ({tenant.slug})</option>
+							{/each}
+						</select>
+					</div>
+					<div class="grid gap-2">
+						<Label for="amount">Amount (IDR)</Label>
+						<Input
+							id="amount"
+							name="amount"
+							type="number"
+							bind:value={createForm.amount}
+							placeholder="e.g. 500000"
+							required
+						/>
+					</div>
+					<div class="grid gap-2">
+						<Label for="dueDate">Due Date</Label>
+						<Input
+							id="dueDate"
+							name="dueDate"
+							type="date"
+							bind:value={createForm.dueDate}
+							required
+						/>
+					</div>
+					<div class="grid gap-2">
+						<Label for="notes">Notes</Label>
+						<Textarea
+							id="notes"
+							name="notes"
+							bind:value={createForm.notes}
+							placeholder="Description of the invoice..."
+						/>
+					</div>
+				</div>
+				<Dialog.Footer>
+					<Button type="button" variant="ghost" onclick={() => (isCreateDialogOpen = false)}
+						>Cancel</Button
+					>
+					<Button type="submit" disabled={isCreating}>
+						{#if isCreating}
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							Creating...
+						{:else}
+							Create Invoice
+						{/if}
+					</Button>
+				</Dialog.Footer>
+			</form>
+		</Dialog.Content>
+	</Dialog.Root>
+
 	<!-- Status Update Dialog -->
 	<Dialog.Root bind:open={isStatusDialogOpen}>
 		<Dialog.Content class="sm:max-w-[425px]">
@@ -240,7 +361,7 @@
 				<Dialog.Description>
 					{i18n.t('admin.transactions.changeStatusTo', {
 						status: selectedStatus.toUpperCase(),
-						id: selectedInvoice?.id.slice(0, 8)
+						id: selectedInvoice?.invoice.id.slice(0, 8)
 					})}
 				</Dialog.Description>
 			</Dialog.Header>
@@ -267,7 +388,7 @@
 				}}
 			>
 				{#if selectedInvoice}
-					<input type="hidden" name="id" value={selectedInvoice.id} />
+					<input type="hidden" name="id" value={selectedInvoice.invoice.id} />
 					<input type="hidden" name="status" value={selectedStatus} />
 					<div class="grid gap-4 py-4">
 						<div class="grid w-full gap-1.5">
@@ -279,7 +400,7 @@
 									date: new Date().toLocaleDateString(i18n.language === 'id' ? 'id-ID' : 'en-US')
 								})}
 								rows={3}
-								value={selectedInvoice.notes}
+								value={selectedInvoice.invoice.notes}
 							/>
 						</div>
 					</div>

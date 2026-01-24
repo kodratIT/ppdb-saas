@@ -1,105 +1,94 @@
 import { db } from '$lib/server/db';
-import { saasPackages } from '$lib/server/db/schema';
+import { saasPackages, saasSubscriptions } from '$lib/server/db/schema';
+import { requireAuth, requireSuperAdmin } from '$lib/server/auth/authorization';
+import { desc, eq, inArray, sql } from 'drizzle-orm';
+import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
-import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
-	const packages = await db.select().from(saasPackages).orderBy(saasPackages.priceMonthly);
+export const load: PageServerLoad = async ({ locals }) => {
+	const auth = requireAuth(locals);
+	requireSuperAdmin(auth);
+
+	// Fetch all packages
+	const packages = await db.query.saasPackages.findMany({
+		orderBy: [desc(saasPackages.createdAt)]
+	});
+
+	// Fetch subscription counts grouped by packageId for active/trial subs
+	// We use a raw query or a separate groupBy query for robustness
+	const activeSubs = await db
+		.select({
+			packageId: saasSubscriptions.packageId,
+			count: sql<number>`cast(count(${saasSubscriptions.id}) as integer)`
+		})
+		.from(saasSubscriptions)
+		.where(inArray(saasSubscriptions.status, ['active', 'trial']))
+		.groupBy(saasSubscriptions.packageId);
+
+	// Map counts to package ID
+	const subCounts = new Map<string, number>();
+	activeSubs.forEach((row) => {
+		if (row.packageId) subCounts.set(row.packageId, row.count);
+	});
+
+	// Enrich packages with stats
+	const enrichedPackages = packages.map((pkg) => {
+		const subscriberCount = subCounts.get(pkg.id) || 0;
+		return {
+			...pkg,
+			subscriberCount
+		};
+	});
+
+	// Calculate summary stats
+	const totalPackages = packages.length;
+	const activeSubscriptions = enrichedPackages.reduce((sum, pkg) => sum + pkg.subscriberCount, 0);
+	const totalRevenueMonthly = enrichedPackages.reduce(
+		(sum, pkg) => sum + pkg.priceMonthly * pkg.subscriberCount,
+		0
+	);
 
 	return {
-		packages
+		packages: enrichedPackages,
+		stats: {
+			totalPackages,
+			activeSubscriptions,
+			totalRevenueMonthly
+		}
 	};
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
-		const formData = await request.formData();
-		const name = formData.get('name') as string;
-		const slug = formData.get('slug') as string;
-		const description = formData.get('description') as string;
-		const priceMonthly = Number(formData.get('priceMonthly'));
-		const priceYearly = Number(formData.get('priceYearly'));
-		// Handle JSON fields - assuming they are passed as JSON strings for simplicity in this MVP
-		// In a real UI, we might construct this on client side or use array inputs
-		const limitsStr = (formData.get('limits') as string) || '{}';
-		const featuresStr = (formData.get('features') as string) || '[]';
+	toggleStatus: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+		requireSuperAdmin(auth);
 
-		if (!name || !slug) {
-			return fail(400, { missing: true });
-		}
-
-		try {
-			await db.insert(saasPackages).values({
-				name,
-				slug,
-				description,
-				priceMonthly,
-				priceYearly,
-				limits: JSON.parse(limitsStr),
-				features: JSON.parse(featuresStr),
-				isActive: true
-			});
-
-			return { success: true };
-		} catch (error) {
-			console.error('Failed to create package:', error);
-			return fail(500, { message: 'Failed to create package' });
-		}
-	},
-
-	update: async ({ request }) => {
-		const formData = await request.formData();
-		const id = formData.get('id') as string;
-		const name = formData.get('name') as string;
-		const slug = formData.get('slug') as string;
-		const description = formData.get('description') as string;
-		const priceMonthly = Number(formData.get('priceMonthly'));
-		const priceYearly = Number(formData.get('priceYearly'));
-		const limitsStr = (formData.get('limits') as string) || '{}';
-		const featuresStr = (formData.get('features') as string) || '[]';
-
-		if (!id) {
-			return fail(400, { missing: true });
-		}
-
-		try {
-			await db
-				.update(saasPackages)
-				.set({
-					name,
-					slug,
-					description,
-					priceMonthly,
-					priceYearly,
-					limits: JSON.parse(limitsStr),
-					features: JSON.parse(featuresStr),
-					updatedAt: new Date()
-				})
-				.where(eq(saasPackages.id, id));
-
-			return { success: true };
-		} catch (error) {
-			console.error('Failed to update package:', error);
-			return fail(500, { message: 'Failed to update package' });
-		}
-	},
-
-	toggleActive: async ({ request }) => {
 		const formData = await request.formData();
 		const id = formData.get('id') as string;
 		const isActive = formData.get('isActive') === 'true';
 
-		if (!id) return fail(400, { missing: true });
+		if (!id) return fail(400, { message: 'ID is required' });
 
-		try {
-			await db
-				.update(saasPackages)
-				.set({ isActive, updatedAt: new Date() })
-				.where(eq(saasPackages.id, id));
-			return { success: true };
-		} catch (error) {
-			return fail(500, { message: 'Failed to toggle status' });
-		}
+		await db.update(saasPackages)
+			.set({ isActive: !isActive, updatedAt: new Date() })
+			.where(eq(saasPackages.id, id));
+
+		return { success: true };
+	},
+
+	delete: async ({ request, locals }) => {
+		const auth = requireAuth(locals);
+		requireSuperAdmin(auth);
+
+		const formData = await request.formData();
+		const id = formData.get('id') as string;
+
+		if (!id) return fail(400, { message: 'ID is required' });
+
+		// Check if package is in use (optional but recommended)
+		// For now, let's just delete
+		await db.delete(saasPackages).where(eq(saasPackages.id, id));
+
+		return { success: true };
 	}
 };

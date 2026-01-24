@@ -6,47 +6,49 @@
 	import { toast } from 'svelte-sonner';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import {
-		Table,
-		TableBody,
-		TableCell,
-		TableHead,
-		TableHeader,
-		TableRow,
+		Input,
+		Button,
 		Select,
 		SelectContent,
 		SelectItem,
-		SelectTrigger,
-		Input,
-		Badge,
-		Button
+		SelectTrigger
 	} from '$lib/components/ui';
 	import * as Card from '$lib/components/ui/card';
-	import AddUnitDialog from './components/AddUnitDialog.svelte';
-	import EditUnitDialog from './components/EditUnitDialog.svelte';
+	import { Search, Filter, Building2, X, Plus } from 'lucide-svelte';
+
+	// Import refactored components
+	import UnitsStatsCards from '$lib/components/admin/UnitsStatsCards.svelte';
+	import UnitsTable from '$lib/components/admin/UnitsTable.svelte';
+	import UnitFormDialog from '$lib/components/admin/UnitFormDialog.svelte';
 	import ConfirmDialog from '../schools/components/ConfirmDialog.svelte';
-	import {
-		School,
-		Trash2,
-		Calendar,
-		LayoutGrid,
-		Building2,
-		Loader2,
-		Search,
-		Filter,
-		X
-	} from 'lucide-svelte';
+
+	// Types
+	import type { Unit, Tenant, AdminUser, TableDensity } from '$lib/types/admin';
 
 	let { data } = $props<{ data: PageData }>();
 
-	let unitToDelete = $state<string | null>(null);
+	// Cast page data to proper types
+	const units = $derived(data.units as Unit[]);
+	const tenants = $derived(data.tenants as Tenant[]);
+	const user = $derived(data.user as AdminUser);
+
+	// Dialog states
+	let unitToDelete = $state<Unit | null>(null);
 	let isConfirmOpen = $state(false);
 	let isDeleting = $state(false);
+	let isAddDialogOpen = $state(false);
+
+	// Table options
+	let density = $state<TableDensity>('normal');
+	let visibleColumns = $state<string[]>(['name', 'level', 'npsn', 'accreditation', 'actions']);
+	let groupByTenant = $state(true);
 
 	// Filter states
 	let search = $state(data.filters.search);
 	let selectedLevelFilter = $state(data.filters.level);
 	let selectedTenantIdFilter = $state(data.filters.tenantId);
 
+	// Sync filters with data changes
 	$effect(() => {
 		search = data.filters.search;
 		selectedLevelFilter = data.filters.level;
@@ -102,38 +104,9 @@
 		updateFilters();
 	}
 
-	// Group units by tenant for easier viewing
-	const groupedUnits = $derived.by(() => {
-		const groups: Record<string, { name: string; units: any[] }> = {};
-		data.units.forEach((unit: any) => {
-			const tenantId = unit.tenantId;
-			if (!groups[tenantId]) {
-				groups[tenantId] = {
-					name: unit.tenant?.name || i18n.t('admin.units.singleSchool'),
-					units: []
-				};
-			}
-			groups[tenantId].units.push(unit);
-		});
-		return Object.entries(groups).map(([id, group]) => ({ id, ...group }));
-	});
-
-	function confirmDelete(id: string) {
-		unitToDelete = id;
+	function confirmDelete(unit: Unit) {
+		unitToDelete = unit;
 		isConfirmOpen = true;
-	}
-
-	function formatDate(date: any) {
-		try {
-			if (!date) return '-';
-			return new Intl.DateTimeFormat(i18n.language === 'id' ? 'id-ID' : 'en-US', {
-				day: 'numeric',
-				month: 'long',
-				year: 'numeric'
-			}).format(new Date(date));
-		} catch (e) {
-			return '-';
-		}
 	}
 </script>
 
@@ -160,7 +133,7 @@
 		}}
 		class="hidden"
 	>
-		<input type="hidden" name="id" value={unitToDelete} />
+		<input type="hidden" name="id" value={unitToDelete?.id ?? ''} />
 	</form>
 
 	<!-- Header -->
@@ -173,22 +146,14 @@
 				{i18n.t('admin.units.subtitle')}
 			</p>
 		</div>
-		<AddUnitDialog tenants={data.tenants} user={data.user} />
+		<Button onclick={() => (isAddDialogOpen = true)}>
+			<Plus class="mr-2 h-4 w-4" />
+			{i18n.t('admin.units.addUnit')}
+		</Button>
 	</div>
 
-	<!-- Stats -->
-	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-		<Card.Root>
-			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">{i18n.t('admin.units.totalUnits')}</Card.Title>
-				<School class="h-4 w-4 text-muted-foreground" />
-			</Card.Header>
-			<Card.Content>
-				<div class="text-2xl font-bold">{data.units.length}</div>
-				<p class="text-xs text-muted-foreground">{i18n.t('admin.units.unitsMatching')}</p>
-			</Card.Content>
-		</Card.Root>
-	</div>
+	<!-- Stats Cards Component -->
+	<UnitsStatsCards {units} />
 
 	<!-- Filters Bar -->
 	<Card.Root>
@@ -207,6 +172,7 @@
 						bind:value={search}
 						oninput={handleSearchInput}
 						class="h-9"
+						aria-label={i18n.t('admin.units.searchUnits')}
 					/>
 				</div>
 
@@ -232,7 +198,7 @@
 				</div>
 
 				<!-- Tenant Filter (Super Admin Only) -->
-				{#if data.user.role === 'super_admin'}
+				{#if user.role === 'super_admin'}
 					<div class="w-full md:w-[220px] space-y-2">
 						<div
 							class="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-widest"
@@ -247,13 +213,13 @@
 						>
 							<SelectTrigger class="h-9">
 								<span class="truncate">
-									{data.tenants.find((t: any) => t.id === selectedTenantIdFilter)?.name ||
+									{tenants.find((t) => t.id === selectedTenantIdFilter)?.name ||
 										i18n.t('admin.units.allFoundations')}
 								</span>
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="all">{i18n.t('admin.units.allFoundations')}</SelectItem>
-								{#each data.tenants as tenant}
+								{#each tenants as tenant}
 									<SelectItem value={tenant.id}>{tenant.name}</SelectItem>
 								{/each}
 							</SelectContent>
@@ -268,6 +234,7 @@
 					class="h-9 w-9 shrink-0"
 					onclick={resetFilters}
 					title={i18n.t('admin.units.resetFilter')}
+					aria-label={i18n.t('admin.units.resetFilter')}
 				>
 					<X class="h-4 w-4" />
 				</Button>
@@ -275,114 +242,38 @@
 		</Card.Content>
 	</Card.Root>
 
-	<!-- Units Table with Grouping -->
+	<!-- Units Table Component -->
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>{i18n.t('admin.units.centralizedList')}</Card.Title>
 			<Card.Description>{i18n.t('admin.units.centralizedDesc')}</Card.Description>
 		</Card.Header>
 		<Card.Content class="p-0 overflow-hidden">
-			<Table>
-				<TableHeader>
-					<TableRow class="bg-muted/50 hover:bg-muted/50 border-b-0">
-						<TableHead class="pl-6 py-3 text-foreground font-semibold"
-							>{i18n.t('admin.units.unitName')}</TableHead
-						>
-						<TableHead class="py-3 text-foreground font-semibold"
-							>{i18n.t('admin.units.level')}</TableHead
-						>
-						<TableHead class="py-3 text-foreground font-semibold"
-							>{i18n.t('admin.units.npsn')}</TableHead
-						>
-						<TableHead class="text-right pr-6 py-3 text-foreground font-semibold"
-							>{i18n.t('admin.units.action')}</TableHead
-						>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{#if groupedUnits.length === 0}
-						<TableRow>
-							<TableCell colspan={4} class="h-24 text-center text-muted-foreground">
-								{i18n.t('common.none')}
-							</TableCell>
-						</TableRow>
-					{:else}
-						{#each groupedUnits as group (group.id)}
-							<!-- Foundation Group Header -->
-							<TableRow
-								class="bg-primary/5 hover:bg-primary/10 border-y transition-colors text-xs uppercase tracking-wider font-bold"
-							>
-								<TableCell colspan={4} class="py-2.5 pl-6 text-primary">
-									<div class="flex items-center gap-2">
-										<Building2 class="h-4 w-4" />
-										{group.name}
-										<div class="h-1 w-1 rounded-full bg-primary/30"></div>
-										<span class="text-[10px] text-primary/70 font-medium lowercase">
-											{i18n.t('admin.units.unit', { count: group.units.length })}
-										</span>
-									</div>
-								</TableCell>
-							</TableRow>
-
-							<!-- Units in this Foundation -->
-							{#each group.units as unit (unit.id)}
-								<TableRow class="group border-b last:border-0 hover:bg-muted/30 transition-colors">
-									<TableCell class="font-medium pl-10 py-4">
-										<div class="flex items-center gap-3">
-											<div
-												class="rounded-lg bg-muted p-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors"
-											>
-												<LayoutGrid class="h-4 w-4" />
-											</div>
-											<div class="flex flex-col gap-0.5">
-												<span class="text-sm">{unit.name}</span>
-												{#if unit.address}
-													<span
-														class="text-[10px] text-muted-foreground line-clamp-1 max-w-[250px]"
-													>
-														{unit.address}
-													</span>
-												{/if}
-											</div>
-										</div>
-									</TableCell>
-									<TableCell>
-										<Badge variant="secondary" class="text-[10px] px-2 py-0 h-5 font-bold">
-											{unit.level}
-										</Badge>
-									</TableCell>
-									<TableCell class="text-xs font-mono text-muted-foreground">
-										{unit.npsn || '-'}
-									</TableCell>
-									<TableCell class="text-right pr-6">
-										<div class="flex items-center justify-end gap-1">
-											<EditUnitDialog {unit} tenants={data.tenants} user={data.user} />
-											<Button
-												variant="ghost"
-												size="icon"
-												class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
-												onclick={() => confirmDelete(unit.id)}
-												disabled={isDeleting && unitToDelete === unit.id}
-											>
-												{#if isDeleting && unitToDelete === unit.id}
-													<Loader2 class="h-4 w-4 animate-spin" />
-												{:else}
-													<Trash2 class="h-4 w-4" />
-												{/if}
-												<span class="sr-only">{i18n.t('common.delete')}</span>
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							{/each}
-						{/each}
-					{/if}
-				</TableBody>
-			</Table>
+			<div class="p-4 pt-0">
+				<UnitsTable
+					{units}
+					{tenants}
+					{user}
+					bind:density
+					bind:visibleColumns
+					bind:groupByTenant
+					onDelete={confirmDelete}
+				/>
+			</div>
 		</Card.Content>
 	</Card.Root>
 </div>
 
+<!-- Add Unit Dialog -->
+<UnitFormDialog
+	bind:open={isAddDialogOpen}
+	mode="add"
+	{tenants}
+	{user}
+	onClose={() => (isAddDialogOpen = false)}
+/>
+
+<!-- Delete Confirmation Dialog -->
 <ConfirmDialog
 	bind:open={isConfirmOpen}
 	title={i18n.t('admin.units.deleteUnit')}
