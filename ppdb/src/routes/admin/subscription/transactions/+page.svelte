@@ -215,6 +215,10 @@
 				return FileText;
 		}
 	}
+
+	function isOverdue(invoice: any) {
+		return invoice.status === 'pending' && new Date(invoice.dueDate) < new Date();
+	}
 </script>
 
 <div class="space-y-6 p-6">
