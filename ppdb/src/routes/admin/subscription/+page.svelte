@@ -44,11 +44,7 @@
 <div class="flex flex-col gap-6 p-6">
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight mb-1">{i18n.t('admin.subscription.overview')}</h1>
-		<p class="text-muted-foreground">
-			{i18n.t('admin.subscription.overviewSubtitle', {
-				default: 'Monitor revenue, subscriptions, and billing health.'
-			})}
-		</p>
+		<p class="text-muted-foreground">{i18n.t('admin.subscription.overviewSubtitle')}</p>
 	</div>
 
 	<!-- Stats Grid -->
@@ -61,13 +57,13 @@
 					<span
 						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
 														>
-						MRR
+						{i18n.t('admin.subscription.mrr')}
 					</span>
 				</div>
 			</div>
 			<div class="space-y-1">
 				<div class="text-2xl font-bold tabular-nums">{formatCurrency(data.stats.mrr)}</div>
-				<p class="text-xs text-muted-foreground">Monthly Recurring Revenue</p>
+				<p class="text-xs text-muted-foreground">{i18n.t('admin.subscription.monthlyRecurringRevenue')}</p>
 			</div>
 		</div>
 		<!-- ARR Card -->
@@ -78,13 +74,13 @@
 					<span
 						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
 													>
-						ARR
+						{i18n.t('admin.subscription.arr')}
 					</span>
 				</div>
 			</div>
 			<div class="space-y-1">
 				<div class="text-2xl font-bold tabular-nums">{formatCurrency(data.stats.arr)}</div>
-				<p class="text-xs text-muted-foreground">Annual Run Rate</p>
+				<p class="text-xs text-muted-foreground">{i18n.t('admin.subscription.annualRunRate')}</p>
 			</div>
 		</div>
 
@@ -96,14 +92,14 @@
 					<span
 						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
 													>
-						Active Tenants
+						{i18n.t('admin.subscription.activeTenants')}
 					</span>
 				</div>
 			</div>
 			<div class="space-y-1">
 				<div class="text-2xl font-bold tabular-nums">{data.stats.activeCount}</div>
 				<p class="text-xs text-muted-foreground">
-					+ {data.stats.trialCount} on trial
+					{i18n.t('admin.subscription.onTrial', { values: { count: data.stats.trialCount } })}
 				</p>
 			</div>
 		</div>
@@ -116,13 +112,13 @@
 					<span
 						class="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
 													>
-						Past Due
+						{i18n.t('admin.subscription.pastDue')}
 					</span>
 				</div>
 			</div>
 			<div class="space-y-1">
 				<div class="text-2xl font-bold text-red-600 tabular-nums">{data.stats.pastDueCount}</div>
-				<p class="text-xs text-muted-foreground">Subscriptions needing attention</p>
+				<p class="text-xs text-muted-foreground">{i18n.t('admin.subscription.subscriptionsNeedingAttention')}</p>
 			</div>
 		</div>
 	</div>
@@ -132,9 +128,9 @@
 		<div class="bg-card p-5 rounded-xl border shadow-sm">
 			<div class="flex items-center gap-2 mb-4">
 				<DollarSign class="h-4 w-4 text-muted-foreground" />
-				<h3 class="text-sm font-semibold">Revenue Growth</h3>
+				<h3 class="text-sm font-semibold">{i18n.t('admin.subscription.revenueGrowth')}</h3>
 				<span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-auto">
-					Last 6 Months
+					{i18n.t('admin.subscription.last6Months')}
 				</span>
 			</div>
 			{#if revenueChartData.length > 0}
@@ -146,7 +142,7 @@
 				/>
 			{:else}
 				<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
-					No revenue data available yet
+					{i18n.t('admin.subscription.noRevenueData')}
 				</div>
 			{/if}
 		</div>
@@ -154,9 +150,9 @@
 		<div class="bg-card p-5 rounded-xl border shadow-sm">
 			<div class="flex items-center gap-2 mb-4">
 				<Users class="h-4 w-4 text-muted-foreground" />
-				<h3 class="text-sm font-semibold">New Tenants</h3>
+				<h3 class="text-sm font-semibold">{i18n.t('admin.subscription.newTenants')}</h3>
 				<span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-auto">
-					Last 6 Months
+					{i18n.t('admin.subscription.last6Months')}
 				</span>
 			</div>
 			{#if growthChartData.length > 0}
@@ -168,7 +164,7 @@
 				/>
 			{:else}
 				<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
-					No growth data available yet
+					{i18n.t('admin.subscription.noGrowthData')}
 				</div>
 			{/if}
 		</div>
@@ -180,27 +176,27 @@
 			<div class="p-5 border-b flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<CreditCard class="h-4 w-4 text-muted-foreground" />
-					<h3 class="text-sm font-semibold">Recent Transactions</h3>
+					<h3 class="text-sm font-semibold">{i18n.t('admin.subscription.recentTransactions')}</h3>
 				</div>
 				<Button variant="ghost" size="sm" href="/admin/subscription/transactions" class="h-8">
-					View all <ArrowRight class="ml-1 h-3 w-3" />
+					{i18n.t('admin.subscription.viewAllTransactions')} <ArrowRight class="ml-1 h-3 w-3" />
 				</Button>
 			</div>
 			<div class="p-0">
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head class="text-[10px] font-black uppercase tracking-widest">Tenant</Table.Head>
-							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-right">Amount</Table.Head>
-							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-center">Status</Table.Head>
-							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-right">Date</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest">{i18n.t('admin.subscription.tenant')}</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-right">{i18n.t('admin.subscription.amount')}</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-center">{i18n.t('admin.subscription.status')}</Table.Head>
+							<Table.Head class="text-[10px] font-black uppercase tracking-widest text-right">{i18n.t('admin.subscription.date')}</Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
 						{#if data.recentInvoices.length === 0}
 							<Table.Row>
 								<Table.Cell colspan={4} class="text-center py-8 text-muted-foreground">
-									No recent transactions
+									{i18n.t('admin.subscription.noRecentTransactions')}
 								</Table.Cell>
 							</Table.Row>
 						{:else}
@@ -244,12 +240,12 @@
 				<div class="flex items-center gap-2">
 					<Clock class="h-4 w-4 text-orange-500" />
 					<div>
-						<h3 class="text-sm font-semibold">Expiring Soon</h3>
-						<p class="text-xs text-muted-foreground">Next 7 days</p>
+						<h3 class="text-sm font-semibold">{i18n.t('admin.subscription.expiringSoon')}</h3>
+						<p class="text-xs text-muted-foreground">{i18n.t('admin.subscription.next7Days')}</p>
 					</div>
 				</div>
 				<Button variant="ghost" size="sm" href="/admin/subscription/tenants" class="h-8">
-					Manage <ArrowRight class="ml-1 h-3 w-3" />
+					{i18n.t('admin.subscription.manageTenants')} <ArrowRight class="ml-1 h-3 w-3" />
 				</Button>
 			</div>
 			<div class="p-5">
@@ -257,7 +253,7 @@
 					{#if data.expiringSubscriptions.length === 0}
 						<div class="text-center py-8 text-muted-foreground text-sm">
 							<CheckCircle2 class="h-8 w-8 mx-auto mb-2 text-green-500 opacity-50" />
-							No subscriptions expiring soon.
+							{i18n.t('admin.subscription.noSubscriptionsExpiring')}
 						</div>
 					{:else}
 						{#each data.expiringSubscriptions as item}
@@ -265,7 +261,12 @@
 								<div class="space-y-1">
 									<p class="text-sm font-medium leading-none">{item.tenant?.name}</p>
 									<p class="text-xs text-muted-foreground">
-										{item.package?.name} • {item.subscription.billingCycle}
+										{i18n.t('admin.subscription.packageAndBilling', {
+											values: {
+												package: item.package?.name,
+												cycle: item.subscription.billingCycle
+											}
+										})}
 									</p>
 								</div>
 								<div class="text-right">
@@ -276,7 +277,7 @@
 										})}
 									</Badge>
 									<p class="text-[10px] text-muted-foreground">
-										{item.subscription.autoRenew ? 'Auto-renews' : 'Expires'}
+										{item.subscription.autoRenew ? i18n.t('admin.subscription.autoRenews') : i18n.t('admin.subscription.expires')}
 									</p>
 								</div>
 							</div>
