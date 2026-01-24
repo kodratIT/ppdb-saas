@@ -1,22 +1,5 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import SubscriptionNav from '$lib/components/admin/SubscriptionNav.svelte';
-	import * as Card from '$lib/components/ui/card';
-	import * as Table from '$lib/components/ui/table';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import {
-		DollarSign,
-		Users,
-		CreditCard,
-		TrendingUp,
-		AlertTriangle,
-		ArrowRight,
-		CheckCircle2,
-		Clock
-	} from 'lucide-svelte';
-	import { i18n } from '$lib/i18n/index.svelte';
-
 	let { data }: { data: PageData } = $props();
 
 	function formatCurrency(amount: number) {
@@ -33,6 +16,13 @@
 			dateStyle: 'medium'
 		});
 	}
+
+	// Prepare Chart Data
+	const revenueChartData = $derived(data.charts.revenue.map(r => r.revenue));
+	const revenueChartLabels = $derived(data.charts.revenue.map(r => r.month));
+	
+	const growthChartData = $derived(data.charts.growth.map(g => g.count));
+	const growthChartLabels = $derived(data.charts.growth.map(g => g.month));
 </script>
 
 <div class="flex flex-col gap-6 p-6">
@@ -44,8 +34,6 @@
 			})}
 		</p>
 	</div>
-
-	<SubscriptionNav />
 
 	<!-- Stats Grid -->
 	<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -89,6 +77,55 @@
 			<Card.Content>
 				<div class="text-2xl font-bold text-red-600">{data.stats.pastDueCount}</div>
 				<p class="text-xs text-muted-foreground">Subscriptions needing attention</p>
+			</Card.Content>
+		</Card.Root>
+	</div>
+
+	<!-- Analytics Charts -->
+	<div class="grid gap-4 md:grid-cols-2">
+		<Card.Root>
+			<Card.Header>
+				<Card.Title class="text-sm font-medium flex items-center gap-2">
+					<DollarSign class="h-4 w-4" />
+					Revenue Growth (Last 6 Months)
+				</Card.Title>
+			</Card.Header>
+			<Card.Content class="pt-4">
+				{#if revenueChartData.length > 0}
+					<RevenueTrendChart 
+						data={revenueChartData} 
+						labels={revenueChartLabels} 
+						height={250} 
+						color="#10b981" 
+					/>
+				{:else}
+					<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
+						No revenue data available yet
+					</div>
+				{/if}
+			</Card.Content>
+		</Card.Root>
+
+		<Card.Root>
+			<Card.Header>
+				<Card.Title class="text-sm font-medium flex items-center gap-2">
+					<Users class="h-4 w-4" />
+					New Tenants Growth (Last 6 Months)
+				</Card.Title>
+			</Card.Header>
+			<Card.Content class="pt-4">
+				{#if growthChartData.length > 0}
+					<RevenueTrendChart 
+						data={growthChartData} 
+						labels={growthChartLabels} 
+						height={250} 
+						color="#3b82f6" 
+					/>
+				{:else}
+					<div class="h-[250px] flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
+						No growth data available yet
+					</div>
+				{/if}
 			</Card.Content>
 		</Card.Root>
 	</div>

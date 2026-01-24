@@ -3,7 +3,12 @@ import { saasPackages, saasSubscriptions } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { getTenants, cancelSubscription, extendTrial } from '$lib/server/domain/admin/tenants';
+import {
+	getTenants,
+	getTenantStats,
+	cancelSubscription,
+	extendTrial
+} from '$lib/server/domain/admin/tenants';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const page = Number(url.searchParams.get('page')) || 1;
@@ -11,15 +16,17 @@ export const load: PageServerLoad = async ({ url }) => {
 	const status = url.searchParams.get('status') || 'all';
 	const packageId = url.searchParams.get('packageId') || 'all';
 
-	const [tenantsData, packages] = await Promise.all([
+	const [tenantsData, packages, stats] = await Promise.all([
 		getTenants({ page, limit: 10, search, status, packageId }),
-		db.select().from(saasPackages).where(eq(saasPackages.isActive, true))
+		db.select().from(saasPackages).where(eq(saasPackages.isActive, true)),
+		getTenantStats()
 	]);
 
 	return {
 		tenants: tenantsData.data,
 		pagination: tenantsData.pagination,
 		packages,
+		stats,
 		filters: {
 			search,
 			status,

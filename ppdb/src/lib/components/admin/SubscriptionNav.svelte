@@ -6,22 +6,32 @@
 	const links = [
 		{
 			href: '/admin/subscription',
-			label: 'admin.subscription.overview',
+			label: 'Overview',
 			exact: true
 		},
 		{
-			href: '/admin/plans',
-			label: 'admin.packages.title',
+			href: '/admin/subscription/packages',
+			label: 'Packages',
 			exact: false
 		},
 		{
 			href: '/admin/subscription/tenants',
-			label: 'admin.tenants.title',
+			label: 'Tenants',
 			exact: false
 		},
 		{
 			href: '/admin/subscription/transactions',
-			label: 'admin.transactions.title',
+			label: 'Transactions',
+			exact: false
+		},
+		{
+			href: '/admin/subscription/coupons',
+			label: 'Coupons',
+			exact: false
+		},
+		{
+			href: '/admin/subscription/logs',
+			label: 'Audit Logs',
 			exact: false
 		}
 	];

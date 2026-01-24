@@ -1009,6 +1009,25 @@ export const saasInvoicesRelations = relations(saasInvoices, ({ one }) => ({
 	})
 }));
 
+export const saasCouponType = pgEnum('saas_coupon_type', ['percentage', 'fixed_amount']);
+
+export const saasCoupons = pgTable('saas_coupons', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	code: text('code').notNull().unique(), // e.g. "PROMO50"
+	type: saasCouponType('type').notNull().default('percentage'),
+	value: integer('value').notNull(), // 50 for 50% or 100000 for Rp 100.000
+	maxRedemptions: integer('max_redemptions'),
+	redemptionsCount: integer('redemptions_count').default(0),
+	expiresAt: timestamp('expires_at'),
+	isActive: boolean('is_active').default(true),
+	createdAt: timestamp('created_at').defaultNow(),
+	updatedAt: timestamp('updated_at').defaultNow()
+});
+
+export const saasCouponsRelations = relations(saasCoupons, ({ many }) => ({
+	// Future: track usage per tenant
+}));
+
 // Support Tickets (Helpdesk)
 export const ticketStatusEnum = pgEnum('ticket_status', [
 	'open',

@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { tenants, saasSubscriptions, saasInvoices, saasPackages } from '$lib/server/db/schema';
-import { eq, desc, and, gte, lt, or } from 'drizzle-orm';
+import { eq, desc, and, gte, lt, or, sql } from 'drizzle-orm';
 import { requireAuth, requireSuperAdmin } from '$lib/server/auth/authorization';
 import type { PageServerLoad } from './$types';
 
@@ -8,8 +8,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const auth = requireAuth(locals);
 	requireSuperAdmin(auth);
 
+	const sixMonthsAgo = new Date();
+	sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+	sixMonthsAgo.setDate(1);
+	sixMonthsAgo.setHours(0, 0, 0, 0);
+
 	// Fetch data in parallel
-	const [allSubscriptions, recentInvoices, expiringSubscriptions] = await Promise.all([
+	const [allSubscriptions, recentInvoices, expiringSubscriptions, revenueHistory, growthHistory] = await Promise.all([
 		// 1. All Active/Trial Subscriptions with Packages for Revenue Calc
 		db
 			.select({
@@ -55,7 +60,29 @@ export const load: PageServerLoad = async ({ locals }) => {
 				)
 			)
 			.orderBy(saasSubscriptions.currentPeriodEnd)
-			.limit(5)
+			.limit(5),
+
+		// 4. Revenue History (Last 6 Months)
+		db
+			.select({
+				month: sql<string>`TO_CHAR(${saasInvoices.paidAt}, 'YYYY-MM')`,
+				revenue: sql<number>`SUM(${saasInvoices.amount})`
+			})
+			.from(saasInvoices)
+			.where(and(eq(saasInvoices.status, 'paid'), gte(saasInvoices.paidAt, sixMonthsAgo)))
+			.groupBy(sql`TO_CHAR(${saasInvoices.paidAt}, 'YYYY-MM')`)
+			.orderBy(sql`TO_CHAR(${saasInvoices.paidAt}, 'YYYY-MM')`),
+
+		// 5. Tenant Growth (Last 6 Months)
+		db
+			.select({
+				month: sql<string>`TO_CHAR(${tenants.createdAt}, 'YYYY-MM')`,
+				count: sql<number>`COUNT(*)`
+			})
+			.from(tenants)
+			.where(gte(tenants.createdAt, sixMonthsAgo))
+			.groupBy(sql`TO_CHAR(${tenants.createdAt}, 'YYYY-MM')`)
+			.orderBy(sql`TO_CHAR(${tenants.createdAt}, 'YYYY-MM')`)
 	]);
 
 	// Calculate Stats
@@ -95,6 +122,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 			pastDueCount
 		},
 		recentInvoices,
-		expiringSubscriptions
+		expiringSubscriptions,
+		charts: {
+			revenue: revenueHistory,
+			growth: growthHistory
+		}
 	};
 };

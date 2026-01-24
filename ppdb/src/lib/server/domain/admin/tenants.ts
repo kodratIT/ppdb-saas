@@ -122,6 +122,40 @@ export async function extendTrial(tenantId: string, days: number) {
 		})
 		.where(eq(saasSubscriptions.tenantId, tenantId));
 }
+
+export async function getTenantStats() {
+	const result = await db
+		.select({
+			status: saasSubscriptions.status,
+			count: sql<number>`count(*)`
+		})
+		.from(saasSubscriptions)
+		.groupBy(saasSubscriptions.status);
+
+	const stats = {
+		total: 0,
+		active: 0,
+		trial: 0,
+		past_due: 0,
+		cancelled: 0
+	};
+
+	result.forEach((row) => {
+		const count = Number(row.count);
+		stats.total += count;
+		if (row.status === 'active') stats.active = count;
+		else if (row.status === 'trial') stats.trial = count;
+		else if (row.status === 'past_due') stats.past_due = count;
+		else if (row.status === 'cancelled') stats.cancelled = count;
+	});
+
+	// Get total tenants count (including those without subscription)
+	const [totalTenants] = await db.select({ count: sql<number>`count(*)` }).from(tenants);
+	stats.total = Number(totalTenants.count);
+
+	return stats;
+}
+
 export async function getTenantDetails(tenantId: string) {
 	const result = await db
 		.select({

@@ -25,7 +25,6 @@
 	import { toast } from 'svelte-sonner';
 	import type { PageData } from './$types';
 	import { i18n } from '$lib/i18n/index.svelte';
-	import SubscriptionNav from '$lib/components/admin/SubscriptionNav.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -136,8 +135,6 @@
 </script>
 
 <div class="flex flex-col gap-6 p-6">
-	<SubscriptionNav />
-
 	<div class="flex items-center justify-between">
 		<div>
 			<h1 class="text-3xl font-bold tracking-tight">{i18n.t('admin.transactions.title')}</h1>
