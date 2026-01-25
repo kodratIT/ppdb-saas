@@ -110,6 +110,36 @@ export const payoutStatusEnum = pgEnum('payout_status', [
 	'rejected'
 ]);
 
+// Audit Log Enums
+export const auditActionEnum = pgEnum('audit_action', [
+	'LOGIN',
+	'LOGOUT',
+	'CREATE',
+	'READ',
+	'UPDATE',
+	'DELETE',
+	'EXPORT',
+	'BULK_OPERATION',
+	'SCHEDULED_JOB',
+	'SYSTEM_EVENT',
+	'API_CALL',
+	'FAILED_ATTEMPT'
+]);
+
+export const auditEntityTypeEnum = pgEnum('audit_entity_type', [
+	'USER',
+	'TENANT',
+	'APPLICATION',
+	'INVOICE',
+	'SETTING',
+	'PERMISSION',
+	'INTEGRATION',
+	'JOB'
+]);
+
+export const auditSeverityEnum = pgEnum('audit_severity', ['info', 'warning', 'error', 'critical']);
+export const auditStatusEnum = pgEnum('audit_status', ['success', 'failed', 'pending']);
+
 // System Config Table for Global Settings
 export const systemConfigs = pgTable('system_configs', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -199,14 +229,45 @@ export const unitsRelations = relations(units, ({ one, many }) => ({
 	invoices: many(invoices)
 }));
 
-export const auditLogs = pgTable('audit_logs', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	actorId: uuid('actor_id').notNull(), // User ID who performed the action
-	action: text('action').notNull(), // e.g., 'create_tenant'
-	target: text('target').notNull(), // e.g., 'tenant:new-school'
-	details: text('details'), // JSON string
-	createdAt: timestamp('created_at').defaultNow().notNull()
-});
+export const auditLogs = pgTable(
+	'audit_logs',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'set null' }),
+		userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+
+		// Event metadata
+		action: auditActionEnum('action').notNull(),
+		entityType: auditEntityTypeEnum('entity_type').notNull(),
+		entityId: uuid('entity_id').notNull(),
+
+		// Details
+		details: jsonb('details').$type<{
+			before?: Record<string, any>;
+			after?: Record<string, any>;
+			metadata?: Record<string, any>;
+		}>(),
+		ipAddress: text('ip_address'),
+		userAgent: text('user_agent'),
+
+		// Context
+		severity: auditSeverityEnum('severity').notNull().default('info'),
+		status: auditStatusEnum('status').notNull().default('success'),
+
+		// Timestamps
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		indexedAt: timestamp('indexed_at').defaultNow().notNull()
+	},
+	(table) => ({
+		tenantIdx: index('idx_audit_logs_tenant').on(table.tenantId),
+		userIdx: index('idx_audit_logs_user').on(table.userId),
+		actionIdx: index('idx_audit_logs_action').on(table.action),
+		createdIdx: index('idx_audit_logs_created').on(table.createdAt),
+		indexedIdx: index('idx_audit_logs_indexed').on(table.indexedAt),
+		tenantCreatedIdx: index('idx_audit_logs_tenant_created').on(table.tenantId, table.createdAt),
+		userCreatedIdx: index('idx_audit_logs_user_created').on(table.userId, table.createdAt)
+	})
+);
 
 // Story 2.1: School Profile & Branding Configuration
 export const schoolProfiles = pgTable('school_profiles', {
