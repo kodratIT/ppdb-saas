@@ -457,7 +457,15 @@ export const id: TranslationSchema = {
 			basedOnRevenue: 'Berdasarkan pendapatan yang diproses',
 			noData: 'Data tidak tersedia',
 			last7Days: '7 Hari Terakhir',
-			exportCsv: 'Ekspor CSV'
+			last30Days: '30 Hari Terakhir',
+			thisMonth: 'Bulan Ini',
+			lastMonth: 'Bulan Lalu',
+			dateRange: 'Rentang Tanggal',
+			export: 'Ekspor',
+			exportCsv: 'Ekspor CSV',
+			exportExcel: 'Ekspor Excel',
+			exportPdf: 'Ekspor PDF',
+			schoolDetail: 'Detail Sekolah'
 		},
 		roles: {
 			title: 'Manajemen Peran',

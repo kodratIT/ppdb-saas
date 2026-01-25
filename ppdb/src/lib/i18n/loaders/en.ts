@@ -454,7 +454,15 @@ export const en = {
 			basedOnRevenue: 'Based on processed revenue',
 			noData: 'No data available',
 			last7Days: 'Last 7 Days',
-			exportCsv: 'Export CSV'
+			last30Days: 'Last 30 Days',
+			thisMonth: 'This Month',
+			lastMonth: 'Last Month',
+			dateRange: 'Date Range',
+			export: 'Export',
+			exportCsv: 'Export CSV',
+			exportExcel: 'Export Excel',
+			exportPdf: 'Export PDF',
+			schoolDetail: 'School Detail'
 		},
 		roles: {
 			title: 'Role Management',
