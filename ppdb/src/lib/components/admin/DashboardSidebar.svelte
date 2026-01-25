@@ -17,10 +17,12 @@
 		UserCog,
 		Activity,
 		Shield,
+		ShieldAlert,
 		ShieldCheck,
 		UserPlus,
 		Menu,
-		X
+		X,
+		Gauge
 	} from 'lucide-svelte';
 	import { page } from '$app/state';
 	import AdminSidebarGroup from './AdminSidebarGroup.svelte';
@@ -74,11 +76,12 @@
 		{
 			name: i18n.t('nav.system'),
 			items: [
-				{ name: i18n.t('nav.healthMonitor'), icon: Activity, href: '/admin/health' },
-				{ name: i18n.t('nav.rolesPermissions'), icon: Shield, href: '/admin/roles' },
-				{ name: i18n.t('nav.auditLogs'), icon: FileCheck, href: '/admin/audit-logs' },
-				{ name: i18n.t('nav.platformAdmins'), icon: UserCog, href: '/admin/users' },
-				{ name: i18n.t('nav.settings'), icon: Settings, href: '/admin/settings' }
+				{ name: i18n.t('nav.systemOverview'), icon: Gauge, href: '/admin/system/overview' },
+				{ name: i18n.t('nav.operations'), icon: Activity, href: '/admin/system/operations' },
+				{ name: i18n.t('nav.userManagement'), icon: Users, href: '/admin/system/users' },
+				{ name: i18n.t('nav.security'), icon: Shield, href: '/admin/system/security' },
+				{ name: i18n.t('nav.auditLogs'), icon: ShieldAlert, href: '/admin/system/audit-logs' },
+				{ name: i18n.t('nav.platformSettings'), icon: Settings, href: '/admin/system/settings' }
 			]
 		}
 	]);
