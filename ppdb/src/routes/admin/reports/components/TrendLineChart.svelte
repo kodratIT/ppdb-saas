@@ -41,16 +41,17 @@
 		if (!hasData || data.length === 0) return '';
 
 		const padding = 40;
+		const width = 800;
 		const height = 300;
 		const chartHeight = height - padding * 2;
 		const bottomY = padding + chartHeight;
 
-		// Only generate area points if we have valid points
-		if (!points || points === '') return '';
+		const pointsStr = points();
+		if (!pointsStr || pointsStr === '') return '';
 
 		const lastX = padding + ((data.length - 1) / (data.length - 1 || 1)) * (width - padding * 2);
 
-		return `${padding},${bottomY} ${points} ${lastX},${bottomY}`;
+		return `${padding},${bottomY} ${pointsStr} ${lastX},${bottomY}`;
 	});
 
 	const yAxisLabels = $derived(
@@ -112,14 +113,14 @@
 
 					<!-- Area fill -->
 					<polygon
-						points={areaPoints}
+						points={areaPoints()}
 						fill="hsl(var(--primary))"
 						fill-opacity="0.1"
 					/>
 
 					<!-- Line -->
 					<polyline
-						points={points}
+						points={points()}
 						fill="none"
 						stroke="hsl(var(--primary))"
 						stroke-width="2"
