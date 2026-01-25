@@ -306,22 +306,40 @@ export async function updateTenantStatus(
 	return updated;
 }
 
-export async function getDashboardStats() {
+export async function getDashboardStats(options?: {
+	from?: Date;
+	to?: Date;
+	tenantId?: string;
+}) {
+	const { from, to, tenantId } = options || {};
+
+	// Build date filter condition
+	const dateFilter =
+		from && to ? sql`${invoices.createdAt} >= ${from} AND ${invoices.createdAt} <= ${to}` : undefined;
+
 	// 1. Total Tenants
-	const allTenants = await db.query.tenants.findMany();
+	const allTenants = await db.query.tenants.findMany(
+		tenantId ? { where: eq(tenants.id, tenantId) } : undefined
+	);
 	const activeTenants = allTenants.filter((t) => t.status === 'active');
 
 	// 2. Total Users (Parents)
 	const [usersCount] = await db
 		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(users)
-		.where(eq(users.role, 'parent'));
+		.where(
+			tenantId ? and(eq(users.role, 'parent'), eq(users.tenantId, tenantId)) : eq(users.role, 'parent')
+		);
 
 	// 3. New registrations today
+	const newUsersConditions = tenantId
+		? and(eq(users.role, 'parent'), sql`${users.createdAt} >= CURRENT_DATE`, eq(users.tenantId, tenantId))
+		: and(eq(users.role, 'parent'), sql`${users.createdAt} >= CURRENT_DATE`);
+
 	const [newUsersToday] = await db
 		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(users)
-		.where(and(eq(users.role, 'parent'), sql`${users.createdAt} >= CURRENT_DATE`));
+		.where(newUsersConditions);
 
 	// 4. Verification Queue (Total unverified across all schools)
 	const [pendingVerifications] = await db
@@ -335,40 +353,57 @@ export async function getDashboardStats() {
 		.from(applications);
 
 	// 6. Revenue & Transaction counts
+	const baseInvoiceConditions = dateFilter
+		? tenantId
+			? and(eq(invoices.status, 'PAID'), dateFilter, eq(invoices.tenantId, tenantId))
+			: and(eq(invoices.status, 'PAID'), dateFilter)
+		: tenantId
+			? and(eq(invoices.status, 'PAID'), eq(invoices.tenantId, tenantId))
+			: eq(invoices.status, 'PAID');
+
 	const [transactionsCount] = await db
 		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(invoices)
-		.where(eq(invoices.status, 'PAID'));
+		.where(baseInvoiceConditions);
 
 	const [revenueResult] = await db
 		.select({ total: sql<number>`cast(sum(${invoices.amount}) as integer)` })
 		.from(invoices)
-		.where(eq(invoices.status, 'PAID'));
+		.where(baseInvoiceConditions);
 
-	// 7. Daily Revenue (last 7 days)
+	// 7. Daily Revenue (last 7 days or custom range)
+	const dailyRevenueDateFilter = dateFilter || sql`${invoices.createdAt} >= NOW() - INTERVAL '7 days'`;
+
+	const dailyRevenueConditions = tenantId
+		? and(eq(invoices.status, 'PAID'), dailyRevenueDateFilter, eq(invoices.tenantId, tenantId))
+		: and(eq(invoices.status, 'PAID'), dailyRevenueDateFilter);
+
 	const dailyRevenue = await db
 		.select({
 			date: sql`DATE(${invoices.createdAt})`,
 			amount: sql<number>`cast(sum(${invoices.amount}) as integer)`
 		})
 		.from(invoices)
-		.where(
-			and(eq(invoices.status, 'PAID'), sql`${invoices.createdAt} >= NOW() - INTERVAL '7 days'`)
-		)
+		.where(dailyRevenueConditions)
 		.groupBy(sql`DATE(${invoices.createdAt})`)
 		.orderBy(sql`DATE(${invoices.createdAt})`);
 
 	// 8. Top performing schools by revenue
+	const invoiceJoinCondition = dateFilter
+		? and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID'), dateFilter)
+		: and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID'));
+
 	const topSchools = await db
 		.select({
+			id: tenants.id,
 			name: tenants.name,
 			revenue: sql<number>`cast(sum(${invoices.amount}) as integer)`,
 			appCount: sql<number>`cast(count(distinct ${applications.id}) as integer)`
 		})
 		.from(tenants)
-		.leftJoin(invoices, and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID')))
+		.leftJoin(invoices, invoiceJoinCondition)
 		.leftJoin(applications, eq(tenants.id, applications.tenantId))
-		.groupBy(tenants.name)
+		.groupBy(tenants.id, tenants.name)
 		.orderBy(sql`sum(${invoices.amount}) DESC`)
 		.limit(5);
 
