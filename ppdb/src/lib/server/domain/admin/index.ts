@@ -17,7 +17,7 @@ import {
 	selectionResults,
 	homeVisitReports
 } from '$lib/server/db/schema';
-import { eq, sql, desc, or, ilike, and, getTableColumns, gte } from 'drizzle-orm';
+import { eq, sql, desc, or, ilike, and, getTableColumns, gte, inArray } from 'drizzle-orm';
 import { clearCache, getCached, setCached } from '$lib/server/cache';
 
 export async function createTenant(
@@ -310,8 +310,12 @@ export async function getDashboardStats(options?: {
 	from?: Date;
 	to?: Date;
 	tenantId?: string;
+	tenantIds?: string[];
 }) {
-	const { from, to, tenantId } = options || {};
+	const { from, to, tenantId, tenantIds } = options || {};
+
+	// Support both single tenantId and multiple tenantIds
+	const effectiveTenantIds = tenantIds || (tenantId ? [tenantId] : undefined);
 
 	// Build date filter condition - convert dates to ISO strings
 	const dateFilter =
@@ -321,7 +325,7 @@ export async function getDashboardStats(options?: {
 
 	// 1. Total Tenants
 	const allTenants = await db.query.tenants.findMany(
-		tenantId ? { where: eq(tenants.id, tenantId) } : undefined
+		effectiveTenantIds ? { where: inArray(tenants.id, effectiveTenantIds) } : undefined
 	);
 	const activeTenants = allTenants.filter((t) => t.status === 'active');
 
@@ -330,12 +334,14 @@ export async function getDashboardStats(options?: {
 		.select({ count: sql<number>`cast(count(*) as integer)` })
 		.from(users)
 		.where(
-			tenantId ? and(eq(users.role, 'parent'), eq(users.tenantId, tenantId)) : eq(users.role, 'parent')
+			effectiveTenantIds
+				? and(eq(users.role, 'parent'), inArray(users.tenantId, effectiveTenantIds))
+				: eq(users.role, 'parent')
 		);
 
 	// 3. New registrations today
-	const newUsersConditions = tenantId
-		? and(eq(users.role, 'parent'), sql`${users.createdAt} >= CURRENT_DATE`, eq(users.tenantId, tenantId))
+	const newUsersConditions = effectiveTenantIds
+		? and(eq(users.role, 'parent'), sql`${users.createdAt} >= CURRENT_DATE`, inArray(users.tenantId, effectiveTenantIds))
 		: and(eq(users.role, 'parent'), sql`${users.createdAt} >= CURRENT_DATE`);
 
 	const [newUsersToday] = await db
@@ -356,11 +362,11 @@ export async function getDashboardStats(options?: {
 
 	// 6. Revenue & Transaction counts
 	const baseInvoiceConditions = dateFilter
-		? tenantId
-			? and(eq(invoices.status, 'PAID'), dateFilter, eq(invoices.tenantId, tenantId))
+		? effectiveTenantIds
+			? and(eq(invoices.status, 'PAID'), dateFilter, inArray(invoices.tenantId, effectiveTenantIds))
 			: and(eq(invoices.status, 'PAID'), dateFilter)
-		: tenantId
-			? and(eq(invoices.status, 'PAID'), eq(invoices.tenantId, tenantId))
+		: effectiveTenantIds
+			? and(eq(invoices.status, 'PAID'), inArray(invoices.tenantId, effectiveTenantIds))
 			: eq(invoices.status, 'PAID');
 
 	const [transactionsCount] = await db
@@ -376,8 +382,8 @@ export async function getDashboardStats(options?: {
 	// 7. Daily Revenue (last 7 days or custom range)
 	const dailyRevenueDateFilter = dateFilter || sql`${invoices.createdAt} >= NOW() - INTERVAL '7 days'`;
 
-	const dailyRevenueConditions = tenantId
-		? and(eq(invoices.status, 'PAID'), dailyRevenueDateFilter, eq(invoices.tenantId, tenantId))
+	const dailyRevenueConditions = effectiveTenantIds
+		? and(eq(invoices.status, 'PAID'), dailyRevenueDateFilter, inArray(invoices.tenantId, effectiveTenantIds))
 		: and(eq(invoices.status, 'PAID'), dailyRevenueDateFilter);
 
 	const dailyRevenue = await db
@@ -392,8 +398,17 @@ export async function getDashboardStats(options?: {
 
 	// 8. Top performing schools by revenue
 	const invoiceJoinCondition = dateFilter
-		? and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID'), dateFilter)
-		: and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID'));
+		? effectiveTenantIds
+			? and(
+					eq(tenants.id, invoices.tenantId),
+					eq(invoices.status, 'PAID'),
+					dateFilter,
+					inArray(tenants.id, effectiveTenantIds)
+				)
+			: and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID'), dateFilter)
+		: effectiveTenantIds
+			? and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID'), inArray(tenants.id, effectiveTenantIds))
+			: and(eq(tenants.id, invoices.tenantId), eq(invoices.status, 'PAID'));
 
 	const topSchools = await db
 		.select({
@@ -410,6 +425,10 @@ export async function getDashboardStats(options?: {
 		.limit(5);
 
 	// 9. Live Snapshot: Recent payments across platform
+	const recentPaymentsCondition = effectiveTenantIds
+		? and(eq(invoices.status, 'PAID'), inArray(invoices.tenantId, effectiveTenantIds))
+		: eq(invoices.status, 'PAID');
+
 	const recentPayments = await db
 		.select({
 			tenantName: tenants.name,
@@ -418,7 +437,7 @@ export async function getDashboardStats(options?: {
 		})
 		.from(invoices)
 		.innerJoin(tenants, eq(invoices.tenantId, tenants.id))
-		.where(eq(invoices.status, 'PAID'))
+		.where(recentPaymentsCondition)
 		.orderBy(desc(invoices.updatedAt))
 		.limit(5);
 

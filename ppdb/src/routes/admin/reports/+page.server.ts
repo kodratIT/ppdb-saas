@@ -15,11 +15,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     const plan = url.searchParams.get('plan');
     const status = url.searchParams.get('status');
 
+    // Parse schools filter - support multi-select
+    const schoolIds = schools && schools !== '' ? schools.split(',') : undefined;
+
     // Apply filters to getDashboardStats
     const stats = await getDashboardStats({
         from: from ? new Date(from) : undefined,
         to: to ? new Date(to) : undefined,
-        tenantId: schools && schools !== '' ? schools.split(',')[0] : undefined
+        tenantIds: schoolIds
     });
 
     // Additional filtering based on payment status if specified
@@ -50,9 +53,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
             // Status filter
             conditions.push(inArray(invoices.status, targetStatuses));
 
-            // School filter
-            if (schools && schools !== '') {
-                conditions.push(eq(invoices.tenantId, schools.split(',')[0]));
+            // School filter - support multi-select
+            if (schoolIds) {
+                conditions.push(inArray(invoices.tenantId, schoolIds));
             }
 
             // Recalculate financial metrics with status filter
