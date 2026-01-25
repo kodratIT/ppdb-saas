@@ -106,6 +106,13 @@
       "when": 1769236631984,
       "tag": "0014_opposite_zzzax",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1769314255430,
+      "tag": "0015_lucky_red_ghost",
+      "breakpoints": true
     }
   ]
 }

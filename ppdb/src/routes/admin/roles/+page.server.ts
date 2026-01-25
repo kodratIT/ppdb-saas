@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { users, tenants } from '$lib/server/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';
@@ -7,6 +8,9 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
     const auth = await requireAuth(locals);
     requireSuperAdmin(auth);
+
+    // Redirect to new system users page
+    throw redirect(302, '/admin/system/users');
 
     // Get all platform users with their roles
     const allUsers = await db

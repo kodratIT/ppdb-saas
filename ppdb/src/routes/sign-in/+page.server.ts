@@ -6,6 +6,7 @@ import { AuthError } from '$lib/server/auth/types';
 import { db } from '$lib/server/db';
 import { users, tenants } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { logSuccess, logFailure } from '$lib/server/audit-logs';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.session) {
@@ -27,6 +28,8 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const email = data.get('email');
 		const password = data.get('password');
+		const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+		const userAgent = request.headers.get('user-agent') || 'unknown';
 
 		if (!email || typeof email !== 'string') {
 			return fail(400, { error: 'Email is required' });
@@ -89,6 +92,17 @@ export const actions: Actions = {
 				maxAge: 30 * 24 * 60 * 60 // 30 days
 			});
 
+			// Log successful login
+			await logSuccess('LOGIN', 'USER', user.id, {
+				userId: user.id,
+				tenantId: targetTenantId as string,
+				details: {
+					metadata: { email: user.email, method: 'credentials' }
+				},
+				ipAddress: ip,
+				userAgent
+			});
+
 			// REDIRECT LOGIC
 			if (isCentralAdmin) {
 				throw redirect(302, '/admin');
@@ -103,11 +117,29 @@ export const actions: Actions = {
 		} catch (error) {
 			if (isRedirect(error)) throw error;
 
+			const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+			const userAgent = request.headers.get('user-agent') || 'unknown';
+			const emailStr = String(email || 'unknown');
+
 			if (error instanceof AuthError) {
+				// Log failed login attempt (AuthError)
+				await logFailure('FAILED_ATTEMPT', 'USER', emailStr, error.message, {
+					details: { metadata: { email: emailStr, attempt: 'login' } },
+					ipAddress: ip,
+					userAgent
+				});
 				return fail(error.statusCode || 401, { error: error.message });
 			}
 
 			console.error('Sign-in error:', error);
+			
+			// Log failed login attempt (Unknown error)
+			await logFailure('FAILED_ATTEMPT', 'USER', emailStr, error instanceof Error ? error.message : 'Unknown error', {
+				details: { metadata: { email: emailStr, attempt: 'login', type: 'system_error' } },
+				ipAddress: ip,
+				userAgent
+			});
+
 			return fail(500, { error: `Error: ${error instanceof Error ? error.message : 'Unknown'}` });
 		}
 	}

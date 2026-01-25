@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { tenants, users, applications, invoices } from '$lib/server/db/schema';
 import { sql, eq, gte, and } from 'drizzle-orm';
@@ -9,6 +10,9 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
 	const auth = await requireAuth(locals);
 	requireSuperAdmin(auth);
+
+	// Redirect to new system operations page
+	throw redirect(302, '/admin/system/operations');
 
 	const now = new Date();
 	const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);

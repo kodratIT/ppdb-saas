@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { auditLogs, users, tenants } from '$lib/server/db/schema';
 import { eq, desc, and, like, gte, lte, sql } from 'drizzle-orm';
@@ -7,6 +8,9 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ url, locals }) => {
     const auth = await requireAuth(locals);
     requireSuperAdmin(auth);
+
+    // Redirect to new system security page
+    throw redirect(302, '/admin/system/security');
 
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = 50;
