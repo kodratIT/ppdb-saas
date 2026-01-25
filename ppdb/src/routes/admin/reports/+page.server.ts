@@ -50,10 +50,23 @@ export const load: PageServerLoad = async ({ locals, url }) => {
                 conditions.push(sql`${invoices.createdAt} <= ${new Date(to).toISOString()}`);
             }
 
-            // Status filter - cast to proper enum type
-            conditions.push(
-                sql`${invoices.status} = ANY(${JSON.stringify(targetStatuses)}::text[])`
-            );
+            // Status filter - use inArray for proper type safety
+            const paidStatuses: Array<'PAID' | 'PENDING' | 'FAILED' | 'EXPIRED' | 'REFUNDED'> = ['PAID'];
+            const pendingStatuses: Array<'PAID' | 'PENDING' | 'FAILED' | 'EXPIRED' | 'REFUNDED'> = ['PENDING'];
+            const failedStatuses: Array<'PAID' | 'PENDING' | 'FAILED' | 'EXPIRED' | 'REFUNDED'> = ['FAILED'];
+            const refundedStatuses: Array<'PAID' | 'PENDING' | 'FAILED' | 'EXPIRED' | 'REFUNDED'> = ['REFUNDED'];
+
+            const statusMap: Record<string, Array<'PAID' | 'PENDING' | 'FAILED' | 'EXPIRED' | 'REFUNDED'>> = {
+                paid: paidStatuses,
+                pending: pendingStatuses,
+                failed: failedStatuses,
+                refunded: refundedStatuses
+            };
+
+            const targetStatuses = statusMap[status];
+            if (targetStatuses) {
+                conditions.push(inArray(invoices.status, targetStatuses));
+            }
 
             // School filter - support multi-select
             if (schoolIds) {
