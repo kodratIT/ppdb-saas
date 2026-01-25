@@ -39,17 +39,17 @@ export const load: PageServerLoad = async ({ locals, url }) => {
             // Build conditions array
             const conditions = [];
 
-            // Date range condition
+            // Date range condition - convert to ISO strings
             if (from) {
-                conditions.push(sql`${invoices.createdAt} >= ${new Date(from)}`);
+                conditions.push(sql`${invoices.createdAt} >= ${new Date(from).toISOString()}`);
             }
             if (to) {
-                conditions.push(sql`${invoices.createdAt} <= ${new Date(to)}`);
+                conditions.push(sql`${invoices.createdAt} <= ${new Date(to).toISOString()}`);
             }
-            
+
             // Status filter
             conditions.push(inArray(invoices.status, targetStatuses));
-            
+
             // School filter
             if (schools && schools !== '') {
                 conditions.push(eq(invoices.tenantId, schools.split(',')[0]));

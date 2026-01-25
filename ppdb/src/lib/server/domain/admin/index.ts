@@ -313,9 +313,11 @@ export async function getDashboardStats(options?: {
 }) {
 	const { from, to, tenantId } = options || {};
 
-	// Build date filter condition
+	// Build date filter condition - convert dates to ISO strings
 	const dateFilter =
-		from && to ? sql`${invoices.createdAt} >= ${from} AND ${invoices.createdAt} <= ${to}` : undefined;
+		from && to
+			? sql`${invoices.createdAt} >= ${from.toISOString()} AND ${invoices.createdAt} <= ${to.toISOString()}`
+			: undefined;
 
 	// 1. Total Tenants
 	const allTenants = await db.query.tenants.findMany(
