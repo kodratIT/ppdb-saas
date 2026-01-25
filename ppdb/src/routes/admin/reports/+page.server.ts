@@ -50,8 +50,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
                 conditions.push(sql`${invoices.createdAt} <= ${new Date(to).toISOString()}`);
             }
 
-            // Status filter
-            conditions.push(inArray(invoices.status, targetStatuses));
+            // Status filter - cast to proper enum type
+            conditions.push(
+                sql`${invoices.status} = ANY(${JSON.stringify(targetStatuses)}::text[])`
+            );
 
             // School filter - support multi-select
             if (schoolIds) {
