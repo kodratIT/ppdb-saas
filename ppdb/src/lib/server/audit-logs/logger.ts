@@ -20,12 +20,11 @@ export async function logAuditEvent(data: AuditLogEvent): Promise<void> {
 			ipAddress: data.ipAddress || null,
 			userAgent: data.userAgent || null,
 			severity: data.severity || 'info',
-			status: data.status || 'success',
-			indexedAt: new Date()
+			status: data.status || 'success'
 		});
 	} catch (error) {
 		// Log errors but don't throw - audit logging shouldn't break the app
-		console.error('Failed to log audit event:', error);
+		console.error(`Failed to log audit event (action=${data.action}, entity=${data.entityType}, id=${data.entityId}):`, error);
 	}
 }
 
