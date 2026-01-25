@@ -2,6 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Filter, X, ChevronDown } from 'lucide-svelte';
 	import { i18n } from '$lib/i18n/index.svelte';
+	import { browser } from '$app/environment';
 
 	let { schools, onFilterChange }: {
 		schools: Array<{ id: string; name: string }>;
@@ -20,7 +21,7 @@
 		paymentStatus: 'all'
 	});
 
-	// Dropdown states
+	// Dropdown states - ensure they're reactive
 	let showSchoolDropdown = $state(false);
 	let showPlanDropdown = $state(false);
 	let showStatusDropdown = $state(false);
@@ -37,7 +38,7 @@
 		{ value: 'paid', label: 'Paid' },
 		{ value: 'pending', label: 'Pending' },
 		{ value: 'failed', label: 'Failed' },
-			{ value: 'refunded', label: 'Refunded' }
+		{ value: 'refunded', label: 'Refunded' }
 	];
 
 	function toggleSchool(schoolId: string) {
@@ -50,12 +51,21 @@
 		onFilterChange(filters);
 	}
 
+	function toggleSchoolDropdown() {
+		showSchoolDropdown = !showSchoolDropdown;
+	}
+
+	function togglePlanDropdown() {
+		showPlanDropdown = !showPlanDropdown;
+	}
+
+	function toggleStatusDropdown() {
+		showStatusDropdown = !showStatusDropdown;
+	}
+
 	function updateFilter(key: keyof FilterState, value: string) {
 		filters = { ...filters, [key]: value };
 		onFilterChange(filters);
-		// Close the dropdown
-		if (key === 'planType') showPlanDropdown = false;
-		if (key === 'paymentStatus') showStatusDropdown = false;
 	}
 
 	function clearFilters() {
@@ -107,7 +117,7 @@
 		<Button
 			variant="outline"
 			class="gap-2"
-			onclick={() => showSchoolDropdown = !showSchoolDropdown}
+			onclick={toggleSchoolDropdown}
 			aria-label="Filter by school"
 		>
 			<Filter class="h-4 w-4" />
@@ -150,7 +160,7 @@
 		<Button
 			variant="outline"
 			class="gap-2"
-			onclick={() => showPlanDropdown = !showPlanDropdown}
+			onclick={togglePlanDropdown}
 			aria-label="Filter by plan type"
 		>
 			<span>Plan</span>
@@ -167,7 +177,10 @@
 				{#each planTypes as plan}
 					<button
 						class="flex w-full rounded px-2 py-1.5 text-sm hover:bg-accent text-left"
-						onclick={() => updateFilter('planType', plan.value)}
+						onclick={() => {
+							updateFilter('planType', plan.value);
+							showPlanDropdown = false;
+						}}
 					>
 						{plan.label}
 					</button>
@@ -181,7 +194,7 @@
 		<Button
 			variant="outline"
 			class="gap-2"
-			onclick={() => showStatusDropdown = !showStatusDropdown}
+			onclick={toggleStatusDropdown}
 			aria-label="Filter by payment status"
 		>
 			<span>Status</span>
@@ -198,7 +211,10 @@
 				{#each paymentStatuses as status}
 					<button
 						class="flex w-full rounded px-2 py-1.5 text-sm hover:bg-accent text-left"
-						onclick={() => updateFilter('paymentStatus', status.value)}
+						onclick={() => {
+							updateFilter('paymentStatus', status.value);
+							showStatusDropdown = false;
+						}}
 					>
 						{status.label}
 					</button>
